@@ -20,10 +20,12 @@ export function formatDate(value?: string): string {
     return value;
   }
 
+  // The site's day, as ui-pudl gives it (UTC, like the logs), whatever zone the server runs in.
   return date.toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
     year: "numeric",
+    timeZone: "UTC",
   });
 }
 

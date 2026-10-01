@@ -29,7 +29,7 @@ export default route({
       popular: popular.status === "fulfilled" && popular.value
         ? (popular.value.posts || []).map((p) => ({ id: p.id, title: p.title, slug: p.slug, excerpt: p.excerpt?.trim() || "", author: p.authorDisplayName, published: p.publishedAt, date: formatDate(p.publishedAt) }))
         : [],
-      dateline: new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }).toUpperCase(),
+      dateline: new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "UTC" }).toUpperCase(),
     });
   },
 });
