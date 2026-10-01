@@ -1,0 +1,5 @@
+export interface Input { count: number; rule?: string }
+<if=(input.count > 0)>
+  <span class=(input.rule || "text-border")>|</span>
+  <span>${input.count} comment${input.count === 1 ? "" : "s"}</span>
+</if>

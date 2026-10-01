@@ -1,0 +1,109 @@
+export interface Input {
+  content: Marko.Body;
+  siteName: string;
+  brand: [string, string];
+  factoids: boolean;
+  rss: boolean;
+  backendVersion: string;
+  frontendVersion: string;
+  sidebar: { id: string; title: string; slug: string }[];
+  year: number;
+}
+
+<div class="noise-overlay">
+  <div class="relative flex min-h-screen flex-col">
+    <header class="sticky top-0 z-50 w-full">
+      <div class="h-[2px] bg-amber"/>
+      <div class="bg-background/95 supports-[backdrop-filter]:bg-background/80 backdrop-blur border-b border-border/40">
+        <div class="container flex h-14 max-w-screen-xl items-center">
+          <div class="hidden md:flex items-center min-w-0">
+            <a href="/" class="mr-6 flex items-center shrink-0">
+              <span class="font-display text-xl tracking-normal">
+                <span class="text-foreground">${input.brand[0]}</span><span class="text-amber">.</span><span class="text-foreground/80">${input.brand[1]}</span>
+              </span>
+            </a>
+            <div class="h-5 w-px bg-border/40 mr-5 shrink-0"/>
+            <nav class="flex items-center gap-5 min-w-0">
+              <a href="/" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 whitespace-nowrap">Front Page</a>
+              <a href="/tags" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 whitespace-nowrap">Tags</a>
+            </nav>
+          </div>
+          <div class="md:hidden">
+            <a href="/" class="flex items-center">
+              <span class="font-display text-lg tracking-normal">
+                <span class="text-foreground">${input.brand[0]}</span><span class="text-amber">.</span><span class="text-foreground/80">${input.brand[1]}</span>
+              </span>
+            </a>
+          </div>
+          <div class="flex items-center gap-1 ml-auto">
+            <form action="/search" method="get" class="hidden lg:flex items-center gap-1 px-2">
+              <label for="header-search" class="sr-only">Search posts</label>
+              <input id="header-search" name="q" type="search" placeholder="Search posts..."
+                class="h-8 w-40 rounded border border-border/60 bg-background px-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-amber">
+              <button type="submit" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200" aria-label="Search">🔍</button>
+            </form>
+            <div class="hidden lg:block h-4 w-px bg-border/40"/>
+            <a class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-2" href="/feed.xml">RSS</a>
+            <div class="h-4 w-px bg-border/40"/>
+            <button type="button" data-theme-toggle hidden aria-label="Toggle theme"
+              class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-2">◐</button>
+            <div class="h-4 w-px bg-border/40"/>
+            <a href="/login" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-2">Log in</a>
+          </div>
+        </div>
+        <nav class="md:hidden flex items-center gap-4 overflow-x-auto px-6 pb-2">
+          <a href="/" class="section-label text-muted-foreground hover:text-amber transition-colors whitespace-nowrap">Front Page</a>
+          <a href="/tags" class="section-label text-muted-foreground hover:text-amber transition-colors whitespace-nowrap">Tags</a>
+          <form action="/search" method="get" class="flex items-center gap-1">
+            <label for="mobile-header-search" class="sr-only">Search posts</label>
+            <input id="mobile-header-search" name="q" type="search" placeholder="Search..."
+              class="h-8 w-28 rounded border border-border/60 bg-background px-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-amber">
+            <button type="submit" class="section-label text-muted-foreground hover:text-amber transition-colors whitespace-nowrap" aria-label="Search">🔍</button>
+          </form>
+        </nav>
+      </div>
+    </header>
+
+    <main class="flex-1"><${input.content}/></main>
+
+    <footer class="border-t border-border/40">
+      <div class="container max-w-screen-xl">
+        <div class="border-t border-amber/30 mt-px"/>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 py-10">
+          <div>
+            <span class="font-display text-xl tracking-normal">
+              <span class="text-foreground">bytecode</span><span class="text-amber">.</span><span class="text-foreground/80">news</span>
+            </span>
+            <p class="text-muted-foreground text-sm mt-3 leading-relaxed max-w-xs">
+              Technical writing, software engineering insights, and the craft of building things that work.
+            </p>
+          </div>
+          <div>
+            <h2 class="section-label text-amber mb-4">Sections</h2>
+            <nav class="flex flex-col gap-2">
+              <a href="/" class="text-muted-foreground hover:text-foreground text-sm transition-colors">Articles</a>
+              <if=input.factoids><a href="/factoids" class="text-muted-foreground hover:text-foreground text-sm transition-colors">Factoids</a></if>
+              <if=input.rss><a href="/rss" class="text-muted-foreground hover:text-foreground text-sm transition-colors">RSS Reader</a></if>
+              <a href="/karma" class="text-muted-foreground hover:text-foreground text-sm transition-colors">Karma</a>
+              <a href="/logs" class="text-muted-foreground hover:text-foreground text-sm transition-colors">Logs</a>
+              <for|post| of=input.sidebar>
+                <a href=`/posts/${post.slug}` class="text-muted-foreground hover:text-foreground text-sm transition-colors">${post.title}</a>
+              </for>
+            </nav>
+          </div>
+          <div>
+            <h2 class="section-label text-amber mb-4">System</h2>
+            <div class="flex flex-col gap-2">
+              <span class="dateline text-muted-foreground">Backend ${input.backendVersion}</span>
+              <span class="dateline text-muted-foreground">Frontend ${input.frontendVersion}</span>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-border/40 py-5 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p class="dateline text-muted-foreground">&copy; ${input.year} bytecode.news</p>
+          <p class="dateline text-muted-foreground">All rights reserved</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+</div>

@@ -1,0 +1,4 @@
+{
+  "extends": "primate/tsconfig",
+  "include": ["config", "routes", "views", "client", "src"]
+}

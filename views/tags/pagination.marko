@@ -1,0 +1,5 @@
+export interface Input { page: number; totalPages: number }
+<div class="pagination">
+  <div><if=(input.page > 0)><a class="pagelink" href=`/?page=${input.page - 1}`>&larr; Previous</a></if></div>
+  <div><if=(input.page + 1 < input.totalPages)><a class="pagelink" href=`/?page=${input.page + 1}`>Next &rarr;</a></if></div>
+</div>

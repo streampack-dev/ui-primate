@@ -1,0 +1,23 @@
+export interface Input { post: { id: string; title: string; slug: string; excerpt: string; author: string; published: string; date: string; comments: number; tags: string[] } }
+<const/post=(input.post)>
+<article class="group">
+  <div class="byline text-muted-foreground mb-4 flex items-center gap-2">
+    <span>By ${post.author}</span>
+    <span class="text-border">|</span>
+    <time datetime=post.published>${post.date}</time>
+    <byline-comments count=post.comments/>
+  </div>
+  <h2 class="headline-lead text-foreground group-hover:text-amber transition-colors duration-200">
+    <a href=`/posts/${post.slug}`>${post.title}</a>
+  </h2>
+  <if=post.excerpt><p class="article-excerpt mt-4 max-w-2xl">${post.excerpt}</p></if>
+  <if=post.tags.length>
+    <div class="tags mt-4">
+      <for|tag| of=post.tags><a class="tag" href=`/tags/${encodeURIComponent(tag)}`>${tag}</a></for>
+    </div>
+  </if>
+  <div class="mt-5 flex items-center gap-2">
+    <div class="h-px w-6 bg-amber/40 transition-all duration-300 group-hover:w-10 group-hover:bg-amber"/>
+    <a href=`/posts/${post.slug}` class="section-label text-amber-dim group-hover:text-amber transition-colors">Read article</a>
+  </div>
+</article>
