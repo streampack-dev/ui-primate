@@ -1,0 +1,14 @@
+export interface Input {
+  comment: { id: string; author: string; date: string; html: string; deleted: boolean; replies: any[] };
+}
+<const/c=(input.comment)>
+<article class="comment" id=`comment-${c.id}`>
+  <p class="meta">${c.author} at ${c.date}</p>
+  <if=c.deleted><p>[deleted]</p></if>
+  <else><div class="post-body comment-body">$!{c.html}</div></else>
+  <if=c.replies.length>
+    <div class="comment-replies">
+      <for|reply| of=c.replies by="id"><comment-item comment=reply/></for>
+    </div>
+  </if>
+</article>

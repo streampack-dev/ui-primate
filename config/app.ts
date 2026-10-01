@@ -20,5 +20,7 @@ export default config({
     css: "master.css",
     theme: "theme.ts",
     masthead: "masthead.ts",
+    read: "read.ts",
+    highlight: "highlight.ts",
   },
 });

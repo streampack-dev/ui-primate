@@ -46,7 +46,7 @@ export interface Input {
       <div class="border-t-2 border-amber/30 mb-8"/>
       <p class="section-label text-amber/60 mb-4">Notice</p>
       <p class="font-display text-2xl text-foreground/80 tracking-tight leading-snug">The editorial team is preparing the first edition.</p>
-      <p class="text-muted-foreground/50 text-sm mt-4 leading-relaxed">Articles will appear here once published. Check back soon for technical writing, engineering insights, and dispatches from the world of software.</p>
+      <p class="text-muted-foreground/70 text-sm mt-4 leading-relaxed">Articles will appear here once published. Check back soon for technical writing, engineering insights, and dispatches from the world of software.</p>
       <div class="border-t-2 border-amber/30 mt-8"/>
     </div>
   </if>
@@ -84,10 +84,10 @@ export interface Input {
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
               <for|post, index| of=input.popular>
                 <article class="group">
-                  <p class="dateline text-muted-foreground/50 mb-2">${String(index + 1).padStart(2, "0")}</p>
+                  <p class="dateline text-muted-foreground/70 mb-2">${String(index + 1).padStart(2, "0")}</p>
                   <h3 class="headline-brief text-foreground group-hover:text-amber transition-colors duration-200"><a href=`/posts/${post.slug}`>${post.title}</a></h3>
                   <if=post.excerpt><p class="text-muted-foreground/70 text-sm leading-relaxed mt-2 line-clamp-3" data-popular-dek>${post.excerpt}</p></if>
-                  <div class="byline text-muted-foreground/60 mt-2 flex items-center gap-2">
+                  <div class="byline text-muted-foreground/70 mt-2 flex items-center gap-2">
                     <span>${post.author}</span>
                     <span class="text-border/50">|</span>
                     <time datetime=post.published>${post.date}</time>

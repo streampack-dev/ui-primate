@@ -39,11 +39,8 @@ export function formatUpdatedTime(value?: string): string {
     return "";
   }
 
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const ampm = hours >= 12 ? "pm" : "am";
-  const displayHour = hours % 12 || 12;
-  const displayMinutes = minutes.toString().padStart(2, "0");
-
-  return `Updated ${displayHour}:${displayMinutes}${ampm} ET`;
+  // In Eastern time, as it says, whatever zone the server runs in.
+  const time = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "America/New_York" })
+    .replace(" ", "").toLowerCase();
+  return `Updated ${time} ET`;
 }

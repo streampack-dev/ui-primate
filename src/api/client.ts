@@ -50,3 +50,21 @@ export async function cachedGet<T>(path: string, query: Record<string, string | 
     throw new ApiUnavailable(`${path}: ${(e as Error).message}`);
   }
 }
+
+/**
+ * A request that changes something ([method] other than GET): never cached, never served stale.
+ * Returns the API's response as it came, for the caller to read.
+ */
+export async function send(method: string, path: string, body?: unknown, headers: Record<string, string> = {}): Promise<Response> {
+  return fetch(`${base}${path}`, {
+    method,
+    headers: {
+      "Accept-Version": acceptVersion,
+      Accept: "application/json",
+      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      ...headers,
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  });
+}
