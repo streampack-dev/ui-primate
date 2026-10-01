@@ -1,0 +1,30 @@
+export interface Input { step: "email" | "code"; email?: string; back: string; error?: string; csrf: string }
+<section class="container max-w-md py-12">
+  <div class="border-t-2 border-amber mb-6"/>
+  <h1 class="font-display text-3xl mb-2">Log in</h1>
+  <if=(input.step === "email")>
+    <p class="text-muted-foreground mb-6">We'll email you a code to sign in with.</p>
+    <form class="auth-form" method="post" action="/login/code">
+      <input type="hidden" name="csrf" value=input.csrf>
+      <input type="hidden" name="return" value=input.back>
+      <label class="auth-label" for="login-email">Email address</label>
+      <input class="auth-input" id="login-email" name="email" type="email" autocomplete="email" required value=input.email
+        aria-invalid=(input.error ? "true" : false) aria-describedby=(input.error ? "login-error" : false)>
+      <if=input.error><p class="form-error" id="login-error" role="alert">${input.error}</p></if>
+      <button class="auth-button" type="submit">Email me a code</button>
+    </form>
+  </if>
+  <else>
+    <p class="text-muted-foreground mb-6">We've emailed a code to ${input.email}. Enter it here.</p>
+    <form class="auth-form" method="post" action="/login">
+      <input type="hidden" name="csrf" value=input.csrf>
+      <input type="hidden" name="return" value=input.back>
+      <label class="auth-label" for="login-code">Code</label>
+      <input class="auth-input" id="login-code" name="code" inputmode="numeric" autocomplete="one-time-code" required
+        aria-invalid=(input.error ? "true" : false) aria-describedby=(input.error ? "login-error" : false)>
+      <if=input.error><p class="form-error" id="login-error" role="alert">${input.error}</p></if>
+      <button class="auth-button" type="submit">Sign in</button>
+    </form>
+    <p class="text-muted-foreground text-sm mt-4"><a class="pagelink" href=`/login?return=${encodeURIComponent(input.back)}`>Use a different address</a></p>
+  </else>
+</section>

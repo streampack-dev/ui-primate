@@ -1,4 +1,7 @@
 {
   "extends": "primate/tsconfig",
-  "include": ["config", "routes", "views", "client", "src"]
+  "compilerOptions": {
+    "paths": { "@/*": ["./*"] }
+  },
+  "include": ["config", "routes", "views", "client", "src", "test"]
 }

@@ -4,6 +4,8 @@ import { cachedGet } from "#api/client.ts";
 import type { ContentList, Features } from "#api/types.ts";
 import { formatVersionText } from "#lib/format.ts";
 import pkg from "../package.json" with { type: "json" };
+import { current, isAdmin } from "#auth/readers.ts";
+import session from "@/config/session";
 
 /* Every page's frame: the header and footer, with what the API says the site offers. A page keeps
    rendering when the API can't be reached; the frame just says less. */
@@ -29,6 +31,12 @@ export default route({
       frontendVersion: formatVersionText({ version: pkg.version, commit: process.env.UI_COMMIT, branch: process.env.UI_BRANCH }),
       sidebar: sidebar.status === "fulfilled" ? (sidebar.value?.posts || []).map(({ id, title, slug }) => ({ id, title, slug })) : [],
       year: new Date().getFullYear(),
+      // Who's signed in, and the token their sign-out form carries. A reader who isn't gets no
+      // session for it: the header only links to the login page.
+      reader: current(),
+      admin: isAdmin(current()),
+      csrf: (session.try() as { csrf?: string } | undefined)?.csrf ?? "",
+      submit: !!current() || f?.anonymousSubmission !== false,
     });
   },
 });

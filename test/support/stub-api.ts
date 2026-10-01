@@ -8,10 +8,10 @@ import { createHash } from "node:crypto";
 import http from "node:http";
 
 export type Answer = { status?: number; body?: unknown; raw?: string; headers?: Record<string, string>; delayMs?: number };
-export type Seen = { method: string; path: string; query: Record<string, string>; headers: Record<string, string> };
+export type Seen = { method: string; path: string; query: Record<string, string>; headers: Record<string, string>; body: unknown };
 
 /** An answer matches a path, and every query parameter it names (others are ignored). */
-type Rule = { path: string; query: Record<string, string>; answer: Answer };
+type Rule = { path: string; method?: string; query: Record<string, string>; answer: Answer };
 
 export function startStubApi(port = 0): Promise<{ url: string; close: () => Promise<void> }> {
   let rules: Rule[] = [];
@@ -22,10 +22,14 @@ export function startStubApi(port = 0): Promise<{ url: string; close: () => Prom
     if (url.pathname.startsWith("/__")) return admin(url.pathname, req, res);
 
     const query = Object.fromEntries(url.searchParams);
-    seen.push({ method: req.method || "GET", path: url.pathname, query, headers: req.headers as Record<string, string> });
+    let incoming = "";
+    for await (const chunk of req) incoming += chunk;
+    let received: unknown = incoming || undefined;
+    try { received = incoming ? JSON.parse(incoming) : undefined; } catch { /* kept as text */ }
+    seen.push({ method: req.method || "GET", path: url.pathname, query, headers: req.headers as Record<string, string>, body: received });
     // The last rule that matches wins, so a test can override a default.
     const rule = [...rules].reverse().find((r) =>
-      r.path === url.pathname && Object.entries(r.query).every(([k, v]) => query[k] === v));
+      r.path === url.pathname && (!r.method || r.method === req.method) && Object.entries(r.query).every(([k, v]) => query[k] === v));
     if (!rule) {
       res.writeHead(404, { "Content-Type": "application/problem+json" });
       return res.end(JSON.stringify({ status: 404, detail: `No stub for ${url.pathname}` }));

@@ -17,7 +17,11 @@ function freePort(): Promise<number> {
 
 export default async function setup(project: TestProject) {
   const stubApi = await startStubApi();
-  execFileSync("npx", ["primate", "build"], { stdio: "ignore" });
+  try {
+    execFileSync("npx", ["primate", "build"], { stdio: "pipe" });
+  } catch (e) {
+    throw new Error(`The build failed:\n${(e as { stdout?: Buffer; stderr?: Buffer }).stderr || ""}${(e as { stdout?: Buffer }).stdout || ""}`);
+  }
   const port = await freePort();
   const app = spawn("npx", ["primate", "serve"], {
     env: { ...process.env, BCN_API_BASE: stubApi.url, PORT: String(port), TZ: "America/New_York", UI_DEV: "" },

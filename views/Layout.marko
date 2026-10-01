@@ -8,6 +8,10 @@ export interface Input {
   frontendVersion: string;
   sidebar: { id: string; title: string; slug: string }[];
   year: number;
+  reader: { displayName: string } | null;
+  admin: boolean;
+  csrf: string;
+  submit: boolean;
 }
 
 <div class="noise-overlay">
@@ -48,7 +52,18 @@ export interface Input {
             <button type="button" data-theme-toggle hidden aria-label="Toggle theme"
               class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-2">◐</button>
             <div class="h-4 w-px bg-border/40"/>
-            <a href="/login" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-2">Log in</a>
+            <if=input.submit><a href="/submit" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-2">Submit</a></if>
+            <if=input.reader>
+              <if=input.admin><a href="/admin" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-2">Admin</a></if>
+              <a href="/profile" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-2">${input.reader.displayName}</a>
+              <form method="post" action="/logout" class="inline">
+                <input type="hidden" name="csrf" value=input.csrf>
+                <button type="submit" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-2">Sign out</button>
+              </form>
+            </if>
+            <else>
+              <a href="/login" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-2">Log in</a>
+            </else>
           </div>
         </div>
         <nav class="md:hidden flex items-center gap-4 overflow-x-auto px-6 pb-2">

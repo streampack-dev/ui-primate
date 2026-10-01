@@ -4,11 +4,11 @@ import { inject } from "vitest";
 const stubUrl = () => inject("stubApi");
 
 /** From now on, a GET of [path] (with at least [query]) answers [answer]. */
-export async function stub(path: string, body: unknown, options: { query?: Record<string, string | number>; status?: number; headers?: Record<string, string>; delayMs?: number } = {}) {
+export async function stub(path: string, body: unknown, options: { query?: Record<string, string | number>; method?: string; status?: number; headers?: Record<string, string>; delayMs?: number } = {}) {
   const query = Object.fromEntries(Object.entries(options.query || {}).map(([k, v]) => [k, String(v)]));
   await fetch(`${stubUrl()}/__stub`, {
     method: "POST",
-    body: JSON.stringify({ path, query, answer: { body, status: options.status, headers: options.headers, delayMs: options.delayMs } }),
+    body: JSON.stringify({ path, method: options.method, query, answer: { body, status: options.status, headers: options.headers, delayMs: options.delayMs } }),
   });
 }
 
@@ -16,7 +16,7 @@ export async function resetStubs() {
   await fetch(`${stubUrl()}/__reset`, { method: "POST" });
 }
 
-export async function requests(): Promise<{ method: string; path: string; query: Record<string, string>; headers: Record<string, string> }[]> {
+export async function requests(): Promise<{ method: string; path: string; query: Record<string, string>; headers: Record<string, string>; body: any }[]> {
   return (await fetch(`${stubUrl()}/__requests`)).json();
 }
 
