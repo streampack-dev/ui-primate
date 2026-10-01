@@ -7,7 +7,7 @@
 import { createHash } from "node:crypto";
 import http from "node:http";
 
-export type Answer = { status?: number; body?: unknown; headers?: Record<string, string>; delayMs?: number };
+export type Answer = { status?: number; body?: unknown; raw?: string; headers?: Record<string, string>; delayMs?: number };
 export type Seen = { method: string; path: string; query: Record<string, string>; headers: Record<string, string> };
 
 /** An answer matches a path, and every query parameter it names (others are ignored). */
@@ -30,9 +30,10 @@ export function startStubApi(port = 0): Promise<{ url: string; close: () => Prom
       res.writeHead(404, { "Content-Type": "application/problem+json" });
       return res.end(JSON.stringify({ status: 404, detail: `No stub for ${url.pathname}` }));
     }
-    const { status = 200, body, headers = {}, delayMs = 0 } = rule.answer;
+    const { status = 200, body, raw, headers = {}, delayMs = 0 } = rule.answer;
     if (delayMs) await new Promise((r) => setTimeout(r, delayMs));
-    const text = body === undefined ? "" : JSON.stringify(body);
+    // A raw answer (XML, say) is sent as it is, with whatever Content-Type the rule gives.
+    const text = raw ?? (body === undefined ? "" : JSON.stringify(body));
     const etag = `"${createHash("sha1").update(text).digest("hex").slice(0, 16)}"`;
     if (status === 200 && req.headers["if-none-match"] === etag) {
       res.writeHead(304, { ETag: etag, ...headers });

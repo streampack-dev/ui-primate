@@ -61,3 +61,11 @@ export async function stubSite(fields: Partial<Record<string, unknown>> = {}) {
   await stub("/features", features(fields));
   await stub("/posts", list([post({ title: "About", slug: "about" })]), { query: { category: "_sidebar" } });
 }
+
+/** From now on, a GET of [path] answers [raw] as it is, with [contentType]. */
+export async function stubRaw(path: string, raw: string, contentType: string, options: { status?: number } = {}) {
+  await fetch(`${stubUrl()}/__stub`, {
+    method: "POST",
+    body: JSON.stringify({ path, query: {}, answer: { raw, status: options.status, headers: { "Content-Type": contentType } } }),
+  });
+}
