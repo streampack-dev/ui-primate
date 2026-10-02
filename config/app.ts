@@ -1,9 +1,12 @@
 import marko from "@primate/marko";
 import tailwind from "@primate/tailwind";
 import config from "primate/config";
+import assetCache from "../src/lib/asset-cache.ts";
 
 export default config({
   modules: [
+    // First, so it's around everything: how long browsers keep Primate's own files.
+    assetCache as never,
     // Pages are rendered on the server and ship no framework runtime, as ui-pudl's do; the few
     // interactive parts are small scripts in client/. Under `just dev` (UI_DEV=1) the runtime is
     // on, because Primate's dev server renders Marko only in the browser, for live reload.

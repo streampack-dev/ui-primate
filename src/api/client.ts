@@ -3,11 +3,17 @@
 
    - every request sends the pinned Accept-Version, and a Content-Version that differs is logged,
      since the API has moved on from what this app was built against;
-   - answers are kept, with their ETags, and asked for again conditionally: an unchanged answer
-     comes back as a bodiless 304 and the kept one is used;
+   - answers are kept, with their ETags, and used as they are for a few seconds to a few minutes,
+     by what they are (FRESH, ui-pudl's intervals); after that they're asked for again
+     conditionally, and an unchanged answer comes back as a bodiless 304 and the kept one is used;
+   - requests for the same answer at the same time share one call to the API;
+   - anything this app changes through the API (send) has every kept answer asked for again, so a
+     reader sees what they just did;
    - when the API is down or slow, the last good answer is served rather than an error.
 
-   BCN_API_BASE (default the live API) and BCN_ACCEPT_VERSION are read at run time. */
+   BCN_API_BASE (default the live API) and BCN_ACCEPT_VERSION are read at run time, as is
+   BCN_CACHE_FRESH_SECONDS, which sets every interval at once (0: ask every time, as the page
+   tests do, since they change the API's answers between pages). */
 import createClient from "openapi-fetch";
 import type { paths } from "./schema.d.ts";
 
@@ -17,8 +23,27 @@ const TIMEOUT_MS = 5_000;
 
 export const api = createClient<paths>({ baseUrl: base });
 
-type Kept = { etag: string | null; data: unknown };
+/** Seconds an answer from a path is used as it is, by the first that matches; ui-pudl's ApiCache. */
+const FRESH: [RegExp, number][] = [
+  [/^\/(features|categories)$/, 600],
+  [/^\/(pages|factoids|karma|rss)\b/, 300],
+  [/^\/(taxonomy|posts\/popular)$/, 60],
+  [/^\/posts\/search$/, 30],
+  [/^\/posts\/.+\/comments$/, 15],
+  [/^\/(posts\/.+|logs\b)/, 30],
+];
+const DEFAULT_FRESH = 15;
+const freshOverride = process.env.BCN_CACHE_FRESH_SECONDS;
+
+/** How long, in milliseconds, an answer from [path] is used before it's asked for again. */
+export function freshFor(path: string): number {
+  if (freshOverride !== undefined && freshOverride !== "") return Number(freshOverride) * 1000;
+  return (FRESH.find(([pattern]) => pattern.test(path))?.[1] ?? DEFAULT_FRESH) * 1000;
+}
+
+type Kept = { etag: string | null; data: unknown; checked: number };
 const kept = new Map<string, Kept>();
+const asking = new Map<string, Promise<unknown>>();
 
 /** Thrown when the API can't answer and nothing was kept to answer with instead. */
 export class ApiUnavailable extends Error {}
@@ -31,6 +56,15 @@ export async function cachedGet<T>(path: string, query: Record<string, string | 
   for (const [k, v] of Object.entries(query)) if (v !== undefined) search.set(k, String(v));
   const url = `${base}${path}${search.size ? `?${search}` : ""}`;
   const before = kept.get(url);
+  if (before && Date.now() - before.checked < freshFor(path)) return before.data as T;
+  const already = asking.get(url);
+  if (already) return already as Promise<T | null>;
+  const answer = ask<T>(url, path, before).finally(() => asking.delete(url));
+  asking.set(url, answer);
+  return answer;
+}
+
+async function ask<T>(url: string, path: string, before: Kept | undefined): Promise<T | null> {
   const headers: Record<string, string> = { "Accept-Version": acceptVersion, Accept: "application/json" };
   if (before?.etag) headers["If-None-Match"] = before.etag;
   try {
@@ -39,11 +73,14 @@ export async function cachedGet<T>(path: string, query: Record<string, string | 
     if (served && served !== acceptVersion) {
       console.warn(`GET ${path} answered with Content-Version ${served}; this app expects ${acceptVersion}`);
     }
-    if (response.status === 304 && before) return before.data as T;
+    if (response.status === 304 && before) {
+      before.checked = Date.now();
+      return before.data as T;
+    }
     if (response.status === 404) return null;
     if (!response.ok) throw new Error(`API ${response.status} on ${path}`);
     const data = await response.json();
-    kept.set(url, { etag: response.headers.get("ETag"), data });
+    kept.set(url, { etag: response.headers.get("ETag"), data, checked: Date.now() });
     return data as T;
   } catch (e) {
     if (before) return before.data as T;
@@ -58,6 +95,7 @@ export async function cachedGet<T>(path: string, query: Record<string, string | 
 /** A request not cached: a form's, say. [timeoutMs] is longer for the API's AI helpers. A body is
    sent as JSON, unless [raw] gives it as text, of [contentType]. */
 export async function send(method: string, path: string, body?: unknown, headers: Record<string, string> = {}, { timeoutMs = TIMEOUT_MS, raw, contentType }: { timeoutMs?: number; raw?: string; contentType?: string } = {}): Promise<Response> {
+  if (method.toUpperCase() !== "GET") for (const answer of kept.values()) answer.checked = 0;
   return fetch(`${base}${path}`, {
     method,
     headers: {
