@@ -227,6 +227,17 @@ describe("approving a draft", () => {
     expect(put.body).toEqual({ publishedAt: "2026-10-02T09:00:00.000Z" });
   });
 
+  it("is offered at the foot of the editor, beside Save, not at the top", async () => {
+    const v = await signedIn(ADMIN);
+    const { doc } = await v.get(EDIT);
+    const foot = doc.querySelector(".editor-actions")!;
+
+    expect(foot.querySelector("button[type=submit]")?.textContent).toBe("Save");
+    expect(foot.querySelector(`a[href='${EDIT}/approve']`)).not.toBeNull();
+    expect(foot.querySelector(`a[href='${EDIT}/delete']`)).not.toBeNull();
+    expect(doc.querySelector(`main header a[href='${EDIT}/approve']`)).toBeNull();
+  });
+
   it("isn't offered for a post already published", async () => {
     await stub(`/posts/${ID}`, post());
     const v = await signedIn(ADMIN);

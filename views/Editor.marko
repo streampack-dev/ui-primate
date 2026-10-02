@@ -25,11 +25,7 @@ export interface Input {
           <p class="section-label text-amber mb-3">${input.draft ? "Draft" : "Edit"}</p>
           <h1 class="font-display text-foreground leading-tight submit-title">${form.title || "Untitled"}</h1>
         </div>
-        <div class="flex flex-wrap gap-4 items-center">
-          <if=input.postHref><a class="section-label form-helper" href=input.postHref>View post</a></if>
-          <if=input.draft><a class="section-label profile-action" data-confirm href=`/edit/${input.id}/approve`>Approve…</a></if>
-          <a class="section-label profile-action danger" data-confirm href=`/edit/${input.id}/delete`>Delete…</a>
-        </div>
+        <if=input.postHref><a class="section-label form-helper" href=input.postHref>View post</a></if>
       </div>
     </header>
 
@@ -121,8 +117,11 @@ export interface Input {
           </div>
         </div>
 
-        <div class="border-t border-border/40 pt-6">
+        <!-- What can be done with the post, together: save it, approve a draft (as last saved), delete it. -->
+        <div class="editor-actions border-t border-border/40 pt-6 flex flex-wrap items-center gap-3">
           <button type="submit" class="auth-button">Save</button>
+          <if=input.draft><a class="section-label profile-action" data-confirm href=`/edit/${input.id}/approve`>Approve…</a></if>
+          <a class="section-label profile-action danger ml-auto" data-confirm href=`/edit/${input.id}/delete`>Delete…</a>
         </div>
       </form>
 
