@@ -34,8 +34,11 @@ Smaller things noticed along the way:
       newer Node when it's fixed.
 - [ ] No compression: Primate sends pages as they are (22 KB for the front page). The proxy in front
       should gzip or brotli them.
-- [ ] Comment removal asks on a page of its own; a dialog, when script is there, would save the trip
-      (ui-pudl does both)
+- [x] Steps asked first (removing comments, approving and deleting posts, the admin pages' user and
+      category steps) are asked in a dialog when there's script, on a page of their own without it
+- [ ] The editor's preview is close to the API's rendering, not exact: markdown-it, where the API has
+      flexmark, so asides and admonitions aren't drawn. Not urgent (2026-10-02); the saved post is
+      always rendered by the API. ui-pudl's preview is exact because it uses flexmark itself.
 - [ ] Sessions end thirty days after sign-in, not after thirty idle days as ui-pudl's do
 
 Parked:

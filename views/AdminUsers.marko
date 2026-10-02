@@ -39,18 +39,18 @@ export interface Input {
                 </select>
                 <button type="submit" class="section-label profile-action">Change</button>
               </form>
-              <a class="section-label profile-action danger" href=`/admin/users/${u.username}/suspend`>Suspend…</a>
-              <a class="section-label profile-action danger" href=`/admin/users/${u.username}/erase`>Erase…</a>
+              <a class="section-label profile-action danger" data-confirm href=`/admin/users/${u.username}/suspend`>Suspend…</a>
+              <a class="section-label profile-action danger" data-confirm href=`/admin/users/${u.username}/erase`>Erase…</a>
             </if>
             <if=(input.status === "SUSPENDED")>
               <form method="post" action=`/admin/users/${u.username}/unsuspend`>
                 <input type="hidden" name="csrf" value=input.csrf>
                 <button type="submit" class="section-label profile-action">Unsuspend</button>
               </form>
-              <a class="section-label profile-action danger" href=`/admin/users/${u.username}/erase`>Erase…</a>
+              <a class="section-label profile-action danger" data-confirm href=`/admin/users/${u.username}/erase`>Erase…</a>
             </if>
             <if=(input.status === "ERASED")>
-              <a class="section-label profile-action danger" href=`/admin/users/${u.username}/purge`>Purge content…</a>
+              <a class="section-label profile-action danger" data-confirm href=`/admin/users/${u.username}/purge`>Purge content…</a>
             </if>
             <a class="section-label form-helper" href=`/admin/users/${u.username}/export` download>Export</a>
           </div>

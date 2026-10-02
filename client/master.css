@@ -1345,3 +1345,21 @@ textarea.form-field {
 .admin-stat a:hover .admin-stat-value {
   @apply text-amber;
 }
+
+/* A question asked first, in a dialog (client/confirm.ts). */
+.confirm-dialog {
+  @apply m-auto max-w-lg w-[calc(100%-2rem)] border border-border bg-background text-foreground p-6 shadow-xl;
+  border-top: 2px solid var(--amber);
+}
+
+.confirm-dialog::backdrop {
+  background: color-mix(in srgb, black 55%, transparent);
+}
+
+.confirm-dialog form {
+  @apply flex flex-wrap items-end gap-4;
+}
+
+.confirm-dialog button.confirm-cancel {
+  @apply cursor-pointer;
+}

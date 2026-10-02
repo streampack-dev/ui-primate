@@ -39,7 +39,7 @@ export interface Input {
           </details>
         </if>
         <if=talk.admin>
-          <a class="section-label form-helper comment-remove" href=`/comments/${c.id}/remove?post=${encodeURIComponent(talk.slug)}`>Remove…</a>
+          <a class="section-label form-helper comment-remove" data-confirm href=`/comments/${c.id}/remove?post=${encodeURIComponent(talk.slug)}`>Remove…</a>
         </if>
       </div>
     </if>

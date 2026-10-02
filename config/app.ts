@@ -21,6 +21,6 @@ export default config({
     theme: "theme.ts",
     masthead: "masthead.ts",
     read: "read.ts",
-    highlight: "highlight.ts", editor: "editor.ts",
+    highlight: "highlight.ts", editor: "editor.ts", confirm: "confirm.ts",
   },
 });

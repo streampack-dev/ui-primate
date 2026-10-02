@@ -27,8 +27,8 @@ export interface Input {
         </div>
         <div class="flex flex-wrap gap-4 items-center">
           <if=input.postHref><a class="section-label form-helper" href=input.postHref>View post</a></if>
-          <if=input.draft><a class="section-label profile-action" href=`/edit/${input.id}/approve`>Approve…</a></if>
-          <a class="section-label profile-action danger" href=`/edit/${input.id}/delete`>Delete…</a>
+          <if=input.draft><a class="section-label profile-action" data-confirm href=`/edit/${input.id}/approve`>Approve…</a></if>
+          <a class="section-label profile-action danger" data-confirm href=`/edit/${input.id}/delete`>Delete…</a>
         </div>
       </div>
     </header>

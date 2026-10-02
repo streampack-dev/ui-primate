@@ -44,11 +44,11 @@ export interface Input {
           <span class="text-muted-foreground text-sm"><if=c.orphanOf>in ${c.orphanOf}, which isn't listed</if></span>
         </div>
         <h3 class="headline-brief text-foreground">${c.name}</h3>
-        <p class="mt-2"><a class="section-label profile-action danger" href=`/admin/categories/${c.id}/delete`>Delete…</a></p>
+        <p class="mt-2"><a class="section-label profile-action danger" data-confirm href=`/admin/categories/${c.id}/delete`>Delete…</a></p>
         <if=c.children.length>
           <ul class="admin-subcategories mt-3 ml-6 space-y-2">
             <for|s| of=c.children by="id">
-              <li class="flex items-center justify-between gap-4 text-sm"><span>${s.name}</span> <a class="section-label form-helper" href=`/admin/categories/${s.id}/delete`>Delete…</a></li>
+              <li class="flex items-center justify-between gap-4 text-sm"><span>${s.name}</span> <a class="section-label form-helper" data-confirm href=`/admin/categories/${s.id}/delete`>Delete…</a></li>
             </for>
           </ul>
         </if>

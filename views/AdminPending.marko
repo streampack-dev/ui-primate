@@ -33,10 +33,10 @@ export interface Input {
         <div class="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-border/20">
           <a class="section-label profile-action" href=`/edit/${d.id}`>Edit</a>
           <if=!input.deleted>
-            <a class="section-label profile-action" href=`/edit/${d.id}/approve?return=%2Fadmin%2Fpending`>Approve…</a>
-            <a class="section-label profile-action danger" href=`/edit/${d.id}/delete`>Delete…</a>
+            <a class="section-label profile-action" data-confirm href=`/edit/${d.id}/approve?return=%2Fadmin%2Fpending`>Approve…</a>
+            <a class="section-label profile-action danger" data-confirm href=`/edit/${d.id}/delete`>Delete…</a>
           </if>
-          <else><a class="section-label profile-action danger" href=`/edit/${d.id}/delete?hard=true`>Delete for good…</a></else>
+          <else><a class="section-label profile-action danger" data-confirm href=`/edit/${d.id}/delete?hard=true`>Delete for good…</a></else>
         </div>
       </article>
     </for>

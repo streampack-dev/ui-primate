@@ -26,7 +26,8 @@ export async function open(path: string, theme: "light" | "dark" = "light", cook
 /** Fails with axe's findings, if any, at WCAG 2 A and AA. */
 export async function expectAccessible(page: Page) {
   // After the entrance animations: mid-fade, text is measured nearly transparent.
-  await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
+  // An animation cancelled along the way (by a dialog opening, say) is as done as a finished one.
+  await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))));
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
 }
