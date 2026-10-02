@@ -30,6 +30,8 @@ Before it's deployed:
 
 Smaller things noticed along the way:
 
+- [ ] Google Analytics, as ui-nextjs and ui-pudl have it (deploy#3): a GA_MEASUREMENT_ID read at run
+      time. The deploy service doesn't pass one yet, since there's nothing to read it.
 - [ ] Node 24 and 26 crash the server under load (primate-bugs/09); the image stays on Node 22. Locally
       (Node 26), `just dev` and `just run` can fall over when a browser abandons a request. Retry
       newer Node when it's fixed.
