@@ -1176,3 +1176,61 @@ textarea.form-field {
 .comment-form {
   @apply mt-8 pt-6 border-t border-border/40;
 }
+
+/* Channel logs: ui-nextjs's, drawn on the server. */
+.log-channel {
+  @apply block px-3 py-2.5 font-mono text-xs transition-colors border-l-2 border-transparent text-muted-foreground hover:text-foreground hover:border-border;
+}
+
+.log-channel.is-current {
+  @apply border-amber text-amber bg-amber/5;
+}
+
+.log-channel-latest {
+  @apply mt-0.5;
+  font-size: 0.65rem;
+  color: color-mix(in srgb, var(--muted-foreground) 85%, transparent);
+}
+
+.log-day-link {
+  @apply font-mono text-xs uppercase tracking-widest text-amber hover:text-foreground transition-colors;
+}
+
+.log-day-link.is-disabled {
+  @apply text-muted-foreground/40;
+}
+
+.log-day {
+  @apply font-mono text-xs uppercase tracking-wider text-muted-foreground;
+}
+
+.log-line {
+  @apply flex gap-3 py-1.5 px-2 -mx-2 hover:bg-muted/30 transition-colors scroll-mt-20;
+}
+
+.log-line:target {
+  @apply bg-amber/10;
+}
+
+.log-time {
+  @apply font-mono text-muted-foreground hover:text-amber shrink-0 tabular-nums leading-relaxed transition-colors;
+  font-size: 0.7rem;
+}
+
+.log-sender {
+  @apply font-mono font-medium text-amber shrink-0 min-w-[6rem] truncate leading-relaxed;
+  font-size: 0.7rem;
+}
+
+.log-content {
+  @apply text-sm leading-relaxed break-words min-w-0;
+  color: color-mix(in srgb, var(--foreground) 90%, transparent);
+}
+
+.log-content a {
+  @apply underline underline-offset-2 hover:text-amber;
+}
+
+.log-system .log-content {
+  @apply italic text-muted-foreground;
+}

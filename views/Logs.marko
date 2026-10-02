@@ -1,0 +1,74 @@
+export interface Input {
+  day: string;
+  dayLabel: string;
+  channels: { uri: string; name: string; latest: string | null; href: string; current: boolean }[];
+  chosen: { name: string; href: string } | null;
+  lines: { id: string; time: string; iso: string; sender: string | null; segments: { text: string; href?: string }[]; outbound: boolean }[];
+  failed: boolean;
+  prev: string | null;
+  next: string | null;
+  allToggle: { href: string; all: boolean } | null;
+}
+<div class="container max-w-screen-xl mx-auto py-10 px-6">
+  <div class="border-t-2 border-amber pt-6 mb-2 animate-rule-draw"/>
+  <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-2 mb-8">
+    <div>
+      <p class="section-label text-amber mb-2">Community</p>
+      <h1 class="font-display text-3xl md:text-4xl tracking-tight">Chat Logs</h1>
+    </div>
+    <p class="dateline text-muted-foreground">${input.dayLabel}</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-8">
+    <aside>
+      <h2 class="section-label text-muted-foreground mb-3">Channels</h2>
+      <if=input.allToggle>
+        <p class="mb-4"><a class="log-all section-label form-helper" href=input.allToggle.href>${input.allToggle.all ? "IRC only" : "Show all protocols"}</a></p>
+      </if>
+      <if=(input.channels.length === 0)><p class="text-sm text-muted-foreground">No channels available.</p></if>
+      <else>
+        <nav class="log-channels space-y-1" aria-label="Channels">
+          <for|c| of=input.channels by="uri">
+            <a href=c.href aria-current=(c.current ? "page" : false) class=["log-channel", c.current && "is-current"]>
+              <span class="log-channel-name block truncate">${c.name}</span>
+              <if=c.latest><span class="log-channel-latest block truncate">${c.latest}</span></if>
+            </a>
+          </for>
+        </nav>
+      </else>
+    </aside>
+
+    <div class="min-w-0">
+      <if=input.chosen>
+        <nav class="log-days flex items-center justify-between border-b border-border/40 pb-3 mb-6" aria-label="Days">
+          <a class="log-day-link" rel="prev" href=input.prev>&larr; Previous</a>
+          <span class="log-day">${input.chosen.name} · ${input.day}</span>
+          <if=input.next><a class="log-day-link" rel="next" href=input.next>Next &rarr;</a></if>
+          <else><span class="log-day-link is-disabled" aria-hidden="true">Next &rarr;</span></else>
+        </nav>
+        <if=input.failed>
+          <div class="log-error border-l-2 border-destructive pl-4 py-2" role="alert">
+            <p class="form-error mt-0">This day's log couldn't be loaded just now. Try again shortly.</p>
+          </div>
+        </if>
+        <else if=(input.lines.length === 0)>
+          <p class="py-12 text-center border-t border-border/20 text-muted-foreground font-mono text-sm">No entries for this day.</p>
+        </else>
+        <else>
+          <ol class="log-lines">
+            <for|line| of=input.lines by="id">
+              <li id=line.id class=["log-line", !line.sender && "log-system", line.outbound && "log-outbound"]>
+                <a class="log-time" href=`${input.chosen.href}#${line.id}`><time datetime=line.iso>${line.time}</time></a>
+                <if=line.sender><span class="log-sender">${line.sender}</span></if>
+                <span class="log-content"><for|s| of=line.segments><if=s.href><a href=s.href rel="nofollow ugc noopener">${s.text}</a></if><else>${s.text}</else></for></span>
+              </li>
+            </for>
+          </ol>
+        </else>
+      </if>
+      <else>
+        <p class="py-12 text-center text-muted-foreground font-mono text-sm">There are no channels to show.</p>
+      </else>
+    </div>
+  </div>
+</div>

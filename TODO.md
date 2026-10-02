@@ -7,7 +7,7 @@ Features, in the order they're being built (as agreed 2026-10-01):
 - [x] Sign-in by emailed code, and sign-out
 - [x] Post submission
 - [x] Comment submission: post, reply, edit, admin removal
-- [ ] Logs
+- [x] Logs
 - [ ] RSS reader
 - [ ] Tags, and the pages for each tag
 - [ ] Category pages
