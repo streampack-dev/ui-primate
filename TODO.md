@@ -13,7 +13,7 @@ Features, in the order they're being built (as agreed 2026-10-01):
 - [ ] Category pages
 - [x] Search
 - [x] Factoids
-- [ ] Karma
+- [x] Karma
 - [x] Profile
 - [x] Editing posts
 - [x] Admin pages

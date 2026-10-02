@@ -1394,3 +1394,54 @@ textarea.form-field {
 .factoid-value {
   font-family: var(--font-body), Georgia, serif;
 }
+
+/* Karma: ui-nextjs's leaderboard. */
+.karma-view {
+  @apply px-4 py-2 font-mono text-xs font-semibold uppercase tracking-widest border border-amber text-amber transition-colors;
+}
+
+.karma-view + .karma-view {
+  border-left: none;
+}
+
+.karma-view.is-current {
+  background: var(--amber);
+  color: var(--primary-foreground);
+}
+
+.karma-rank {
+  min-width: 1.5rem;
+  text-align: right;
+}
+
+.karma-score-row {
+  padding-left: calc(1.5rem + 0.75rem);
+}
+
+.karma-score {
+  @apply text-amber font-semibold;
+  min-width: 3.5rem;
+  text-align: right;
+}
+
+.karma-bar {
+  background: var(--border);
+}
+
+.karma-bar-fill {
+  background: var(--amber);
+}
+
+/* The theme's red is too light to read on the light theme's paper (4.25:1); the error text's red is
+   dark enough there, and the theme's is right on the dark one. */
+.karma-score.is-negative {
+  color: #bf3d31;
+}
+
+.dark .karma-score.is-negative {
+  color: var(--destructive);
+}
+
+.karma-bar-fill.is-negative {
+  background: var(--destructive);
+}

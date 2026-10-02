@@ -1,0 +1,60 @@
+export interface Input {
+  limit: number;
+  view: "top" | "bottom";
+  views: { label: string; href: string; current: boolean }[];
+  entries: { rank: number; subject: string; score: string; negative: boolean; width: number; updated: string; date: string }[];
+}
+<section class="py-8 md:py-12">
+  <div class="max-w-3xl mx-auto px-6 md:px-8">
+    <header class="mb-10">
+      <div class="border-t-2 border-amber animate-rule-draw"/>
+      <div class="pt-6 pb-8 border-b border-border/40">
+        <p class="section-label text-amber mb-3">Community Ledger</p>
+        <h1 class="font-display text-foreground leading-tight submit-title">Karma</h1>
+        <p class="text-muted-foreground text-sm mt-3 leading-relaxed max-w-lg">
+          The collective reputation of subjects across every surface where Nevet operates: IRC, Discord, Slack, and beyond. Earned one vote at a time.
+        </p>
+      </div>
+    </header>
+
+    <form class="flex gap-3 items-center mb-10" action="/karma" method="get">
+      <label class="section-label form-label-text" for="karma-limit">Show</label>
+      <input class="karma-limit form-field text-sm px-3 py-1.5 w-20 text-center" id="karma-limit" type="number" name="limit" min="1" max="100" value=input.limit aria-describedby="karma-limit-unit">
+      <span class="section-label form-label-text" id="karma-limit-unit">per board</span>
+      <if=(input.view === "bottom")><input type="hidden" name="view" value="bottom"></if>
+      <button type="submit" class="auth-button ml-1">Update</button>
+    </form>
+
+    <nav class="karma-views flex gap-0 mb-8" aria-label="Boards">
+      <for|v| of=input.views by="label">
+        <a class=["karma-view", v.current && "is-current"] href=v.href aria-current=(v.current ? "page" : false)>${v.label}</a>
+      </for>
+    </nav>
+
+    <if=(input.entries.length === 0)>
+      <div class="py-12 text-center">
+        <p class="section-label form-label-text mb-3">No karma recorded yet</p>
+        <p class="text-muted-foreground text-sm">Karma accumulates as the community votes across all connected channels.</p>
+      </div>
+    </if>
+    <else>
+      <ol class="karma-board">
+        <for|e, i| of=input.entries by="subject">
+          <li class=["karma-entry py-3.5", i > 0 && "border-t border-border/30"]>
+            <div class="flex items-baseline justify-between gap-4 mb-1.5">
+              <div class="flex items-baseline gap-3 min-w-0">
+                <span class="karma-rank font-mono text-xs tabular-nums text-muted-foreground shrink-0">${e.rank}</span>
+                <h2 class="karma-subject headline-brief text-foreground min-w-0 truncate">${e.subject}</h2>
+              </div>
+              <time class="byline text-muted-foreground shrink-0" datetime=e.updated>${e.date}</time>
+            </div>
+            <div class="karma-score-row flex items-center gap-2 min-w-0">
+              <span class=["karma-score font-mono text-sm tabular-nums shrink-0", e.negative && "is-negative"]>${e.score}</span>
+              <div class="karma-bar flex-1 h-1.5 rounded-full overflow-hidden" aria-hidden="true"><div class=["karma-bar-fill h-full rounded-full", e.negative && "is-negative"] style=`width: ${e.width}%`/></div>
+            </div>
+          </li>
+        </for>
+      </ol>
+    </else>
+  </div>
+</section>
