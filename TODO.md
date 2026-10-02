@@ -18,6 +18,7 @@ Features, in the order they're being built (as agreed 2026-10-01):
 - [x] Editing posts
 - [x] Admin pages
 - [x] OG images (`/og/posts/…png`, `/og/site.png`) and the OG preview
+- [x] The sitemap (`/sitemap.xml`), the API's, as ui-nextjs serves it
 
 Before it's deployed:
 
