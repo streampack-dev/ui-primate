@@ -22,8 +22,8 @@ Features, in the order they're being built (as agreed 2026-10-01):
 
 Before it's deployed:
 
-- [ ] Favicon
-- [ ] A proper icon for the theme toggle (◐ for now)
+- [x] Favicon
+- [x] A proper icon for the theme toggle
 - [ ] `just image` and the Dockerfile check the build produced `build/server.js`:
       `primate build` can fail and still exit 0 (primate-bugs/01)
 - [x] Sessions in a database of ui-primate's own (BCN_DB_URL)

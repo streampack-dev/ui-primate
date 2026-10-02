@@ -78,6 +78,16 @@ describe("the front page, in a browser", () => {
     expect(await dark()).toBe(true);
   });
 
+  it("shows the moon in the light and the sun in the dark", async () => {
+    const { page } = await open("/");
+    const toggle = page.locator("[data-theme-toggle]");
+    await expect.poll(() => toggle.locator(".icon-moon").isVisible()).toBe(true);
+    expect(await toggle.locator(".icon-sun").isVisible()).toBe(false);
+    await toggle.click();
+    await expect.poll(() => toggle.locator(".icon-sun").isVisible()).toBe(true);
+    expect(await toggle.locator(".icon-moon").isVisible()).toBe(false);
+  });
+
   for (const theme of ["light", "dark"] as const) {
     it(`passes axe in the ${theme} theme`, async () => {
       const { page } = await open("/?ambient=circuit", theme);

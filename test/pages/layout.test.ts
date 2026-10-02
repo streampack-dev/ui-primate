@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { inject } from "vitest";
 import { page, text } from "../support/page.ts";
 import { list, post, resetStubs, stub, stubSite } from "../support/stub.ts";
 
@@ -50,5 +51,36 @@ describe("every page's frame", () => {
 
     expect(status).toBe(200);
     expect(text(doc.querySelector("footer"))).toContain("Backend unknown");
+  });
+
+  it("names the site's icons, for tabs, home screens and installs", async () => {
+    await stubSite();
+    const head = (await page("/")).doc.querySelector("head")!;
+    const icon = (selector: string) => head.querySelector(selector)?.getAttribute("href");
+
+    expect(icon("link[rel=icon][sizes=any]")).toBe("/favicon.ico");
+    expect(icon("link[rel=icon][sizes='32x32']")).toBe("/icon-32.png");
+    expect(icon("link[rel=icon][sizes='16x16']")).toBe("/icon-16.png");
+    expect(icon("link[rel=apple-touch-icon]")).toBe("/apple-touch-icon.png");
+    expect(icon("link[rel=manifest]")).toBe("/site.webmanifest");
+  });
+
+  it("serves the icons it names, and the manifest's", async () => {
+    for (const path of ["/favicon.ico", "/icon-32.png", "/icon-16.png", "/apple-touch-icon.png", "/android-chrome-192x192.png", "/android-chrome-512x512.png"]) {
+      const response = await fetch(`${inject("appUrl")}${path}`);
+      expect(response.status, path).toBe(200);
+      expect(response.headers.get("content-type"), path).toMatch(/^image\//);
+    }
+    const manifest = await (await fetch(`${inject("appUrl")}/site.webmanifest`)).json();
+    expect(manifest.icons.map((i: { src: string }) => i.src)).toEqual(["/android-chrome-192x192.png", "/android-chrome-512x512.png"]);
+  });
+
+  it("draws the theme toggle as a sun and a moon, for the stylesheet to choose between", async () => {
+    await stubSite();
+    const toggle = (await page("/")).doc.querySelector("header button[data-theme-toggle]")!;
+
+    expect(toggle.getAttribute("aria-label")).toBe("Toggle theme");
+    expect(toggle.querySelector("svg.icon-sun[aria-hidden=true]")).not.toBeNull();
+    expect(toggle.querySelector("svg.icon-moon[aria-hidden=true]")).not.toBeNull();
   });
 });

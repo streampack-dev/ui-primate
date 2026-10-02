@@ -1259,3 +1259,13 @@ textarea.form-field {
   letter-spacing: normal;
   text-transform: none;
 }
+
+/* The theme toggle shows the sun in the dark and the moon in the light (views/Layout.marko). */
+.theme-toggle .icon-sun,
+.dark .theme-toggle .icon-moon {
+  display: none;
+}
+
+.dark .theme-toggle .icon-sun {
+  display: block;
+}
