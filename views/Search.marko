@@ -1,0 +1,59 @@
+export interface Input {
+  q: string;
+  list: {
+    count: string;
+    posts: { id: string; title: string; href: string; excerpt: string; author: string; published: string; date: string; comments: string; tags: string[] }[];
+    pages: string;
+    prev: string | null;
+    next: string | null;
+  } | null;
+}
+<section class="py-8 md:py-12">
+  <div class="max-w-3xl mx-auto px-6 md:px-8">
+    <header class="mb-10">
+      <div class="border-t-2 border-amber animate-rule-draw"/>
+      <div class="pt-6 pb-8 border-b border-border/40">
+        <p class="section-label text-amber mb-3">Search</p>
+        <h1 class="font-display text-foreground leading-tight submit-title">${input.list ? `Results for "${input.q}"` : "Search Posts"}</h1>
+        <if=input.list><p class="search-count text-muted-foreground text-sm mt-2">${input.list.count}</p></if>
+        <form class="search-form flex gap-3 mt-6" action="/search" method="get" role="search">
+          <label class="sr-only" for="search-q">Search posts</label>
+          <input class="form-field text-sm p-2" id="search-q" name="q" type="search" placeholder="Search posts..." value=input.q>
+          <button type="submit" class="auth-button shrink-0">Search</button>
+        </form>
+      </div>
+    </header>
+
+    <if=input.list>
+      <if=(input.list.posts.length === 0)>
+        <div class="py-12 text-center">
+          <p class="section-label form-label-text mb-3">No results</p>
+          <p class="text-muted-foreground text-sm">No posts matched "${input.q}".</p>
+        </div>
+      </if>
+      <else>
+        <for|p, i| of=input.list.posts by="id">
+          <article class=["search-result group py-6", i > 0 && "border-t border-border/30"]>
+            <h2 class="headline-secondary text-foreground group-hover:text-amber transition-colors duration-200 mb-2"><a href=p.href>${p.title}</a></h2>
+            <if=p.excerpt><p class="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-3">${p.excerpt}</p></if>
+            <div class="byline text-muted-foreground flex items-center gap-1.5 flex-wrap">
+              <span>By ${p.author}</span> <span aria-hidden="true">|</span> <time datetime=p.published>${p.date}</time>
+              <if=p.comments> <span aria-hidden="true">|</span> <span>${p.comments}</span></if>
+            </div>
+            <if=p.tags.length><div class="tags mt-3"><for|t| of=p.tags><a class="tag" href=`/tags/${encodeURIComponent(t)}`>${t}</a></for></div></if>
+          </article>
+        </for>
+      </else>
+      <if=input.list.pages>
+        <div class="mt-10 flex justify-between items-center border-t border-border/40 pt-6">
+          <div><if=input.list.prev><a class="pagelink" rel="prev" href=input.list.prev>&larr; Previous</a></if></div>
+          <span class="search-pages dateline text-muted-foreground">${input.list.pages}</span>
+          <div><if=input.list.next><a class="pagelink" rel="next" href=input.list.next>Next &rarr;</a></if></div>
+        </div>
+      </if>
+    </if>
+    <else>
+      <p class="text-muted-foreground text-sm">Search post titles and summaries.</p>
+    </else>
+  </div>
+</section>

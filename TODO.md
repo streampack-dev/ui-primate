@@ -11,7 +11,7 @@ Features, in the order they're being built (as agreed 2026-10-01):
 - [x] RSS reader
 - [ ] Tags, and the pages for each tag
 - [ ] Category pages
-- [ ] Search
+- [x] Search
 - [ ] Factoids
 - [ ] Karma
 - [x] Profile
