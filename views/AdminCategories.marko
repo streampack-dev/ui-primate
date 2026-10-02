@@ -1,4 +1,5 @@
 export interface Input {
+  meta?: import("#lib/meta.ts").Head;
   sections: { href: string; label: string; current: boolean }[];
   csrf: string;
   failed: boolean;
@@ -9,6 +10,8 @@ export interface Input {
   name?: string;
   parentId?: string;
 }
+
+<page-meta meta=input.meta/>
 <admin-shell sections=input.sections>
   <if=input.said><div class="mb-6 px-4 py-3 border border-amber/30 bg-amber/5"><p class="section-label text-amber" role="status">${input.said}</p></div></if>
 

@@ -1,10 +1,13 @@
 export interface Input {
+  meta?: import("#lib/meta.ts").Head;
   page: number;
   totalPages: number;
   posts: any[];
   popular: any[];
   dateline: string;
 }
+
+<page-meta meta=input.meta/>
 <const/first=(input.page === 0)>
 <const/lead=(input.posts[0])>
 <const/secondary=(input.posts.slice(1, 3))>

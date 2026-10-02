@@ -1,4 +1,5 @@
 export interface Input {
+  meta?: import("#lib/meta.ts").Head;
   sections: { href: string; label: string; current: boolean }[];
   csrf: string;
   stats: { label: string; value: string; href: string | null }[];
@@ -7,6 +8,8 @@ export interface Input {
   system: string[][];
   opml: { payload?: string; error?: string; said?: string };
 }
+
+<page-meta meta=input.meta/>
 <admin-shell sections=input.sections>
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
     <for|s| of=input.stats by="label">

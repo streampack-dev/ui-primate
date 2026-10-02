@@ -5,7 +5,7 @@ import type { Features } from "#api/types.ts";
 import type { components } from "#api/schema.d.ts";
 import { csrf, csrfOk, pendingEmail, signIn } from "#auth/readers.ts";
 import { refreshCookie, refusal, safeReturn } from "#auth/forms.ts";
-import { meta } from "#lib/meta.ts";
+import { view } from "#lib/view.ts";
 
 type LoginResponse = components["schemas"]["LoginResponse"];
 
@@ -15,10 +15,9 @@ export async function loginPage(step: "email" | "code", fields: { email?: string
   // The address the codes come from, as the API says, so a reader knows what to look for.
   const features = await cachedGet<Features>("/features").catch(() => null);
   const from = features?.authentication?.otpFrom?.trim() || "";
-  return response.view("Login.marko", { step, ...fields, from, csrf: csrf() }, {
+  return view("Login.marko", { step, ...fields, from, csrf: csrf(), meta: { title: "Log in" } }, {
     status,
     headers: { "Cache-Control": "private, no-store" },
-    placeholders: { meta: meta({ title: "Log in" }) },
   });
 }
 

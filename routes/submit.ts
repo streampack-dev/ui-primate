@@ -7,7 +7,7 @@ import { refusal } from "#auth/forms.ts";
 import { csrf, csrfOk, current, isAdmin } from "#auth/readers.ts";
 import { asReader, bearer, SignInRequired } from "#auth/signed-in.ts";
 import { helper, tagList } from "#lib/drafting.ts";
-import { meta } from "#lib/meta.ts";
+import { view } from "#lib/view.ts";
 
 type Category = components["schemas"]["CategorySummary"];
 
@@ -59,18 +59,18 @@ async function allowed() {
 
 async function page(shown: Shown) {
   const may = await allowed();
-  return response.view("Submit.marko", {
+  return view("Submit.marko", {
     ...shown,
     errors: shown.errors || {},
     categories: await categories(),
     signedIn: may.summary,
     ai: may.ai,
     csrf: csrf(),
+    meta: { title: "Submit a post", path: "/submit" },
   }, {
     status: shown.status ?? 200,
     // formLoadedAt is this render's time, so the page is never kept.
     headers: { "Cache-Control": "private, no-store" },
-    placeholders: { meta: meta({ title: "Submit a post", path: "/submit" }) },
   });
 }
 

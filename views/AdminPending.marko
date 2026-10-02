@@ -1,4 +1,5 @@
 export interface Input {
+  meta?: import("#lib/meta.ts").Head;
   sections: { href: string; label: string; current: boolean }[];
   deleted: boolean;
   failed: boolean;
@@ -7,6 +8,8 @@ export interface Input {
   prev: string | null;
   next: string | null;
 }
+
+<page-meta meta=input.meta/>
 <admin-shell sections=input.sections>
   <nav class="admin-tabs flex gap-0 mb-6 border-b border-border/40" aria-label="Drafts">
     <a class=["admin-nav-link section-label", !input.deleted && "is-current"] href="/admin/pending" aria-current=(!input.deleted ? "page" : false)>Active</a>

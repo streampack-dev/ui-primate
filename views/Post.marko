@@ -1,4 +1,5 @@
 export interface Input {
+  meta?: import("#lib/meta.ts").Head;
   id: string;
   title: string;
   author: string;
@@ -16,6 +17,8 @@ export interface Input {
   talk: { slug: string; signedIn: boolean; admin: boolean; csrf: string; login: string;
     form: { kind: "new" | "reply" | "edit"; id?: string; draft: string; error: string } | null };
 }
+
+<page-meta meta=input.meta/>
 <const/talk=input.talk>
 <const/fresh=(talk.form?.kind === "new" ? talk.form : null)>
 <section class="py-8 md:py-12" data-read-post=input.id>

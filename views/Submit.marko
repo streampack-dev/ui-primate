@@ -1,4 +1,5 @@
 export interface Input {
+  meta?: import("#lib/meta.ts").Head;
   form: { title: string; markdownSource: string; tags: string; summary: string; categoryId: string; formLoadedAt: string };
   errors: { title?: string; markdownSource?: string };
   notice?: string;
@@ -9,6 +10,8 @@ export interface Input {
   ai: boolean;
   csrf: string;
 }
+
+<page-meta meta=input.meta/>
 <const/form=input.form>
 <const/errors=input.errors>
 <section class="py-8 md:py-12">

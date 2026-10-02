@@ -1,4 +1,5 @@
 export interface Input {
+  meta?: import("#lib/meta.ts").Head;
   sections: { href: string; label: string; current: boolean }[];
   csrf: string;
   status: "ACTIVE" | "SUSPENDED" | "ERASED";
@@ -9,6 +10,8 @@ export interface Input {
   said?: string;
   error?: string;
 }
+
+<page-meta meta=input.meta/>
 <admin-shell sections=input.sections>
   <nav class="admin-tabs flex gap-0 mb-6 border-b border-border/40" aria-label="Users by status">
     <for|t| of=input.tabs by="status">

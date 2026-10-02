@@ -2,13 +2,12 @@
    (address, publish date, sort order), a preview rendered here, and the helpers the submit form
    has. It works without script: Preview and the helpers post the form and show it again, and
    Save sends it to the admin endpoint and comes back saying so. */
-import response from "primate/response";
 import { cachedGet, send } from "#api/client.ts";
 import type { components } from "#api/schema.d.ts";
 import type { ContentDetail, Features } from "#api/types.ts";
 import { csrf, current, isAdmin } from "#auth/readers.ts";
 import { asReader, bearer } from "#auth/signed-in.ts";
-import { meta } from "#lib/meta.ts";
+import { view } from "#lib/view.ts";
 import { notFound } from "#lib/post-page.ts";
 import { preview } from "#lib/preview.ts";
 
@@ -78,23 +77,23 @@ export function formOf(post: ContentDetail, all: { id: string; name: string }[])
   };
 }
 
-/** The editor page for post [id] with [view]. */
-export async function editorPage(id: string, post: ContentDetail, view: EditView, status = 200) {
+/** The editor page for post [id] with [shown]. */
+export async function editorPage(id: string, post: ContentDetail, shown: EditView, status = 200) {
   const features = await cachedGet<Features>("/features").catch(() => null);
-  return response.view("Editor.marko", {
+  return view("Editor.marko", {
     id,
-    ...view,
-    errors: view.errors || {},
+    ...shown,
+    errors: shown.errors || {},
     categories: await categories(),
-    preview: preview(view.form.markdownSource),
+    preview: preview(shown.form.markdownSource),
     draft: post.status === "DRAFT",
     postHref: post.status === "APPROVED" && post.slug ? `/posts/${post.slug}` : null,
     ai: !!features?.ai,
     csrf: csrf(),
+    meta: { title: `Edit: ${post.title || "post"}` },
   }, {
     status,
     headers: { "Cache-Control": "private, no-store" },
-    placeholders: { meta: meta({ title: `Edit: ${post.title || "post"}` }) },
   });
 }
 

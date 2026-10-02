@@ -1,8 +1,7 @@
-import response from "primate/response";
 import route from "primate/route";
 import { ApiUnavailable, cachedGet } from "#api/client.ts";
 import type { components } from "#api/schema.d.ts";
-import { meta } from "#lib/meta.ts";
+import { view } from "#lib/view.ts";
 
 type Taxonomy = components["schemas"]["TaxonomySnapshot"];
 
@@ -14,13 +13,15 @@ export default route({
       taxonomy = await cachedGet<Taxonomy>("/taxonomy");
     } catch (e) {
       if (!(e instanceof ApiUnavailable)) throw e;
-      return response.view("BackendUnavailable.marko", {}, { status: 503, placeholders: { meta: meta({ title: "Tags" }) } });
+      return view("BackendUnavailable.marko", { meta: { title: "Tags" } }, { status: 503 });
     }
     const tags = Object.entries((taxonomy?.tags || {}) as Record<string, number>)
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([name, count]) => ({ name, count, href: `/tags/${encodeURIComponent(name)}` }));
-    return response.view("Tags.marko", { tags, count: `${tags.length} tag${tags.length === 1 ? "" : "s"} across all articles` }, {
-      placeholders: { meta: meta({ title: "Tags", description: "Browse articles by tag on bytecode.news", path: "/tags" }) },
+    return view("Tags.marko", {
+      tags,
+      count: `${tags.length} tag${tags.length === 1 ? "" : "s"} across all articles`,
+      meta: { title: "Tags", description: "Browse articles by tag on bytecode.news", path: "/tags" },
     });
   },
 });

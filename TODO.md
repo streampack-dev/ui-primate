@@ -55,9 +55,11 @@ Smaller things noticed along the way:
 - [x] Client-side navigation (CSR, on since 1.0.3): client/ scripts set up each page shown, not just
       the first, so reads (and temperature) are counted, code is highlighted, the masthead starts
       and the theme toggle works; forms are submitted by the browser (2026-10-02)
-- [ ] With CSR, the head (title, canonical, description, OG) stays the first page's after a
-      client-side navigation; no workaround. Remove client/forms.ts when Primate's forms are
-      fixed. Both in primate-bugs/11, filed as primate task #122 (2026-10-02)
+- [x] With CSR, the head (title, canonical, description, OG, robots) follows client-side navigation:
+      routes put `meta` in the view's props, #lib/view.ts draws it into %meta% for the server's
+      render, and each view's <page-meta> applies it in the browser, as terrablue suggested
+      (Primate's website's Header.marko) (2026-10-02)
+- [ ] Remove client/forms.ts when Primate's forms are fixed (primate-bugs/11, primate task #122)
 - [ ] Sessions end thirty days after sign-in, not after thirty idle days as ui-pudl's do
 
 Parked:

@@ -1,9 +1,8 @@
-import response from "primate/response";
 import route from "primate/route";
-import { meta } from "#lib/meta.ts";
+import { view } from "#lib/view.ts";
 
 export default route({
   get() {
-    return response.view("SubmitThanks.marko", {}, { placeholders: { meta: meta({ title: "Post submitted" }) } });
+    return view("SubmitThanks.marko", { meta: { title: "Post submitted" } });
   },
 });

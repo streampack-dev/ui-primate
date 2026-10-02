@@ -1,5 +1,6 @@
-/* A page's title and its description for browsers and link previews, as the head's %meta%
-   placeholder takes it (templates/app.html). Every value is escaped, and so is "%": Primate empties
+/* A page's title and its description for browsers and link previews: what a route puts in its
+   view's `meta` (#lib/view.ts), resolved here, and drawn as the head's %meta% placeholder takes it
+   (templates/app.html). Every value is escaped, and so is "%": Primate empties
    anything left between two percent signs after it fills the placeholders, which would cut
    "50% faster, 20% smaller" down to "50 smaller". */
 const SITE = "ByteCode.News";
@@ -30,32 +31,60 @@ export type Meta = {
   image?: { path: string; alt: string };
 };
 
-export function meta({ title, description = DESCRIPTION, path, type = "website", image, robots }: Meta & { robots?: string } = {}): string {
-  const full = title ? `${title} | ${SITE}` : SITE;
+/** What a page's head says, resolved: drawn into %meta% on the server (headTags), and applied in
+   the browser after a client-side navigation (views/tags/page-meta.marko). */
+export type Head = {
+  /** The whole title, " | ByteCode.News" and all. */
+  title: string;
+  ogTitle: string;
+  description: string;
+  type: "website" | "article";
+  robots: string | null;
+  /** The page's whole address on the site, if it has one to name. */
+  url: string | null;
+  image: string;
+  imageAlt: string;
+};
+
+export function meta({ title, description = DESCRIPTION, path, type = "website", image, robots }: Meta & { robots?: string } = {}): Head {
+  // Every page has a preview image: its own (a post's card), else the site's.
+  const shown = image ?? { path: "/og/site.png", alt: SITE };
+  return {
+    title: title ? `${title} | ${SITE}` : SITE,
+    ogTitle: title || SITE,
+    description,
+    type,
+    robots: robots ?? null,
+    url: path ? siteUrl() + path : null,
+    image: siteUrl() + shown.path,
+    imageAlt: shown.alt,
+  };
+}
+
+/** [head] as the tags %meta% takes, escaped, with analytics. */
+export function headTags(head: Head): string {
   const tags = [
-    `<title>${escape(full)}</title>`,
-    `<meta name="description" content="${escape(description)}">`,
+    `<title>${escape(head.title)}</title>`,
+    `<meta name="description" content="${escape(head.description)}">`,
     `<meta property="og:site_name" content="${SITE}">`,
-    `<meta property="og:title" content="${escape(title || SITE)}">`,
-    `<meta property="og:description" content="${escape(description)}">`,
-    `<meta property="og:type" content="${type}">`,
+    `<meta property="og:title" content="${escape(head.ogTitle)}">`,
+    `<meta property="og:description" content="${escape(head.description)}">`,
+    `<meta property="og:type" content="${head.type}">`,
     `<meta name="twitter:card" content="summary_large_image">`,
     `<link rel="alternate" type="application/rss+xml" title="${SITE}" href="/feed.xml">`,
   ];
-  if (robots) tags.push(`<meta name="robots" content="${escape(robots)}">`);
-  if (path) {
-    tags.push(`<link rel="canonical" href="${escape(siteUrl() + path)}">`, `<meta property="og:url" content="${escape(siteUrl() + path)}">`);
+  if (head.robots) tags.push(`<meta name="robots" content="${escape(head.robots)}">`);
+  if (head.url) {
+    tags.push(`<link rel="canonical" href="${escape(head.url)}">`, `<meta property="og:url" content="${escape(head.url)}">`);
   }
-  // Every page has a preview image: its own (a post's card), else the site's.
-  const shown = image ?? { path: "/og/site.png", alt: SITE };
-  const src = escape(siteUrl() + shown.path);
+  const src = escape(head.image);
   tags.push(
     `<meta property="og:image" content="${src}">`,
     `<meta property="og:image:width" content="1200">`,
     `<meta property="og:image:height" content="630">`,
-    `<meta property="og:image:alt" content="${escape(shown.alt)}">`,
+    `<meta property="og:image:alt" content="${escape(head.imageAlt)}">`,
     `<meta name="twitter:image" content="${src}">`,
-    `<meta name="twitter:image:alt" content="${escape(shown.alt)}">`,
+    `<meta name="twitter:image:alt" content="${escape(head.imageAlt)}">`,
   );
   tags.push(...analytics());
   return tags.join("\n    ");

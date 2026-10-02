@@ -7,7 +7,7 @@ import type { CommentNode, CommentThread, ContentDetail } from "#api/types.ts";
 import { csrf, current, isAdmin } from "#auth/readers.ts";
 import { asReader, bearer } from "#auth/signed-in.ts";
 import { formatDate, formatUpdatedTime } from "#lib/format.ts";
-import { meta } from "#lib/meta.ts";
+import { view } from "#lib/view.ts";
 
 const SUMMARY_FALLBACK = "Read the latest content on bytecode.news.";
 
@@ -63,7 +63,7 @@ export async function postPage(path: string, form?: CommentForm, status = 200) {
     post = await cachedGet<ContentDetail>(dated ? `/posts/${path}` : `/pages/${encodeURIComponent(path)}`);
   } catch (e) {
     if (!(e instanceof ApiUnavailable)) throw e;
-    return response.view("PostUnavailable.marko", {}, { status: 503, placeholders: { meta: meta({ title: "Post Unavailable" }) } });
+    return view("PostUnavailable.marko", { meta: { title: "Post Unavailable" } }, { status: 503 });
   }
   if (!post) return notFound();
   if (post.slug && post.slug !== path) return response.redirect(`/posts/${post.slug}`, 301);
@@ -72,7 +72,7 @@ export async function postPage(path: string, form?: CommentForm, status = 200) {
   const thread_ = commentsAllowed ? await comments(path) : null;
   const reader = current();
 
-  return response.view("Post.marko", {
+  return view("Post.marko", {
     id: post.id,
     slug: path,
     title: post.title,
@@ -97,23 +97,21 @@ export async function postPage(path: string, form?: CommentForm, status = 200) {
       form: form ?? null,
       login: `/login?return=${encodeURIComponent(`/posts/${path}`)}`,
     },
+    meta: {
+      title: post.title,
+      description: post.excerpt?.trim() || SUMMARY_FALLBACK,
+      path: `/posts/${post.slug}`,
+      type: "article",
+      // A dated post has its own drawn card; a page keeps the site's.
+      ...(dated ? { image: { path: `/og/posts/${post.slug}.png`, alt: post.title || "" } } : {}),
+    },
   }, {
     status,
     // A signed-in reader's page is theirs: their forms' token, their own comments' edit forms.
     headers: reader ? { "Cache-Control": "private, no-store" } : {},
-    placeholders: {
-      meta: meta({
-        title: post.title,
-        description: post.excerpt?.trim() || SUMMARY_FALLBACK,
-        path: `/posts/${post.slug}`,
-        type: "article",
-        // A dated post has its own drawn card; a page keeps the site's.
-        ...(dated ? { image: { path: `/og/posts/${post.slug}.png`, alt: post.title || "" } } : {}),
-      }),
-    },
   });
 }
 
 export function notFound() {
-  return response.view("NotFound.marko", {}, { status: 404, placeholders: { meta: meta({ title: "Not Found" }) } });
+  return view("NotFound.marko", { meta: { title: "Not Found" } }, { status: 404 });
 }

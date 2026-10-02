@@ -1,9 +1,8 @@
-import response from "primate/response";
 import route from "primate/route";
 import { ApiUnavailable, cachedGet } from "#api/client.ts";
 import type { components } from "#api/schema.d.ts";
 import { formatDate } from "#lib/format.ts";
-import { meta } from "#lib/meta.ts";
+import { view } from "#lib/view.ts";
 
 type Board = components["schemas"]["KarmaLeaderboardResponse"];
 type Entry = components["schemas"]["KarmaLeaderboardEntryResponse"];
@@ -28,27 +27,27 @@ function karmaHref(limit: number, view: "top" | "bottom"): string {
 export default route({
   async get(request) {
     const limit = limitAsked(request.query.try("limit"));
-    const view = request.query.try("view") === "bottom" ? "bottom" : "top";
-    const title = meta({ title: "Karma", description: "View the public karma leaderboard across bytecode.news integrations.", path: "/karma" });
+    const which = request.query.try("view") === "bottom" ? "bottom" : "top";
+    const meta = { title: "Karma", description: "View the public karma leaderboard across bytecode.news integrations.", path: "/karma" };
 
     let board: Board | null;
     try {
       board = await cachedGet<Board>("/karma/leaderboard", { limit });
     } catch (e) {
       if (!(e instanceof ApiUnavailable)) throw e;
-      return response.view("KarmaUnavailable.marko", {}, { status: 503, placeholders: { meta: title } });
+      return view("KarmaUnavailable.marko", { meta }, { status: 503 });
     }
-    const entries: Entry[] = view === "top"
+    const entries: Entry[] = which === "top"
       ? (board?.top || []).filter((e) => (e.score ?? 0) >= 0)
       : (board?.bottom || []).filter((e) => (e.score ?? 0) <= 0);
     const max = Math.max(1, ...entries.map((e) => Math.abs(e.score ?? 0)));
 
-    return response.view("Karma.marko", {
+    return view("Karma.marko", {
       limit,
-      view,
+      view: which,
       views: [
-        { label: "Top Karma", href: karmaHref(limit, "top"), current: view === "top" },
-        { label: "Bottom Karma", href: karmaHref(limit, "bottom"), current: view === "bottom" },
+        { label: "Top Karma", href: karmaHref(limit, "top"), current: which === "top" },
+        { label: "Bottom Karma", href: karmaHref(limit, "bottom"), current: which === "bottom" },
       ],
       entries: entries.map((e, i) => {
         const score = e.score ?? 0;
@@ -62,6 +61,7 @@ export default route({
           date: formatDate(e.lastUpdated),
         };
       }),
-    }, { placeholders: { meta: title } });
+      meta,
+    });
   },
 });
