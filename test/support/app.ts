@@ -54,7 +54,9 @@ export default async function setup(project: TestProject) {
   }
   if (!existsSync("build/server.js")) throw new Error(`The build failed:\n${output}`);
 
-  const env = { BCN_API_BASE: stubApi.url, BCN_DB_URL: db.getConnectionUri(), SESSION_SECRET: "a test secret, long enough to be one" };
+  // The pages ask the API every time (BCN_CACHE_FRESH_SECONDS 0), since tests change its answers
+  // between pages; how long answers are kept is the client's own test (unit/client.test.ts).
+  const env = { BCN_API_BASE: stubApi.url, BCN_DB_URL: db.getConnectionUri(), SESSION_SECRET: "a test secret, long enough to be one", BCN_CACHE_FRESH_SECONDS: "0" };
   const app = await startApp(env);
   project.provide("stubApi", stubApi.url);
   project.provide("appUrl", app.url);
