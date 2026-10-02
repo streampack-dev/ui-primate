@@ -146,11 +146,26 @@ image tag="":
     docker buildx build --platform "$platforms" "${build_args[@]}" "${labels[@]}" "${tags[@]}" --push .
     echo "Pushed ${image}:${version}$([[ "${DOCKER_PUSH_LATEST:-true}" == "true" ]] && printf ' and :latest')"
 
+# Releases come from main, up to date with origin's: never from a feature branch.
+_on-main:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    branch="$(git branch --show-current)"
+    if [[ "$branch" != "main" ]]; then
+      echo "Release from main, not ${branch:-a detached HEAD}." >&2
+      exit 1
+    fi
+    git fetch -q origin main
+    if [[ -n "$(git rev-list HEAD..origin/main)" ]]; then
+      echo "main is behind origin/main. Pull first." >&2
+      exit 1
+    fi
+
 # A -SNAPSHOT version releases as itself first (0.1.0-SNAPSHOT -> 0.1.0); after that, level is
 # patch, minor or major. Refuses an uncommitted package.json, and puts it back if anything fails,
 # so a retry doesn't bump again (as ui-pudl).
 # Release: bump the version in package.json and push its image (just image)
-release level="patch":
+release level="patch": _on-main
     #!/usr/bin/env bash
     set -euo pipefail
     level="{{level}}"
