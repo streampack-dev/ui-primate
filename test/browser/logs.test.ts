@@ -23,6 +23,18 @@ beforeEach(async () => {
   }, { query: { provenance: JAVA, day: DAY } });
 });
 
+describe("today's log, in a browser", () => {
+  // Today has no next day: its "Next" is greyed out, and must still be readable.
+  for (const theme of ["light", "dark"] as const) {
+    it(`passes axe in the ${theme} theme, with no next day to go to`, async () => {
+      await stub("/logs", { provenanceUri: JAVA, day: "today", entries: [] }, { query: { provenance: JAVA } });
+      const { page } = await open(`/logs?provenance=${encodeURIComponent(JAVA)}`, theme);
+      await page.locator(".log-day-link.is-disabled").waitFor();
+      await expectAccessible(page);
+    });
+  }
+});
+
 describe("the logs, in a browser", () => {
   it("are accessible, light and dark, for an admin, with a line linked to", async () => {
     const v = await signedIn(ADMIN);

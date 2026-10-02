@@ -1192,7 +1192,7 @@ textarea.form-field {
 }
 
 .log-day-link.is-disabled {
-  @apply text-muted-foreground/40;
+  @apply text-muted-foreground/75;
 }
 
 .log-day {
