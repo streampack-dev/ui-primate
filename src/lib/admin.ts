@@ -3,7 +3,7 @@
    as with the editor. */
 import response from "primate/response";
 import { csrf, current, isAdmin } from "#auth/readers.ts";
-import { meta } from "#lib/meta.ts";
+import { view } from "#lib/view.ts";
 import { notFound } from "#lib/post-page.ts";
 
 export const SECTIONS = [
@@ -16,12 +16,11 @@ export const SECTIONS = [
 /** Whether the reader is an admin. */
 export const admin = () => isAdmin(current());
 
-/** [view] with [props], in the admin shell, [here] marked in its nav. Never kept by a cache. */
-export function adminPage(view: string, props: Record<string, unknown>, title: string, here: string, status = 200) {
-  return response.view(view, { ...props, csrf: csrf(), sections: SECTIONS.map((s) => ({ ...s, current: s.href === here })) }, {
+/** [name] with [props], in the admin shell, [here] marked in its nav. Never kept by a cache. */
+export function adminPage(name: string, props: Record<string, unknown>, title: string, here: string, status = 200) {
+  return view(name, { ...props, csrf: csrf(), sections: SECTIONS.map((s) => ({ ...s, current: s.href === here })), meta: { title, robots: "noindex, nofollow" } }, {
     status,
     headers: { "Cache-Control": "private, no-store" },
-    placeholders: { meta: meta({ title, robots: "noindex, nofollow" }) },
   });
 }
 
@@ -56,8 +55,7 @@ export async function act(call: (access: string) => Promise<Response>, then: str
 
 /** The confirmation page for an admin action. */
 export function confirmPage(props: { title: string; body: string; action: string; button: string; back: string; fields?: Record<string, string>; onward?: { text: string; href: string }; tone?: "go" }) {
-  return response.view("Confirm.marko", { fields: {}, ...props, csrf: csrf() }, {
+  return view("Confirm.marko", { fields: {}, ...props, csrf: csrf(), meta: { title: props.title, robots: "noindex, nofollow" } }, {
     headers: { "Cache-Control": "private, no-store" },
-    placeholders: { meta: meta({ title: props.title, robots: "noindex, nofollow" }) },
   });
 }

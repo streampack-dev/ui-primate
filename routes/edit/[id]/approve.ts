@@ -5,7 +5,7 @@ import { refusal } from "#auth/forms.ts";
 import { csrf, csrfOk } from "#auth/readers.ts";
 import { asReader, bearer, SignInRequired } from "#auth/signed-in.ts";
 import { admitted, categories, editorPage, formData, formOf, fromLocal, load, notFound, toLocal } from "#lib/editor.ts";
-import { meta } from "#lib/meta.ts";
+import { view } from "#lib/view.ts";
 
 /* Approving a draft, asked first, with when to publish it (UTC, now unless changed). It's published
    as last saved. */
@@ -14,7 +14,7 @@ export default route({
     const id = admitted(request.path.get("id"));
     const post = id ? await load(id).catch(() => null) : null;
     if (!id || !post) return notFound();
-    return response.view("Confirm.marko", {
+    return view("Confirm.marko", {
       title: `Approve “${post.title}”?`,
       body: "It's published as last saved, on the date below. Save any changes first.",
       action: `/edit/${id}/approve`, button: "Approve and publish", csrf: csrf(),
@@ -24,7 +24,8 @@ export default route({
         : { fields: {}, back: `/edit/${id}` }),
       field: { name: "publishedAt", label: "Publish at (UTC)", type: "datetime-local", value: toLocal(new Date().toISOString()) },
       tone: "go",
-    }, { headers: { "Cache-Control": "private, no-store" }, placeholders: { meta: meta({ title: "Approve post" }) } });
+      meta: { title: "Approve post" },
+    }, { headers: { "Cache-Control": "private, no-store" } });
   },
 
   async post(request) {

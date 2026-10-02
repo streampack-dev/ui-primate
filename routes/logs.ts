@@ -1,4 +1,3 @@
-import response from "primate/response";
 import route from "primate/route";
 import { cachedGet, send } from "#api/client.ts";
 import type { components } from "#api/schema.d.ts";
@@ -6,7 +5,7 @@ import { current, isAdmin } from "#auth/readers.ts";
 import { asReader, bearer, SignInRequired } from "#auth/signed-in.ts";
 import { formatDate } from "#lib/format.ts";
 import { channelName, lines, shiftDay, today, validDay } from "#lib/logs.ts";
-import { meta } from "#lib/meta.ts";
+import { view } from "#lib/view.ts";
 import { notFound } from "#lib/post-page.ts";
 
 type Channels = components["schemas"]["LogProvenanceListResponse"];
@@ -55,8 +54,8 @@ export default route({
           latest: c.latestContentPreview ? `${c.latestSender ?? ""}: ${c.latestContentPreview}` : null,
         }));
     } catch {
-      return response.view("LogsUnavailable.marko", {}, {
-        status: 503, headers: privately, placeholders: { meta: meta({ title: "Logs Unavailable" }) },
+      return view("LogsUnavailable.marko", { meta: { title: "Logs Unavailable" } }, {
+        status: 503, headers: privately,
       });
     }
 
@@ -76,7 +75,7 @@ export default route({
     }
     const next = shiftDay(day, 1);
 
-    return response.view("Logs.marko", {
+    return view("Logs.marko", {
       day,
       dayLabel: DAY_LABEL(day),
       channels: channels.map((c) => ({ ...c, href: href(c.uri, day), current: c.uri === chosen?.uri })),
@@ -87,9 +86,9 @@ export default route({
       next: chosen && next <= today() ? href(chosen.uri, next) : null,
       // An admin's way to every protocol's channels (and back).
       allToggle: admin ? { href: `/logs?${new URLSearchParams({ day, ...(all ? {} : { all: "1" }) })}`, all } : null,
+      meta: { title: chosen ? `${chosen.name}, ${formatDate(`${day}T00:00:00Z`)}` : "Chat Logs", path: "/logs" },
     }, {
       headers: privately,
-      placeholders: { meta: meta({ title: chosen ? `${chosen.name}, ${formatDate(`${day}T00:00:00Z`)}` : "Chat Logs", path: "/logs" }) },
     });
   },
 });

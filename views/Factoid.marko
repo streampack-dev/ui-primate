@@ -1,4 +1,5 @@
 export interface Input {
+  meta?: import("#lib/meta.ts").Head;
   selector: string;
   back: string;
   by: string;
@@ -8,6 +9,8 @@ export interface Input {
   locked: boolean;
   attributes: { label: string; kind: "text" | "seealso" | "urls"; values: { text: string; href?: string }[] }[];
 }
+
+<page-meta meta=input.meta/>
 <section class="py-8 md:py-12">
   <div class="max-w-3xl mx-auto px-6 md:px-8">
     <a class="factoid-back section-label form-helper inline-flex items-center gap-1.5 mb-6" href=input.back><span aria-hidden="true">&larr;</span> Knowledge Base</a>

@@ -1,4 +1,5 @@
 export interface Input {
+  meta?: import("#lib/meta.ts").Head;
   title: string; body: string; action: string; fields: Record<string, string>; button: string; back: string; csrf: string;
   onward?: { text: string; href: string };
   /** A field to fill in before going ahead (approve's publish date, say). */
@@ -6,6 +7,8 @@ export interface Input {
   /** "go" for a step forward rather than a removal. */
   tone?: "go";
 }
+
+<page-meta meta=input.meta/>
 <section class="py-8 md:py-12">
   <!-- With script, client/confirm.ts shows this page's question, form and links in a dialog over
        the page that asked; without it, this page is the question. -->

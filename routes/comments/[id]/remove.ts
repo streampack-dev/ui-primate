@@ -1,10 +1,9 @@
-import response from "primate/response";
 import route from "primate/route";
 import { send } from "#api/client.ts";
 import { csrf, csrfOk, current, isAdmin } from "#auth/readers.ts";
 import { bearer } from "#auth/signed-in.ts";
 import { UUID, write } from "#lib/comments.ts";
-import { meta } from "#lib/meta.ts";
+import { view } from "#lib/view.ts";
 import { datedSlug, notFound } from "#lib/post-page.ts";
 
 /* An admin's removal of a comment: removed, it shows as deleted with its replies kept; deleted for
@@ -16,18 +15,19 @@ export default route({
     if (!slug || !UUID.test(id) || !isAdmin(current())) return notFound();
     const hard = request.query.try("hard") === "true";
     const back = `/posts/${slug}#comment-${id}`;
-    return response.view("Confirm.marko", hard ? {
+    return view("Confirm.marko", hard ? {
       title: "Delete this comment for good? This cannot be undone.",
       body: "The comment and its text are gone from the thread.",
       action: `/comments/${id}/remove`, fields: { post: slug, hard: "true" }, button: "Delete for good", back, csrf: csrf(),
+      meta: { title: "Delete comment" },
     } : {
       title: "Remove this comment?",
       body: "It shows as deleted, and its replies stay.",
       action: `/comments/${id}/remove`, fields: { post: slug }, button: "Remove", back, csrf: csrf(),
       onward: { text: "Delete it for good instead…", href: `/comments/${id}/remove?post=${encodeURIComponent(slug)}&hard=true` },
+      meta: { title: "Remove comment" },
     }, {
       headers: { "Cache-Control": "private, no-store" },
-      placeholders: { meta: meta({ title: hard ? "Delete comment" : "Remove comment" }) },
     });
   },
 

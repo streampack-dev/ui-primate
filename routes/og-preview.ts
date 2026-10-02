@@ -1,8 +1,8 @@
-import response from "primate/response";
 import route from "primate/route";
 import { cachedGet } from "#api/client.ts";
 import type { ContentList } from "#api/types.ts";
-import { meta, siteUrl } from "#lib/meta.ts";
+import { siteUrl } from "#lib/meta.ts";
+import { view } from "#lib/view.ts";
 
 /* The link-preview gallery, as ui-nextjs has one: the site's card and the latest posts' as a shared
    link shows them, drawn by the app itself. For the site's own people, so search engines are asked
@@ -25,8 +25,6 @@ export default route({
         description: p.excerpt?.trim() || "Read the latest content on bytecode.news.",
       })),
     ];
-    return response.view("OgPreview.marko", { cards }, {
-      placeholders: { meta: meta({ title: "Link previews", robots: "noindex, nofollow" }) },
-    });
+    return view("OgPreview.marko", { cards, meta: { title: "Link previews", robots: "noindex, nofollow" } });
   },
 });

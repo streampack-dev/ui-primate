@@ -52,6 +52,19 @@ describe("a page reached by a link, in a browser", () => {
     expect(await page.evaluate(() => document.documentElement.classList.contains("dark"))).toBe(true);
   });
 
+  it("updates the head to the page's", async () => {
+    const { page } = await fromFrontToPost();
+    await expect.poll(() => page.title()).toBe("Coded | ByteCode.News");
+    const canonical = () => page.getAttribute('link[rel="canonical"]', "href");
+    expect(await canonical()).toMatch(/\/posts\/2026\/09\/coded$/);
+    expect(await page.getAttribute('meta[property="og:title"]', "content")).toBe("Coded");
+    expect(await page.getAttribute('meta[property="og:type"]', "content")).toBe("article");
+
+    await page.goBack();
+    await expect.poll(() => page.title()).toBe("ByteCode.News");
+    expect(await canonical()).toMatch(/\/$/);
+  });
+
   it("starts the masthead again on the way back to the front page", async () => {
     const { page, errors, documents } = await fromFrontToPost();
     await page.goBack();

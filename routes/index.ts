@@ -1,9 +1,8 @@
-import response from "primate/response";
 import route from "primate/route";
 import { cachedGet } from "#api/client.ts";
 import type { ContentList } from "#api/types.ts";
 import { formatDate } from "#lib/format.ts";
-import { meta } from "#lib/meta.ts";
+import { view } from "#lib/view.ts";
 
 /* The front page: the newest posts (the lead, two beside it, six below the fold) and, on the first
    page, the popular ones; later pages, nine at a time. */
@@ -16,14 +15,14 @@ export default route({
       page === 0 ? cachedGet<ContentList>("/posts/popular", { page: 0, size: 3 }) : Promise.resolve(null),
     ]);
     if (list.status === "rejected" || !list.value) {
-      return response.view("Unavailable.marko", {}, { status: 503, placeholders: { meta: meta() } });
+      return view("Unavailable.marko", { meta: {} }, { status: 503 });
     }
     const posts = (list.value.posts || []).map((p) => ({
       id: p.id, title: p.title, slug: p.slug, excerpt: p.excerpt?.trim() || "",
       author: p.authorDisplayName, published: p.publishedAt, date: formatDate(p.publishedAt),
       comments: p.commentCount || 0, tags: p.tags || [],
     }));
-    return response.view("Front.marko", {
+    return view("Front.marko", {
       page,
       totalPages: list.value.totalPages || 0,
       posts,
@@ -31,6 +30,7 @@ export default route({
         ? (popular.value.posts || []).map((p) => ({ id: p.id, title: p.title, slug: p.slug, excerpt: p.excerpt?.trim() || "", author: p.authorDisplayName, published: p.publishedAt, date: formatDate(p.publishedAt) }))
         : [],
       dateline: new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "UTC" }).toUpperCase(),
-    }, { placeholders: { meta: meta({ path: page ? `/?page=${page}` : "/" }) } });
+      meta: { path: page ? `/?page=${page}` : "/" },
+    });
   },
 });

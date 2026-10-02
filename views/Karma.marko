@@ -1,9 +1,12 @@
 export interface Input {
+  meta?: import("#lib/meta.ts").Head;
   limit: number;
   view: "top" | "bottom";
   views: { label: string; href: string; current: boolean }[];
   entries: { rank: number; subject: string; score: string; negative: boolean; width: number; updated: string; date: string }[];
 }
+
+<page-meta meta=input.meta/>
 <section class="py-8 md:py-12">
   <div class="max-w-3xl mx-auto px-6 md:px-8">
     <header class="mb-10">

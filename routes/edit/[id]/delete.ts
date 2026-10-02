@@ -5,7 +5,7 @@ import { refusal } from "#auth/forms.ts";
 import { csrf, csrfOk } from "#auth/readers.ts";
 import { asReader, bearer, SignInRequired } from "#auth/signed-in.ts";
 import { admitted, categories, editorPage, formData, formOf, load, notFound } from "#lib/editor.ts";
-import { meta } from "#lib/meta.ts";
+import { view } from "#lib/view.ts";
 
 /* Deleting a post, asked first: softly, to the Deleted list, or for good (hard), asked again. */
 export default route({
@@ -14,7 +14,7 @@ export default route({
     const post = id ? await load(id).catch(() => null) : null;
     if (!id || !post) return notFound();
     const hard = request.query.try("hard") === "true";
-    return response.view("Confirm.marko", hard ? {
+    return view("Confirm.marko", { ...(hard ? {
       title: "Permanently delete this post? This cannot be undone.",
       body: `“${post.title}” goes for good.`,
       action: `/edit/${id}/delete`, fields: { hard: "true" }, button: "Delete for good", back: `/edit/${id}`, csrf: csrf(),
@@ -23,7 +23,7 @@ export default route({
       body: `“${post.title}” moves to the Deleted list.`,
       action: `/edit/${id}/delete`, fields: {}, button: "Delete", back: `/edit/${id}`, csrf: csrf(),
       onward: { text: "Delete it for good instead…", href: `/edit/${id}/delete?hard=true` },
-    }, { headers: { "Cache-Control": "private, no-store" }, placeholders: { meta: meta({ title: "Delete post" }) } });
+    }), meta: { title: "Delete post" } }, { headers: { "Cache-Control": "private, no-store" } });
   },
 
   async post(request) {

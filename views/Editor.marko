@@ -1,4 +1,5 @@
 export interface Input {
+  meta?: import("#lib/meta.ts").Head;
   id: string;
   form: { title: string; slug: string; markdownSource: string; summary: string; tags: string; categoryIds: string[]; publishedAt: string; sortOrder: string };
   categories: { id: string; name: string }[];
@@ -13,6 +14,8 @@ export interface Input {
   helper?: "tags" | "summary";
   said?: { text: string; ok: boolean };
 }
+
+<page-meta meta=input.meta/>
 <const/form=input.form>
 <const/errors=input.errors>
 <const/said=(tag) => (input.helper === tag ? input.said : null)>

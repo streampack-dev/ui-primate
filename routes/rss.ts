@@ -1,8 +1,7 @@
-import response from "primate/response";
 import route from "primate/route";
 import { cachedGet } from "#api/client.ts";
 import type { components } from "#api/schema.d.ts";
-import { meta } from "#lib/meta.ts";
+import { view } from "#lib/view.ts";
 
 type Items = components["schemas"]["RssAggregatedItemsResponse"];
 type Feeds = components["schemas"]["RssFeedSourcesResponse"];
@@ -35,13 +34,13 @@ export default route({
       cachedGet<Feeds>("/rss/feeds"),
     ]);
     if (items.status === "rejected") {
-      return response.view("RssUnavailable.marko", {}, { status: 503, placeholders: { meta: meta({ title: "RSS Reader Unavailable" }) } });
+      return view("RssUnavailable.marko", { meta: { title: "RSS Reader Unavailable" } }, { status: 503 });
     }
     const result = items.value ?? { items: [], page: 0, totalPages: 0, totalCount: 0 };
     const sources = feeds.status === "fulfilled" ? feeds.value?.feeds || [] : [];
     const count = Number(result.totalCount ?? 0);
 
-    return response.view("Rss.marko", {
+    return view("Rss.marko", {
       feed,
       title,
       feeds: [
@@ -61,8 +60,7 @@ export default route({
       })),
       prev: page > 0 ? href(page - 1, feed, title) : null,
       next: page + 1 < (result.totalPages ?? 0) ? href(page + 1, feed, title) : null,
-    }, {
-      placeholders: { meta: meta({ title: "RSS Reader", description: "Browse stored RSS items from bytecode.news subscribed sources.", path: "/rss" }) },
+      meta: { title: "RSS Reader", description: "Browse stored RSS items from bytecode.news subscribed sources.", path: "/rss" },
     });
   },
 });
