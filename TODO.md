@@ -29,6 +29,11 @@ Before it's deployed:
 
 Smaller things noticed along the way:
 
+- [ ] Node 24 and 26 crash the server under load (primate-bugs/09); the image stays on Node 22. Locally
+      (Node 26), `just dev` and `just run` can fall over when a browser abandons a request. Retry
+      newer Node when it's fixed.
+- [ ] No compression: Primate sends pages as they are (22 KB for the front page). The proxy in front
+      should gzip or brotli them.
 - [ ] Comment removal asks on a page of its own; a dialog, when script is there, would save the trip
       (ui-pudl does both)
 - [ ] Sessions end thirty days after sign-in, not after thirty idle days as ui-pudl's do

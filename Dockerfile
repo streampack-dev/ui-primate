@@ -1,3 +1,7 @@
+# Node 22, deliberately: on Node 24 and 26 the server dies under load, an internal assertion in Node's
+# web streams (writableStreamDefaultControllerGetChunkSize) when clients hang up mid-response
+# (primate-bugs/09). Checked 2026-10-01 with three rounds of load against each; 22 held, 24 and 26 didn't.
+
 # Build: Primate compiles the routes, Marko views and client assets (fingerprinted) into build/.
 FROM node:22-alpine AS build
 WORKDIR /app
