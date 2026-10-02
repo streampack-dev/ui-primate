@@ -7,9 +7,10 @@ export default config({
   modules: [
     // First, so it's around everything: how long browsers keep Primate's own files.
     assetCache as never,
-    // Pages are rendered on the server and ship no framework runtime, as ui-pudl's do; the few
-    // interactive parts are small scripts in client/. Under `just dev` (UI_DEV=1) the runtime is
-    // on, because Primate's dev server renders Marko only in the browser, for live reload.
+    // Pages are rendered on the server, and the client runtime takes over from there: following a
+    // link, or going back, fetches the next page's data and redraws the body in place, without
+    // loading a new document. The page's interactive parts are small scripts in client/, which set
+    // up each page shown that way as well as the first (client/each-page.ts).
     marko(),
     // Watched for live reload; Tailwind v4 finds the classes in these itself.
     tailwind({ content: ["./views/**/*.marko", "./client/**/*.ts"] }),
@@ -27,6 +28,6 @@ export default config({
     theme: "theme.ts",
     masthead: "masthead.ts",
     read: "read.ts",
-    highlight: "highlight.ts", editor: "editor.ts", confirm: "confirm.ts",
+    highlight: "highlight.ts", editor: "editor.ts", confirm: "confirm.ts", forms: "forms.ts",
   },
 });

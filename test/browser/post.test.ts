@@ -34,9 +34,10 @@ describe("a post, in a browser", () => {
     page.on("request", (r) => scripts.push(r.url()));
     await page.reload();
     await page.waitForLoadState("networkidle");
-    // The common languages build is the big one; a page without code never asks for it.
-    const sizes = await Promise.all(scripts.filter((u) => u.endsWith(".js")).map(async (u) => (await (await fetch(u)).arrayBuffer()).byteLength));
-    expect(Math.max(...sizes)).toBeLessThan(40_000);
+    // Only highlight.js itself has highlightAuto; a page without code never asks for it.
+    const bodies = await Promise.all(scripts.filter((u) => u.endsWith(".js")).map(async (u) => (await fetch(u)).text()));
+    expect(bodies.length).toBeGreaterThan(0);
+    expect(bodies.some((b) => b.includes("highlightAuto"))).toBe(false);
   });
 
   it("records a read when it's opened", async () => {
