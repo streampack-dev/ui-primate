@@ -71,3 +71,9 @@ export function setTokens(access: string, refresh: string | null) {
   if (!d) return;
   session.set({ ...d, access: seal(access), ...(refresh ? { refresh: seal(refresh) } : {}) });
 }
+
+/** The reader's new display name, as the API took it, for the header and their pages. */
+export function rename(displayName: string) {
+  const d = data();
+  if (d?.userId) session.set({ ...d, displayName });
+}

@@ -1,0 +1,75 @@
+export interface Input {
+  reader: { username: string; displayName: string; role: string };
+  csrf: string;
+  status?: string;
+  nameError?: string;
+  nameDraft: string;
+  deleteOpen?: boolean;
+  deleteError?: string;
+  confirmDraft?: string;
+  exportError?: string;
+}
+<section class="py-8 md:py-12">
+  <div class="max-w-2xl mx-auto px-6 md:px-8">
+    <header class="mb-10">
+      <div class="border-t-2 border-amber animate-rule-draw"/>
+      <div class="pt-6 pb-8 border-b border-border/40">
+        <p class="section-label text-amber mb-3">Account</p>
+        <h1 class="font-display text-foreground leading-tight submit-title">${input.reader.displayName}</h1>
+      </div>
+    </header>
+
+    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 mb-10">
+      <div><dt class="byline form-label">Username</dt><dd class="text-foreground">${input.reader.username}</dd></div>
+      <div><dt class="byline form-label">Role</dt><dd class="text-foreground">${input.reader.role}</dd></div>
+    </dl>
+
+    <if=input.status>
+      <div class="mb-6 px-4 py-3 border border-amber/30 bg-amber/5"><p class="section-label text-amber" role="status">${input.status}</p></div>
+    </if>
+
+    <section class="border-t border-border/40 pt-8 mb-8" aria-labelledby="display-name-heading">
+      <h2 class="section-label text-amber mb-5" id="display-name-heading">Display Name</h2>
+      <form class="flex gap-3 items-start" method="post" action="/profile">
+        <input type="hidden" name="csrf" value=input.csrf>
+        <div class="flex-1">
+          <label class="byline form-label" for="display-name">Shown on your posts and comments</label>
+          <input class="form-field text-sm p-2" id="display-name" name="displayName" required maxlength="100" value=input.nameDraft
+            aria-invalid=(input.nameError ? "true" : false) aria-describedby=(input.nameError ? "display-name-error" : false)>
+          <if=input.nameError><p class="form-error" id="display-name-error" role="alert">${input.nameError}</p></if>
+        </div>
+        <button type="submit" class="auth-button shrink-0 mt-6">Save</button>
+      </form>
+    </section>
+
+    <section class="border-t border-border/40 pt-8" aria-labelledby="data-heading">
+      <h2 class="section-label text-amber mb-5" id="data-heading">Data &amp; Account</h2>
+      <div class="flex items-center justify-between py-3 gap-4">
+        <div>
+          <p class="text-sm text-foreground">Export your data</p>
+          <p class="form-hint">Download all your account data as JSON</p>
+          <if=input.exportError><p class="form-error" role="alert">${input.exportError}</p></if>
+        </div>
+        <a class="section-label profile-action" href="/profile/export" download>Export</a>
+      </div>
+      <div class="border-t border-border/20"/>
+      <details class="profile-delete py-3" open=!!input.deleteOpen>
+        <summary class="flex items-center justify-between gap-4 cursor-pointer">
+          <span>
+            <span class="block text-sm text-foreground">Delete account</span>
+            <span class="block form-hint">Permanently remove your account and all associated data</span>
+          </span>
+          <span class="section-label profile-action danger">Delete…</span>
+        </summary>
+        <form class="mt-4" method="post" action="/profile/delete">
+          <input type="hidden" name="csrf" value=input.csrf>
+          <label class="byline form-label" for="delete-confirm">This can't be undone. Type your username, <code class="as-typed">${input.reader.username}</code>, to delete your account.</label>
+          <input class="form-field text-sm p-2" id="delete-confirm" name="confirm" autocomplete="off" required value=(input.confirmDraft ?? "")
+            aria-invalid=(input.deleteError ? "true" : false) aria-describedby=(input.deleteError ? "delete-error" : false)>
+          <if=input.deleteError><p class="form-error" id="delete-error" role="alert">${input.deleteError}</p></if>
+          <button type="submit" class="auth-button danger mt-3">Delete my account</button>
+        </form>
+      </details>
+    </section>
+  </div>
+</section>

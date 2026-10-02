@@ -1295,3 +1295,27 @@ textarea.form-field {
 .og-card-description {
   @apply text-sm text-muted-foreground line-clamp-2;
 }
+
+/* The profile's actions: ui-nextjs's outlined buttons. */
+.profile-action {
+  @apply shrink-0 px-3 py-2 text-amber border border-amber/40 hover:bg-amber/10 transition-colors;
+}
+
+.profile-action.danger {
+  @apply text-muted-foreground border-border hover:text-destructive hover:border-destructive/40;
+}
+
+.profile-delete summary {
+  @apply list-none;
+}
+
+.profile-delete summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Something to be typed exactly, inside a label that's otherwise in capitals. */
+.as-typed {
+  @apply font-mono text-foreground;
+  text-transform: none;
+  letter-spacing: normal;
+}

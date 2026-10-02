@@ -14,7 +14,7 @@ Features, in the order they're being built (as agreed 2026-10-01):
 - [ ] Search
 - [ ] Factoids
 - [ ] Karma
-- [ ] Profile
+- [x] Profile
 - [ ] Editing posts
 - [ ] Admin pages
 - [x] OG images (`/og/posts/…png`, `/og/site.png`) and the OG preview
