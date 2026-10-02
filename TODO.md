@@ -18,7 +18,6 @@ Features, in the order they're being built (as agreed 2026-10-01):
 - [x] Editing posts
 - [x] Admin pages
 - [x] OG images (`/og/posts/…png`, `/og/site.png`) and the OG preview
-- [ ] Sign-in through an outside provider (OIDC, `/auth/callback`)
 
 Before it's deployed:
 
@@ -33,3 +32,8 @@ Smaller things noticed along the way:
 - [ ] Comment removal asks on a page of its own; a dialog, when script is there, would save the trip
       (ui-pudl does both)
 - [ ] Sessions end thirty days after sign-in, not after thirty idle days as ui-pudl's do
+
+Parked:
+
+- [ ] Sign-in through an outside provider (OIDC). Very low priority, and the backend doesn't support
+      it (2026-10-01); revisit only if that changes.
