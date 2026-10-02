@@ -57,5 +57,29 @@ export function meta({ title, description = DESCRIPTION, path, type = "website",
     `<meta name="twitter:image" content="${src}">`,
     `<meta name="twitter:image:alt" content="${escape(shown.alt)}">`,
   );
+  tags.push(...analytics());
   return tags.join("\n    ");
+}
+
+/* Google Analytics, as ui-nextjs and ui-pudl load it (deploy#3): gtag on every page when
+   GA_MEASUREMENT_ID is set (read at run time), and nothing of Google's at all when it isn't. The id
+   is written into a script, so only one shaped like a measurement id is used; anything else turns
+   analytics off, said once in the log. */
+const MEASUREMENT_ID = /^[A-Z]{1,3}-[A-Z0-9]{4,16}$/;
+let warnedAbout: string | null = null;
+
+function analytics(): string[] {
+  const id = (process.env.GA_MEASUREMENT_ID || "").trim();
+  if (!id) return [];
+  if (!MEASUREMENT_ID.test(id)) {
+    if (warnedAbout !== id) {
+      warnedAbout = id;
+      console.warn("GA_MEASUREMENT_ID isn't a measurement id (G-XXXXXXXX); analytics is off.");
+    }
+    return [];
+  }
+  return [
+    `<script async src="https://www.googletagmanager.com/gtag/js?id=${id}"></script>`,
+    `<script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '${id}');</script>`,
+  ];
 }
