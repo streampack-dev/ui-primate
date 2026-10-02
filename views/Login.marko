@@ -1,30 +1,44 @@
-export interface Input { step: "email" | "code"; email?: string; back: string; error?: string; csrf: string }
-<section class="container max-w-md py-12">
-  <div class="border-t-2 border-amber mb-6"/>
-  <h1 class="font-display text-3xl mb-2">Log in</h1>
+export interface Input { step: "email" | "code"; email?: string; back: string; error?: string; from: string; csrf: string }
+<!-- ui-nextjs's sign-in page, as plain forms: the email, then the code. -->
+<div class="container max-w-lg mx-auto py-16 px-6">
+  <div class="border-t-2 border-amber pt-6 mb-8 animate-rule-draw"/>
+  <p class="section-label text-amber mb-3">Subscriber Access</p>
+  <h1 class="font-display text-3xl md:text-4xl tracking-tight mb-2">Sign In</h1>
+  <p class="text-muted-foreground text-sm border-b border-border/40 pb-6 mb-8">Access your account to submit articles and manage your profile.</p>
+
   <if=(input.step === "email")>
-    <p class="text-muted-foreground mb-6">We'll email you a code to sign in with.</p>
-    <form class="auth-form" method="post" action="/login/code">
+    <p class="text-muted-foreground text-sm mb-6">
+      <if=input.from>We'll send a one-time code from <span class="font-mono text-xs text-foreground">${input.from}</span>. Check your spam folder if needed.</if>
+      <else>We'll email you a one-time code to sign in with. Check your spam folder if needed.</else>
+    </p>
+    <form class="space-y-4" method="post" action="/login/code">
       <input type="hidden" name="csrf" value=input.csrf>
       <input type="hidden" name="return" value=input.back>
-      <label class="auth-label" for="login-email">Email address</label>
-      <input class="auth-input" id="login-email" name="email" type="email" autocomplete="email" required value=input.email
-        aria-invalid=(input.error ? "true" : false) aria-describedby=(input.error ? "login-error" : false)>
-      <if=input.error><p class="form-error" id="login-error" role="alert">${input.error}</p></if>
-      <button class="auth-button" type="submit">Email me a code</button>
+      <div>
+        <label class="section-label text-muted-foreground block mb-2" for="login-email">Email Address</label>
+        <input class="login-field" id="login-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" value=input.email
+          aria-invalid=(input.error ? "true" : false) aria-describedby=(input.error ? "login-error" : false)>
+      </div>
+      <button class="login-submit" type="submit">Send Sign-In Code</button>
     </form>
   </if>
   <else>
-    <p class="text-muted-foreground mb-6">We've emailed a code to ${input.email}. Enter it here.</p>
-    <form class="auth-form" method="post" action="/login">
+    <p class="text-muted-foreground text-sm mb-6">We've emailed a code to <span class="font-mono text-xs text-foreground">${input.email}</span>. Enter it here.</p>
+    <form class="space-y-4" method="post" action="/login">
       <input type="hidden" name="csrf" value=input.csrf>
       <input type="hidden" name="return" value=input.back>
-      <label class="auth-label" for="login-code">Code</label>
-      <input class="auth-input" id="login-code" name="code" inputmode="numeric" autocomplete="one-time-code" required
-        aria-invalid=(input.error ? "true" : false) aria-describedby=(input.error ? "login-error" : false)>
-      <if=input.error><p class="form-error" id="login-error" role="alert">${input.error}</p></if>
-      <button class="auth-button" type="submit">Sign in</button>
+      <div>
+        <label class="section-label text-muted-foreground block mb-2" for="login-code">6-Digit Code</label>
+        <input class="login-field otp-input" id="login-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code"
+          pattern="[0-9]{6}" maxlength="6" placeholder="123456" required
+          aria-invalid=(input.error ? "true" : false) aria-describedby=(input.error ? "login-error" : false)>
+      </div>
+      <button class="login-submit" type="submit">Verify Code</button>
+      <a class="login-other" href=`/login?return=${encodeURIComponent(input.back)}`>Use a different email</a>
     </form>
-    <p class="text-muted-foreground text-sm mt-4"><a class="pagelink" href=`/login?return=${encodeURIComponent(input.back)}`>Use a different address</a></p>
   </else>
-</section>
+
+  <if=input.error>
+    <div class="mt-6 border-l-2 border-destructive pl-4 py-2"><p class="form-error mt-0" id="login-error" role="alert">${input.error}</p></div>
+  </if>
+</div>

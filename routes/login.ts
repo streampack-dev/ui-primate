@@ -1,6 +1,7 @@
 import response from "primate/response";
 import route from "primate/route";
-import { send } from "#api/client.ts";
+import { cachedGet, send } from "#api/client.ts";
+import type { Features } from "#api/types.ts";
 import type { components } from "#api/schema.d.ts";
 import { csrf, csrfOk, pendingEmail, signIn } from "#auth/readers.ts";
 import { refreshCookie, refusal, safeReturn } from "#auth/forms.ts";
@@ -10,8 +11,11 @@ type LoginResponse = components["schemas"]["LoginResponse"];
 
 /* Signing in, as ui-pudl does it: an email address (routes/login/code.ts has the API send a code
    to it), then the code. Plain forms; no script needed. */
-export function loginPage(step: "email" | "code", fields: { email?: string; back: string; error?: string }, status = 200) {
-  return response.view("Login.marko", { step, ...fields, csrf: csrf() }, {
+export async function loginPage(step: "email" | "code", fields: { email?: string; back: string; error?: string }, status = 200) {
+  // The address the codes come from, as the API says, so a reader knows what to look for.
+  const features = await cachedGet<Features>("/features").catch(() => null);
+  const from = features?.authentication?.otpFrom?.trim() || "";
+  return response.view("Login.marko", { step, ...fields, from, csrf: csrf() }, {
     status,
     headers: { "Cache-Control": "private, no-store" },
     placeholders: { meta: meta({ title: "Log in" }) },

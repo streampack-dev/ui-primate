@@ -38,6 +38,29 @@ describe("signing in", () => {
     expect(text(doc.querySelector("main"))).toContain("joe@example.com");
   });
 
+  it("asks for the code as ui-nextjs and ui-pudl do: six digits, one box, large and spaced", async () => {
+    await stubSignIn();
+    const v = new Visitor();
+    await v.post("/login/code", { email: "joe@example.com" });
+    const { doc } = await v.get("/login?step=code");
+    const code = doc.querySelector("input[name=code]")!;
+
+    expect(text(doc.querySelector("main h1"))).toBe("Sign In");
+    expect(text(doc.querySelector(`label[for='${code.getAttribute("id")}']`))).toBe("6-Digit Code");
+    expect(code.classList.contains("otp-input")).toBe(true);
+    expect(code.getAttribute("inputmode")).toBe("numeric");
+    expect(code.getAttribute("pattern")).toBe("[0-9]{6}");
+    expect(code.getAttribute("maxlength")).toBe("6");
+    expect(code.getAttribute("placeholder")).toBe("123456");
+    expect(code.getAttribute("autocomplete")).toBe("one-time-code");
+  });
+
+  it("says which address the codes come from, when the API says", async () => {
+    await stubSite({ authentication: { otp: true, otpFrom: "noreply@bytecode.news" } });
+    const { doc } = await new Visitor().get("/login");
+    expect(text(doc.querySelector("main"))).toContain("We'll send a one-time code from noreply@bytecode.news.");
+  });
+
   it("wants something like an email address before asking the API", async () => {
     const { status, doc } = await new Visitor().post("/login/code", { email: "nope" });
 
