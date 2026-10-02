@@ -12,7 +12,7 @@ Features, in the order they're being built (as agreed 2026-10-01):
 - [x] Tags, and the pages for each tag
 - [ ] Category pages
 - [x] Search
-- [ ] Factoids
+- [x] Factoids
 - [ ] Karma
 - [x] Profile
 - [x] Editing posts

@@ -1385,3 +1385,12 @@ textarea.form-field {
 .login-other {
   @apply block w-full text-center font-mono text-xs text-muted-foreground uppercase tracking-widest py-2 hover:text-amber transition-colors;
 }
+
+/* A factoid's links: see-also and addresses, inline in its attributes. */
+.factoid-value a {
+  @apply underline underline-offset-2 hover:text-amber transition-colors;
+}
+
+.factoid-value {
+  font-family: var(--font-body), Georgia, serif;
+}

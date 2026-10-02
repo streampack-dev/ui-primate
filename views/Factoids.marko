@@ -1,0 +1,49 @@
+export interface Input {
+  q: string;
+  count: string;
+  factoids: { selector: string; href: string; hits: string; text: string; tags: string[]; by: string; updated: string; date: string; locked: boolean }[];
+  pages: string;
+  prev: string | null;
+  next: string | null;
+}
+<section class="py-8 md:py-12">
+  <div class="max-w-5xl mx-auto px-6 md:px-8">
+    <header class="mb-10">
+      <div class="border-t-2 border-amber animate-rule-draw"/>
+      <div class="pt-6 pb-8 border-b border-border/40">
+        <p class="section-label text-amber mb-3">Reference</p>
+        <h1 class="font-display text-foreground leading-tight submit-title">Knowledge Base</h1>
+        <p class="factoid-count text-muted-foreground text-sm mt-2">${input.count}</p>
+      </div>
+    </header>
+    <form class="flex gap-3 mb-8" action="/factoids" method="get" role="search">
+      <label class="sr-only" for="factoid-q">Search factoids</label>
+      <input class="form-field text-sm p-2" id="factoid-q" name="q" type="search" placeholder="Search the knowledge base..." value=input.q>
+      <button type="submit" class="auth-button shrink-0">Search</button>
+    </form>
+    <if=(input.factoids.length === 0)>
+      <div class="py-12 text-center">
+        <p class="section-label form-label-text mb-3">No entries found</p>
+        <p class="text-muted-foreground text-sm">${input.q ? "Try a different search term." : "The knowledge base is empty."}</p>
+      </div>
+    </if>
+    <else>
+      <for|f, i| of=input.factoids by="selector">
+        <article class=["factoid py-3.5", i > 0 && "border-t border-border/30"]>
+          <div class="flex items-baseline justify-between gap-4">
+            <h2 class="headline-brief text-foreground min-w-0 truncate" title=f.selector><a class="hover:text-amber transition-colors" href=f.href>${f.selector}</a></h2>
+            <span class="byline text-muted-foreground shrink-0">${f.hits}</span>
+          </div>
+          <if=f.text><p class="text-muted-foreground text-sm mt-1 line-clamp-2" title=f.text>${f.text}</p></if>
+          <if=f.tags.length><div class="tags mt-2"><for|t| of=f.tags><a class="tag" href=`/tags/${encodeURIComponent(t)}`>${t}</a></for></div></if>
+          <div class="byline text-muted-foreground mt-1.5 flex items-center gap-1.5 flex-wrap">
+            <if=f.by><span>${f.by}</span> <span aria-hidden="true">|</span></if>
+            <time datetime=f.updated>${f.date}</time>
+            <if=f.locked> <span aria-hidden="true">|</span> <span class="text-amber">Locked</span></if>
+          </div>
+        </article>
+      </for>
+    </else>
+    <list-pager pages=input.pages prev=input.prev next=input.next/>
+  </div>
+</section>
