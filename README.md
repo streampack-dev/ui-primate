@@ -52,3 +52,7 @@ are in memory or if the password is streampack's.
 
 A session cookie lasts thirty days. Old sessions are cleared out hourly: a visitor's a day after
 it began (it only held a form token), and a reader's thirty days after they signed in.
+
+## License
+
+MIT; see [LICENSE](LICENSE).
