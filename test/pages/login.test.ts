@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { text } from "../support/page.ts";
 import { list, post, requests, resetStubs, stub, stubSite } from "../support/stub.ts";
+import { signedIn, stubSignIn } from "../support/readers.ts";
 import { Visitor } from "../support/visitor.ts";
-
-const PRINCIPAL = { id: "019f0000-0000-7000-8000-00000000a001", username: "joe", displayName: "Joe O", role: "USER" };
 
 beforeEach(async () => {
   await resetStubs();
@@ -11,24 +10,6 @@ beforeEach(async () => {
   await stub("/posts", list([post()]), { query: { page: 0, size: 9 } });
   await stub("/posts/popular", list([]), { query: { page: 0, size: 3 } });
 });
-
-/** The API, ready to send a code and to take it. */
-async function stubSignIn(principal = PRINCIPAL) {
-  await stub("/auth/otp/request", { message: "Sent." }, { method: "POST" });
-  await stub("/auth/otp/verify", { token: "access-1", principal }, {
-    method: "POST",
-    headers: { "Set-Cookie": "refresh_token=refresh-1; Path=/auth; HttpOnly; SameSite=Lax" },
-  });
-}
-
-/** A visitor who has signed in, by way of the email and the code. */
-async function signedIn(principal = PRINCIPAL) {
-  await stubSignIn(principal);
-  const v = new Visitor();
-  await v.post("/login/code", { email: "joe@example.com", return: "/" });
-  await v.post("/login", { code: "123456", return: "/" });
-  return v;
-}
 
 describe("signing in", () => {
   it("asks for an email address first, in a form that works without script", async () => {
@@ -113,6 +94,7 @@ describe("signing in", () => {
 
     expect(status).toBe(400);
     expect(text(doc.querySelector(".form-error"))).toBe("That code is wrong or expired.");
+    expect(doc.querySelector("header form[action='/search']")).not.toBeNull();
     expect(doc.querySelector("input[name=code]")).not.toBeNull();
   });
 

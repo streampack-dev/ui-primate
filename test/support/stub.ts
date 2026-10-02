@@ -3,12 +3,13 @@ import { inject } from "vitest";
 
 const stubUrl = () => inject("stubApi");
 
-/** From now on, a GET of [path] (with at least [query]) answers [answer]. */
-export async function stub(path: string, body: unknown, options: { query?: Record<string, string | number>; method?: string; status?: number; headers?: Record<string, string>; delayMs?: number } = {}) {
+/** From now on, a GET (or [method]) of [path], with at least [query] and the request headers in
+   [when], answers [body], with [status] and [headers]. */
+export async function stub(path: string, body: unknown, options: { query?: Record<string, string | number>; method?: string; when?: Record<string, string>; status?: number; headers?: Record<string, string>; delayMs?: number } = {}) {
   const query = Object.fromEntries(Object.entries(options.query || {}).map(([k, v]) => [k, String(v)]));
   await fetch(`${stubUrl()}/__stub`, {
     method: "POST",
-    body: JSON.stringify({ path, method: options.method, query, answer: { body, status: options.status, headers: options.headers, delayMs: options.delayMs } }),
+    body: JSON.stringify({ path, method: options.method, query, when: options.when, answer: { body, status: options.status, headers: options.headers, delayMs: options.delayMs } }),
   });
 }
 

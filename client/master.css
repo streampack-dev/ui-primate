@@ -772,7 +772,9 @@
 }
 
 .auth-button {
-  @apply px-3 py-2 text-white cursor-pointer;
+  /* ui-nextjs has text-white, which fails contrast on the dark theme's light amber. */
+  @apply px-3 py-2 cursor-pointer;
+  color: var(--primary-foreground);
   border: 1px solid var(--amber);
   background: var(--amber);
   min-height: 2.2rem;
@@ -1079,4 +1081,62 @@ body {
   --font-display: "Instrument Serif";
   --font-body: "Source Serif 4";
   --font-mono: "IBM Plex Mono";
+}
+
+/* Forms (submit, and what follows): ui-nextjs's form styling, as classes. */
+.submit-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  letter-spacing: -0.025em;
+}
+
+.form-label {
+  @apply block mb-1.5;
+  color: color-mix(in srgb, var(--muted-foreground) 70%, transparent);
+}
+
+.form-label-row {
+  @apply flex items-center justify-between mb-1.5;
+}
+
+.form-label-row .form-label {
+  @apply mb-0;
+}
+
+.form-field {
+  @apply w-full border border-border bg-background text-foreground p-3 focus:outline-none focus:ring-1 focus:ring-amber;
+  font-family: var(--font-body), Georgia, serif;
+}
+
+textarea.form-field {
+  @apply resize-y;
+}
+
+.form-mono {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.submit-title-input {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
+  letter-spacing: -0.01em;
+}
+
+.form-hint {
+  @apply text-xs mt-1;
+  color: color-mix(in srgb, var(--muted-foreground) 70%, transparent);
+}
+
+.form-helper {
+  @apply text-muted-foreground hover:text-amber transition-colors cursor-pointer;
+}
+
+.form-error {
+  @apply text-sm mt-2;
+  color: #bf3d31;
+}
+
+.form-status {
+  @apply text-sm mt-2 text-amber;
 }

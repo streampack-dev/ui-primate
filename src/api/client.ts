@@ -55,7 +55,8 @@ export async function cachedGet<T>(path: string, query: Record<string, string | 
  * A request that changes something ([method] other than GET): never cached, never served stale.
  * Returns the API's response as it came, for the caller to read.
  */
-export async function send(method: string, path: string, body?: unknown, headers: Record<string, string> = {}): Promise<Response> {
+/** A request not cached: a form's, say. [timeoutMs] is longer for the API's AI helpers. */
+export async function send(method: string, path: string, body?: unknown, headers: Record<string, string> = {}, { timeoutMs = TIMEOUT_MS } = {}): Promise<Response> {
   return fetch(`${base}${path}`, {
     method,
     headers: {
@@ -65,6 +66,6 @@ export async function send(method: string, path: string, body?: unknown, headers
       ...headers,
     },
     body: body === undefined ? undefined : JSON.stringify(body),
-    signal: AbortSignal.timeout(TIMEOUT_MS),
+    signal: AbortSignal.timeout(timeoutMs),
   });
 }

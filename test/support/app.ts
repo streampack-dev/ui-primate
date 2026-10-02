@@ -2,6 +2,7 @@
    build, served) pointed at it. The app runs in New York's time zone, so a date shown in the
    server's local time rather than the site's shows up whatever zone the tests run in. */
 import { spawn, execFileSync } from "node:child_process";
+import { existsSync, rmSync } from "node:fs";
 import net from "node:net";
 import type { TestProject } from "vitest/node";
 import { startStubApi } from "./stub-api.ts";
@@ -17,11 +18,15 @@ function freePort(): Promise<number> {
 
 export default async function setup(project: TestProject) {
   const stubApi = await startStubApi();
+  // primate build can fail and still exit 0, so a build is only known good by what it leaves.
+  rmSync("build", { recursive: true, force: true });
+  let output = "";
   try {
-    execFileSync("npx", ["primate", "build"], { stdio: "pipe" });
+    output = execFileSync("npx", ["primate", "build"], { stdio: "pipe" }).toString();
   } catch (e) {
-    throw new Error(`The build failed:\n${(e as { stdout?: Buffer; stderr?: Buffer }).stderr || ""}${(e as { stdout?: Buffer }).stdout || ""}`);
+    output = `${(e as { stderr?: Buffer }).stderr || ""}${(e as { stdout?: Buffer }).stdout || ""}`;
   }
+  if (!existsSync("build/server.js")) throw new Error(`The build failed:\n${output}`);
   const port = await freePort();
   const app = spawn("npx", ["primate", "serve"], {
     env: { ...process.env, BCN_API_BASE: stubApi.url, PORT: String(port), TZ: "America/New_York", UI_DEV: "" },

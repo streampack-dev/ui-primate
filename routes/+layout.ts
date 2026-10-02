@@ -8,35 +8,36 @@ import { current, isAdmin } from "#auth/readers.ts";
 import session from "@/config/session";
 
 /* Every page's frame: the header and footer, with what the API says the site offers. A page keeps
-   rendering when the API can't be reached; the frame just says less. */
-export default route({
-  async get() {
-    const [features, sidebar] = await Promise.allSettled([
-      cachedGet<Features>("/features"),
-      cachedGet<ContentList>("/posts", { category: "_sidebar", page: 0, size: 20 }),
-    ]);
-    const f = features.status === "fulfilled" ? features.value : null;
-    const has = (word: string) =>
-      !!f && ((f.operationGroups || []).some((g) => g.toLowerCase().includes(word)) ||
-        (f.adapters || []).some((a) => a.toLowerCase().includes(word)));
-    const siteName = f?.siteName || "ByteCode.News";
-    return response.view("Layout.marko", {
-      siteName,
-      brand: [siteName.split(".")[0], siteName.split(".").slice(1).join(".") || "news"],
-      factoids: has("factoid"),
-      rss: has("rss"),
-      backendVersion: f?.version
-        ? formatVersionText({ version: f.version.version ?? undefined, commit: f.version.commit ?? undefined, branch: f.version.branch ?? undefined })
-        : "unknown",
-      frontendVersion: formatVersionText({ version: pkg.version, commit: process.env.UI_COMMIT, branch: process.env.UI_BRANCH }),
-      sidebar: sidebar.status === "fulfilled" ? (sidebar.value?.posts || []).map(({ id, title, slug }) => ({ id, title, slug })) : [],
-      year: new Date().getFullYear(),
-      // Who's signed in, and the token their sign-out form carries. A reader who isn't gets no
-      // session for it: the header only links to the login page.
-      reader: current(),
-      admin: isAdmin(current()),
-      csrf: (session.try() as { csrf?: string } | undefined)?.csrf ?? "",
-      submit: !!current() || f?.anonymousSubmission !== false,
-    });
-  },
-});
+   rendering when the API can't be reached; the frame just says less. A layout frames only the
+   methods it answers, so it answers POST too, for a form shown again. */
+async function frame() {
+  const [features, sidebar] = await Promise.allSettled([
+    cachedGet<Features>("/features"),
+    cachedGet<ContentList>("/posts", { category: "_sidebar", page: 0, size: 20 }),
+  ]);
+  const f = features.status === "fulfilled" ? features.value : null;
+  const has = (word: string) =>
+    !!f && ((f.operationGroups || []).some((g) => g.toLowerCase().includes(word)) ||
+      (f.adapters || []).some((a) => a.toLowerCase().includes(word)));
+  const siteName = f?.siteName || "ByteCode.News";
+  return response.view("Layout.marko", {
+    siteName,
+    brand: [siteName.split(".")[0], siteName.split(".").slice(1).join(".") || "news"],
+    factoids: has("factoid"),
+    rss: has("rss"),
+    backendVersion: f?.version
+      ? formatVersionText({ version: f.version.version ?? undefined, commit: f.version.commit ?? undefined, branch: f.version.branch ?? undefined })
+      : "unknown",
+    frontendVersion: formatVersionText({ version: pkg.version, commit: process.env.UI_COMMIT, branch: process.env.UI_BRANCH }),
+    sidebar: sidebar.status === "fulfilled" ? (sidebar.value?.posts || []).map(({ id, title, slug }) => ({ id, title, slug })) : [],
+    year: new Date().getFullYear(),
+    // Who's signed in, and the token their sign-out form carries. A reader who isn't gets no
+    // session for it: the header only links to the login page.
+    reader: current(),
+    admin: isAdmin(current()),
+    csrf: (session.try() as { csrf?: string } | undefined)?.csrf ?? "",
+    submit: !!current() || f?.anonymousSubmission !== false,
+  });
+}
+
+export default route({ get: frame, post: frame });

@@ -1,0 +1,108 @@
+export interface Input {
+  form: { title: string; markdownSource: string; tags: string; summary: string; categoryId: string; formLoadedAt: string };
+  errors: { title?: string; markdownSource?: string };
+  notice?: string;
+  helper?: "tags" | "summary";
+  said?: { text: string; ok: boolean };
+  categories: { id: string; name: string }[];
+  signedIn: boolean;
+  ai: boolean;
+  csrf: string;
+}
+<const/form=input.form>
+<const/errors=input.errors>
+<section class="py-8 md:py-12">
+  <div class="max-w-3xl mx-auto px-6 md:px-8">
+    <header class="mb-10">
+      <div class="border-t-2 border-amber animate-rule-draw"/>
+      <div class="pt-6 pb-8 border-b border-border/40">
+        <p class="section-label text-amber mb-3">Contribute</p>
+        <h1 class="font-display text-foreground leading-tight submit-title">Submit a Draft</h1>
+        <p class="text-muted-foreground text-sm mt-2">Submissions are drafts until an editor approves them.</p>
+      </div>
+    </header>
+
+    <if=input.notice>
+      <div class="mb-6 px-4 py-3 border border-destructive/30 bg-destructive/5">
+        <p class="form-error" role="alert">${input.notice}</p>
+      </div>
+    </if>
+
+    <form id="submit-post" method="post" action="/submit">
+      <!-- Enter in a field submits the post: the first button in a form is the one it presses. -->
+      <button class="hp" type="submit" tabindex="-1" aria-hidden="true">Submit Draft</button>
+      <input type="hidden" name="csrf" value=input.csrf>
+      <input type="hidden" name="formLoadedAt" value=form.formLoadedAt>
+      <div class="hp" aria-hidden="true">
+        <label for="submit-website">Leave this empty</label>
+        <input id="submit-website" name="website" tabindex="-1" autocomplete="off" value="">
+      </div>
+
+      <div class="mb-6">
+        <label class="byline form-label" for="submit-title">Title</label>
+        <input class="form-field submit-title-input" id="submit-title" name="title" required maxlength="255" placeholder="Your article's title" value=form.title
+          aria-invalid=(errors.title ? "true" : false) aria-describedby=(errors.title ? "submit-title-error" : false)>
+        <if=errors.title><p class="form-error" id="submit-title-error">${errors.title}</p></if>
+      </div>
+
+      <div class="mb-6">
+        <label class="byline form-label" for="submit-body">Content (Markdown)</label>
+        <textarea class="form-field form-mono" id="submit-body" name="markdownSource" rows="16" required spellcheck="true"
+          aria-invalid=(errors.markdownSource ? "true" : false)
+          aria-describedby=(errors.markdownSource ? "submit-body-error submit-body-hint" : "submit-body-hint")>${form.markdownSource}</textarea>
+        <if=errors.markdownSource><p class="form-error" id="submit-body-error">${errors.markdownSource}</p></if>
+        <p class="form-hint" id="submit-body-hint">Markdown: **bold**, _italic_, `code`, [link](https://…), ``` for code blocks, # for headings. HTML shows as typed.</p>
+      </div>
+
+      <div class="mb-6">
+        <div class="form-label-row">
+          <label class="byline form-label" for="submit-tags">Tags</label>
+          <span class="flex gap-3">
+            <button class="section-label form-helper" type="submit" name="action" value="suggest-tags" formnovalidate>Suggest</button>
+            <if=input.ai><button class="section-label form-helper" type="submit" name="action" value="ai-tags" formnovalidate>AI Tags</button></if>
+          </span>
+        </div>
+        <input class="form-field" id="submit-tags" name="tags" placeholder="java, spring, architecture" value=form.tags aria-describedby="submit-tags-hint">
+        <p class="form-hint" id="submit-tags-hint">Separate tags with commas.</p>
+        <div id="helper-tags">
+          <if=(input.helper === "tags" && input.said)>
+            <p class=(input.said.ok ? "form-status" : "form-error") role=(input.said.ok ? "status" : "alert")>${input.said.text}</p>
+          </if>
+        </div>
+      </div>
+
+      <if=input.signedIn>
+        <div class="mb-6">
+          <div class="form-label-row">
+            <label class="byline form-label" for="submit-summary">Summary (optional)</label>
+            <button class="section-label form-helper" type="submit" name="action" value="derive-summary" formnovalidate>Derive Summary</button>
+          </div>
+          <textarea class="form-field" id="submit-summary" name="summary" rows="3" aria-describedby="submit-summary-hint"
+            placeholder="Brief summary for the front page and feed excerpts.">${form.summary}</textarea>
+          <p class="form-hint" id="submit-summary-hint">Left empty, one is made from the post.</p>
+          <div id="helper-summary">
+            <if=(input.helper === "summary" && input.said)>
+              <p class=(input.said.ok ? "form-status" : "form-error") role=(input.said.ok ? "status" : "alert")>${input.said.text}</p>
+            </if>
+          </div>
+        </div>
+      </if>
+
+      <if=input.categories.length>
+        <div class="mb-6">
+          <label class="byline form-label" for="submit-category">Category (optional)</label>
+          <select class="form-field" id="submit-category" name="categoryId">
+            <option value="">None</option>
+            <for|c| of=input.categories>
+              <option value=c.id selected=(c.id === form.categoryId)>${c.name}</option>
+            </for>
+          </select>
+        </div>
+      </if>
+
+      <div class="border-t border-border/40 pt-6">
+        <button type="submit" class="auth-button">Submit Draft</button>
+      </div>
+    </form>
+  </div>
+</section>

@@ -10,8 +10,9 @@ import http from "node:http";
 export type Answer = { status?: number; body?: unknown; raw?: string; headers?: Record<string, string>; delayMs?: number };
 export type Seen = { method: string; path: string; query: Record<string, string>; headers: Record<string, string>; body: unknown };
 
-/** An answer matches a path, and every query parameter it names (others are ignored). */
-type Rule = { path: string; method?: string; query: Record<string, string>; answer: Answer };
+/** An answer matches a path, and every query parameter and request header it names (others are
+   ignored); header names in lower case. */
+type Rule = { path: string; method?: string; query: Record<string, string>; when?: Record<string, string>; answer: Answer };
 
 export function startStubApi(port = 0): Promise<{ url: string; close: () => Promise<void> }> {
   let rules: Rule[] = [];
@@ -29,7 +30,8 @@ export function startStubApi(port = 0): Promise<{ url: string; close: () => Prom
     seen.push({ method: req.method || "GET", path: url.pathname, query, headers: req.headers as Record<string, string>, body: received });
     // The last rule that matches wins, so a test can override a default.
     const rule = [...rules].reverse().find((r) =>
-      r.path === url.pathname && (!r.method || r.method === req.method) && Object.entries(r.query).every(([k, v]) => query[k] === v));
+      r.path === url.pathname && (!r.method || r.method === req.method) && Object.entries(r.query).every(([k, v]) => query[k] === v) &&
+      Object.entries(r.when || {}).every(([k, v]) => req.headers[k] === v));
     if (!rule) {
       res.writeHead(404, { "Content-Type": "application/problem+json" });
       return res.end(JSON.stringify({ status: 404, detail: `No stub for ${url.pathname}` }));
