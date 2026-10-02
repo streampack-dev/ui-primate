@@ -42,6 +42,11 @@ Smaller things noticed along the way:
 - [x] API answers used as they are for ui-pudl's intervals (15 s to 10 min) before asking again, and
       asked for at once after this app changes something: front page and logs were ~100 ms behind
       ui-pudl (2026-10-02)
+- [x] Fonts self-hosted (tools/fonts.mjs, `just fonts`), not from Google Fonts: its stylesheet was
+      render-blocking from another server and the last thing first paint waited on, and its fonts
+      couldn't be preloaded. Latin faces every page uses are bundled and preloaded (2026-10-02)
+- [x] Decided: no prerendering (speculation rules): a prerendered post runs client/read.ts and
+      would count a read nobody made, skewing Popular Reads (2026-10-02)
 - [x] Steps asked first (removing comments, approving and deleting posts, the admin pages' user and
       category steps) are asked in a dialog when there's script, on a page of their own without it
 - [ ] The editor's preview is close to the API's rendering, not exact: markdown-it, where the API has

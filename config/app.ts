@@ -18,6 +18,9 @@ export default config({
     host: "0.0.0.0",
     port: Number.parseInt(process.env.PORT || "3000", 10),
   },
+  // Fonts that client/ CSS points at are emitted as files, fingerprinted, and preloaded on every
+  // page (Primate preloads each woff2 it bundles): the faces every page uses (tools/fonts.mjs).
+  loaders: { ".woff2": "file" },
   // Bundled from client/, fingerprinted in production, and placed by templates/app.html.
   entrypoints: {
     css: "master.css",

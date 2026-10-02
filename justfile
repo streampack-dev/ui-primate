@@ -36,6 +36,11 @@ test:
 create-db:
     docker compose -f ../streampack/docker-compose.yml exec -T db psql -U nevet -d nevet -c 'CREATE DATABASE ui_primate'
 
+# Fetch the site's fonts again from Google Fonts and self-host them (tools/fonts.mjs): the faces
+# every page uses into client/fonts (bundled and preloaded), the rest into static/fonts.
+fonts:
+    node tools/fonts.mjs
+
 # Refresh the committed OpenAPI snapshot from the API, and the types generated from it.
 refresh-spec:
     {{app_env}} curl -sSf "${BCN_API_BASE:-https://api.bytecode.news}/v3/api-docs" | python3 -m json.tool --indent 2 > spec/openapi.json
