@@ -21,7 +21,8 @@ function freePort(): Promise<number> {
 /** The built app, served on a port of its own with [env]; stop() ends it. */
 export async function startApp(env: Record<string, string>): Promise<{ url: string; stop: () => void }> {
   const port = await freePort();
-  const app = spawn("npx", ["primate", "serve"], {
+  // On the Node the image ships with, when `just test` says which (UI_TEST_NODE); else this one.
+  const app = spawn(process.env.UI_TEST_NODE || process.execPath, ["build/server.js"], {
     env: { ...process.env, PORT: String(port), TZ: "America/New_York", UI_DEV: "", ...env },
     stdio: ["ignore", "pipe", "pipe"],
   });

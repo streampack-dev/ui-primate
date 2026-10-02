@@ -23,9 +23,13 @@ build:
 run: build
     {{app_env}} npx primate serve
 
-# Run the tests. They start their own Postgres (Testcontainers), so Docker must be running.
+# The Node the image runs (the Dockerfile's FROM), which the tests run the app on.
+node_major := `sed -n 's/^FROM node:\([0-9]*\)-alpine.*/\1/p' Dockerfile | head -1`
+
+# Run the tests, the app on the Node the image ships with. They start their own Postgres
+# (Testcontainers), so Docker must be running.
 test:
-    npm test
+    UI_TEST_NODE="$(npx -y node@{{node_major}} -p process.execPath | tail -1)" npm test
 
 # Create ui-primate's own database for development, on streampack's local Postgres
 # (streampack's `docker compose up -d db`), as BCN_DB_URL in .env.default names it.
