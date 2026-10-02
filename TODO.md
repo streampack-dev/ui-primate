@@ -15,7 +15,7 @@ Features, in the order they're being built (as agreed 2026-10-01):
 - [ ] Factoids
 - [ ] Karma
 - [x] Profile
-- [ ] Editing posts
+- [x] Editing posts
 - [ ] Admin pages
 - [x] OG images (`/og/posts/…png`, `/og/site.png`) and the OG preview
 - [ ] Sign-in through an outside provider (OIDC, `/auth/callback`)

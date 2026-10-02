@@ -1,16 +1,26 @@
 export interface Input {
   title: string; body: string; action: string; fields: Record<string, string>; button: string; back: string; csrf: string;
   onward?: { text: string; href: string };
+  /** A field to fill in before going ahead (approve's publish date, say). */
+  field?: { name: string; label: string; type: string; value: string };
+  /** "go" for a step forward rather than a removal. */
+  tone?: "go";
 }
 <section class="py-8 md:py-12">
   <div class="max-w-3xl mx-auto px-6 md:px-8">
     <div class="border-t-2 border-amber mb-6"/>
     <h1 class="font-display text-2xl mb-3">${input.title}</h1>
     <p class="text-muted-foreground mb-6">${input.body}</p>
-    <form method="post" action=input.action class="flex items-center gap-4">
+    <form method="post" action=input.action class="flex flex-wrap items-end gap-4">
       <input type="hidden" name="csrf" value=input.csrf>
       <for|name, value| in=input.fields><input type="hidden" name=name value=value></for>
-      <button type="submit" class="auth-button danger">${input.button}</button>
+      <if=input.field>
+        <div class="basis-full">
+          <label class="byline form-label" for="confirm-field">${input.field.label}</label>
+          <input class="form-field text-sm p-2 max-w-xs" id="confirm-field" name=input.field.name type=input.field.type value=input.field.value>
+        </div>
+      </if>
+      <button type="submit" class=["auth-button", input.tone !== "go" && "danger"]>${input.button}</button>
       <a class="pagelink" href=input.back>Cancel</a>
     </form>
     <if=input.onward><p class="mt-6 text-sm"><a class="pagelink" href=input.onward.href>${input.onward.text}</a></p></if>

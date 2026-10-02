@@ -1,0 +1,136 @@
+export interface Input {
+  id: string;
+  form: { title: string; slug: string; markdownSource: string; summary: string; tags: string; categoryIds: string[]; publishedAt: string; sortOrder: string };
+  categories: { id: string; name: string }[];
+  preview: string;
+  draft: boolean;
+  postHref: string | null;
+  ai: boolean;
+  csrf: string;
+  notice?: string;
+  status?: string;
+  errors: { title?: string; markdownSource?: string; slug?: string; publishedAt?: string; sortOrder?: string };
+  helper?: "tags" | "summary";
+  said?: { text: string; ok: boolean };
+}
+<const/form=input.form>
+<const/errors=input.errors>
+<const/said=(tag) => (input.helper === tag ? input.said : null)>
+<section class="py-8 md:py-12">
+  <div class="max-w-6xl mx-auto px-6 md:px-8">
+    <header class="mb-8">
+      <div class="border-t-2 border-amber animate-rule-draw"/>
+      <div class="pt-6 pb-6 border-b border-border/40 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="section-label text-amber mb-3">${input.draft ? "Draft" : "Edit"}</p>
+          <h1 class="font-display text-foreground leading-tight submit-title">${form.title || "Untitled"}</h1>
+        </div>
+        <div class="flex flex-wrap gap-4 items-center">
+          <if=input.postHref><a class="section-label form-helper" href=input.postHref>View post</a></if>
+          <if=input.draft><a class="section-label profile-action" href=`/edit/${input.id}/approve`>Approve…</a></if>
+          <a class="section-label profile-action danger" href=`/edit/${input.id}/delete`>Delete…</a>
+        </div>
+      </div>
+    </header>
+
+    <if=input.status><div class="mb-6 px-4 py-3 border border-amber/30 bg-amber/5"><p class="section-label text-amber" role="status">${input.status}</p></div></if>
+    <if=input.notice><div class="mb-6 px-4 py-3 border border-destructive/30 bg-destructive/5"><p class="form-error mt-0" role="alert">${input.notice}</p></div></if>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <form id="editor" method="post" action=`/edit/${input.id}`>
+        <!-- Enter in a field saves: the first button in a form is the one it presses. -->
+        <button class="hp" type="submit" tabindex="-1" aria-hidden="true">Save</button>
+        <input type="hidden" name="csrf" value=input.csrf>
+
+        <div class="mb-6">
+          <label class="byline form-label" for="edit-title">Title</label>
+          <input class="form-field submit-title-input" id="edit-title" name="title" required maxlength="255" value=form.title
+            aria-invalid=(errors.title ? "true" : false) aria-describedby=(errors.title ? "edit-title-error" : false)>
+          <if=errors.title><p class="form-error" id="edit-title-error">${errors.title}</p></if>
+        </div>
+
+        <div class="mb-6">
+          <label class="byline form-label" for="edit-slug">Address</label>
+          <input class="form-field form-mono text-sm p-2" id="edit-slug" name="slug" required value=form.slug
+            aria-invalid=(errors.slug ? "true" : false) aria-describedby=(errors.slug ? "edit-slug-error edit-slug-hint" : "edit-slug-hint")>
+          <p class="form-hint" id="edit-slug-hint">After /posts/: a post's is its year and month and a name, as 2026/09/some-title.</p>
+          <if=errors.slug><p class="form-error" id="edit-slug-error">${errors.slug}</p></if>
+        </div>
+
+        <div class="mb-6">
+          <div class="form-label-row">
+            <label class="byline form-label" for="edit-body">Content (Markdown)</label>
+            <button class="section-label form-helper" type="submit" name="action" value="preview" formnovalidate>Preview</button>
+          </div>
+          <textarea class="form-field form-mono" id="edit-body" name="markdownSource" rows="20" required spellcheck="true" data-preview-url=`/edit/${input.id}/preview`
+            aria-invalid=(errors.markdownSource ? "true" : false) aria-describedby=(errors.markdownSource ? "edit-body-error" : false)>${form.markdownSource}</textarea>
+          <if=errors.markdownSource><p class="form-error" id="edit-body-error">${errors.markdownSource}</p></if>
+        </div>
+
+        <div class="mb-6">
+          <div class="form-label-row">
+            <label class="byline form-label" for="edit-summary">Summary</label>
+            <button class="section-label form-helper" type="submit" name="action" value="derive-summary" formnovalidate>Derive Summary</button>
+          </div>
+          <textarea class="form-field" id="edit-summary" name="summary" rows="3">${form.summary}</textarea>
+          <div id="helper-summary">
+            <if=said("summary")><p class=(said("summary").ok ? "form-status" : "form-error") role=(said("summary").ok ? "status" : "alert")>${said("summary").text}</p></if>
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <div class="form-label-row">
+            <label class="byline form-label" for="edit-tags">Tags</label>
+            <span class="flex gap-3">
+              <button class="section-label form-helper" type="submit" name="action" value="suggest-tags" formnovalidate>Suggest</button>
+              <if=input.ai><button class="section-label form-helper" type="submit" name="action" value="ai-tags" formnovalidate>AI Tags</button></if>
+            </span>
+          </div>
+          <input class="form-field text-sm p-2" id="edit-tags" name="tags" value=form.tags aria-describedby="edit-tags-hint">
+          <p class="form-hint" id="edit-tags-hint">Separate tags with commas.</p>
+          <div id="helper-tags">
+            <if=said("tags")><p class=(said("tags").ok ? "form-status" : "form-error") role=(said("tags").ok ? "status" : "alert")>${said("tags").text}</p></if>
+          </div>
+        </div>
+
+        <if=input.categories.length>
+          <fieldset class="mb-6">
+            <legend class="byline form-label">Categories</legend>
+            <div class="flex flex-wrap gap-x-5 gap-y-2">
+              <for|c| of=input.categories by="id">
+                <label class="editor-check">
+                  <input type="checkbox" name="categoryIds" value=c.id checked=form.categoryIds.includes(c.id)> ${c.name}
+                </label>
+              </for>
+            </div>
+          </fieldset>
+        </if>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label class="byline form-label" for="edit-published">Published (UTC)</label>
+            <input class="form-field text-sm p-2" id="edit-published" name="publishedAt" type="datetime-local" value=form.publishedAt
+              aria-invalid=(errors.publishedAt ? "true" : false) aria-describedby=(errors.publishedAt ? "edit-published-error" : false)>
+            <if=errors.publishedAt><p class="form-error" id="edit-published-error">${errors.publishedAt}</p></if>
+          </div>
+          <div>
+            <label class="byline form-label" for="edit-sort">Sort order</label>
+            <input class="form-field text-sm p-2" id="edit-sort" name="sortOrder" inputmode="numeric" value=form.sortOrder
+              aria-invalid=(errors.sortOrder ? "true" : false) aria-describedby=(errors.sortOrder ? "edit-sort-error" : false)>
+            <if=errors.sortOrder><p class="form-error" id="edit-sort-error">${errors.sortOrder}</p></if>
+          </div>
+        </div>
+
+        <div class="border-t border-border/40 pt-6">
+          <button type="submit" class="auth-button">Save</button>
+        </div>
+      </form>
+
+      <aside aria-labelledby="preview-heading">
+        <h2 class="section-label text-amber mb-3" id="preview-heading">Preview</h2>
+        <p class="form-hint mb-4">Near what the site will show; the saved post is rendered by the site itself.</p>
+        <div class="editor-preview post-body" aria-live="polite">$!{input.preview}</div>
+      </aside>
+    </div>
+  </div>
+</section>

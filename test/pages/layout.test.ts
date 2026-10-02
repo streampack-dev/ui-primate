@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { inject } from "vitest";
 import { page, text } from "../support/page.ts";
-import { list, post, resetStubs, stub, stubSite } from "../support/stub.ts";
+import { list, post, requests, resetStubs, stub, stubSite } from "../support/stub.ts";
 
 beforeEach(async () => {
   await resetStubs();
@@ -82,5 +82,14 @@ describe("every page's frame", () => {
     expect(toggle.getAttribute("aria-label")).toBe("Toggle theme");
     expect(toggle.querySelector("svg.icon-sun[aria-hidden=true]")).not.toBeNull();
     expect(toggle.querySelector("svg.icon-moon[aria-hidden=true]")).not.toBeNull();
+  });
+
+  it("asks the API nothing for a response it doesn't frame", async () => {
+    await stubSite();
+    await stub("/posts/019f0000-0000-7000-8000-000000000001/access", {}, { method: "POST", status: 204 });
+    await fetch(`${inject("appUrl")}/read/019f0000-0000-7000-8000-000000000001`, { method: "POST" });
+    await fetch(`${inject("appUrl")}/og/site.png`);
+
+    expect((await requests()).map((r) => `${r.method} ${r.path}`)).toEqual(["POST /posts/019f0000-0000-7000-8000-000000000001/access"]);
   });
 });

@@ -82,6 +82,8 @@ export async function postPage(path: string, form?: CommentForm, status = 200) {
     updated: formatUpdatedTime(post.updatedAt),
     tags: post.tags || [],
     html: post.renderedHtml || "",
+    // An admin's way to the editor.
+    editHref: isAdmin(reader) && post.id ? `/edit/${post.id}` : null,
     commentsAllowed,
     commentsAvailable: thread_ !== null,
     commentCount: thread_?.totalActiveCount ?? 0,

@@ -9,8 +9,12 @@ import session from "@/config/session";
 
 /* Every page's frame: the header and footer, with what the API says the site offers. A page keeps
    rendering when the API can't be reached; the frame just says less. A layout frames only the
-   methods it answers, so it answers POST too, for a form shown again. */
-async function frame() {
+   methods it answers, so it answers POST too, for a form shown again.
+
+   Primate calls a layout's handler for every request, even one whose route answers with a plain
+   Response it never frames (a feed, a card, a beacon, the editor's live preview). So the handler
+   only hands back how to draw the frame, and the API is asked when a page is actually drawn. */
+async function draw() {
   const [features, sidebar] = await Promise.allSettled([
     cachedGet<Features>("/features"),
     cachedGet<ContentList>("/posts", { category: "_sidebar", page: 0, size: 20 }),
@@ -40,4 +44,8 @@ async function frame() {
   });
 }
 
-export default route({ get: frame, post: frame });
+type Draw = (app: unknown, transfer: unknown, request: unknown) => unknown;
+const frame = () => async (app: unknown, transfer: unknown, request: unknown) =>
+  ((await draw()) as unknown as Draw)(app, transfer, request);
+
+export default route({ get: frame, post: frame } as never);

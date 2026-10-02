@@ -31,8 +31,8 @@ export class Visitor {
     return { status: response.status, location: response.headers.get("location"), doc: parse(html), html };
   }
 
-  /** Posts [fields] as a form would, with the page's anti-forgery token unless [csrf] is false. */
-  async post(path: string, fields: Record<string, string> = {}, { csrf = true } = {}) {
+  /** Posts [fields] as a form would (pairs, for a name given more than once), with the page's anti-forgery token unless [csrf] is false. */
+  async post(path: string, fields: Record<string, string> | [string, string][] = {}, { csrf = true } = {}) {
     const form = new URLSearchParams(fields);
     if (csrf && !form.has("csrf")) form.set("csrf", await this.csrf());
     const response = await fetch(`${this.base}${path}`, {

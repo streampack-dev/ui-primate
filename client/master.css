@@ -1319,3 +1319,16 @@ textarea.form-field {
   text-transform: none;
   letter-spacing: normal;
 }
+
+/* The editor. */
+.editor-check {
+  @apply inline-flex items-center gap-2 text-sm text-foreground cursor-pointer;
+}
+
+.editor-check input {
+  accent-color: var(--amber);
+}
+
+.editor-preview {
+  @apply border border-border/40 bg-card/50 p-5 min-h-40 mt-0;
+}
