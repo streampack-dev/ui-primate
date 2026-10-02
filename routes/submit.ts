@@ -6,6 +6,7 @@ import type { Features } from "#api/types.ts";
 import { refusal } from "#auth/forms.ts";
 import { csrf, csrfOk, current, isAdmin } from "#auth/readers.ts";
 import { asReader, bearer, SignInRequired } from "#auth/signed-in.ts";
+import { helper, tagList } from "#lib/drafting.ts";
 import { meta } from "#lib/meta.ts";
 
 type Category = components["schemas"]["CategorySummary"];
@@ -29,16 +30,7 @@ type Shown = {
   notice?: string; helper?: Helper; said?: { text: string; ok: boolean };
 };
 
-const UNSAVED = "00000000-0000-0000-0000-000000000000";
-// The API's AI takes its time (ui-pudl's derive-summary timeout).
-const AI = { timeoutMs: 60_000 };
 const SIGN_IN = "/login?return=%2Fsubmit";
-
-/** The tags as a list: comma-separated, trimmed, without repeats (ignoring case). */
-function tagList(tags: string): string[] {
-  const seen = new Set<string>();
-  return tags.split(",").map((t) => t.trim()).filter((t) => t && !seen.has(t.toLowerCase()) && seen.add(t.toLowerCase()));
-}
 
 async function features(): Promise<Features | null> {
   try {
@@ -84,24 +76,6 @@ async function page(shown: Shown) {
 
 const blank = (): Form => ({ title: "", markdownSource: "", tags: "", summary: "", categoryId: "", formLoadedAt: String(Date.now()), website: "", action: "" });
 
-/** Runs a helper that fills in part of the form; what it says, or the API's refusal, shows beside it. */
-async function helper(form: Form, which: Helper, fallback: string, fill: () => Promise<Response>, use: (body: any) => string) {
-  try {
-    const answer = await fill();
-    if (!answer.ok) return page({ form, helper: which, said: { text: await refusal(answer, fallback), ok: false } });
-    return page({ form, helper: which, said: { text: use(await answer.json()), ok: true } });
-  } catch (e) {
-    if (e instanceof SignInRequired) return response.redirect(SIGN_IN, 303);
-    return page({ form, helper: which, said: { text: fallback, ok: false } });
-  }
-}
-
-function addTags(form: Form, more: unknown): string {
-  const tags = Array.isArray(more) ? more.map(String) : [];
-  form.tags = tagList([...tagList(form.tags), ...tags].join(",")).join(", ");
-  return tags.length ? "Suggested tags added. Remove any that don't fit." : "No tags could be suggested from the text yet.";
-}
-
 export default route({
   async get() {
     if (!(await allowed()).submit) return response.redirect(SIGN_IN, 303);
@@ -116,26 +90,13 @@ export default route({
     const form: Form = { ...blank(), ...Object.fromEntries(Object.entries(posted).filter(([k]) => k in blank())) };
     const draft = { title: form.title, markdownSource: form.markdownSource, existingTags: tagList(form.tags) };
 
-    switch (form.action) {
-      case "suggest-tags":
-        return helper(form, "tags", "Tags couldn't be suggested just now.",
-          () => send("POST", "/posts/derive-tags", draft), (body) => addTags(form, body?.tags));
-      case "ai-tags":
-        if (!may.ai) return page({ form });
-        return helper(form, "tags", "AI tags couldn't be suggested just now.",
-          () => asReader((a) => send("POST", `/admin/posts/${UNSAVED}/derive-tags`, draft, bearer(a), AI)),
-          (body) => addTags(form, body?.tags).replace("Suggested", "AI"));
-      case "derive-summary":
-        if (!may.summary) return page({ form });
-        return helper(form, "summary", "A summary couldn't be derived just now.",
-          () => asReader((a) => send("POST", "/posts/derive-summary", { title: form.title, markdownSource: form.markdownSource }, bearer(a), AI)),
-          (body) => {
-            const summary = typeof body?.summary === "string" ? body.summary.trim() : "";
-            if (!summary) return "No summary could be derived from the text yet.";
-            form.summary = summary;
-            return "Summary derived. Edit it as you like.";
-          });
+    const helped = helper(form.action, form, may);
+    if (helped) {
+      const result = await helped;
+      if (result === "sign-in") return response.redirect(SIGN_IN, 303);
+      return page({ form, helper: result.which, said: result.said });
     }
+    if (form.action && form.action !== "submit") return page({ form });
 
     if (form.website.trim()) return response.redirect("/submit/thanks", 303);
     const errors: Shown["errors"] = {};
