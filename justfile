@@ -16,6 +16,8 @@ dev:
 # Build for production: server-rendered pages, fingerprinted assets, in build/.
 build:
     npx primate build
+    @# primate build can fail and still exit 0 (primate-bugs/01): known good only by what it leaves.
+    @test -f build/server.js || { echo "The build failed: no build/server.js" >&2; exit 1; }
 
 # Run the production build locally, against BCN_API_BASE (default the live API, read-only).
 run: build

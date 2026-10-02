@@ -23,7 +23,7 @@ Before it's deployed:
 
 - [x] Favicon
 - [x] A proper icon for the theme toggle
-- [ ] `just image` and the Dockerfile check the build produced `build/server.js`:
+- [x] `just image` and the Dockerfile check the build produced `build/server.js`:
       `primate build` can fail and still exit 0 (primate-bugs/01)
 - [x] Sessions in a database of ui-primate's own (BCN_DB_URL)
 
@@ -35,5 +35,5 @@ Smaller things noticed along the way:
 
 Parked:
 
-- [ ] Sign-in through an outside provider (OIDC). Very low priority, and the backend doesn't support
-      it (2026-10-01); revisit only if that changes.
+- [ ] Sign-in through an outside provider (OIDC). Very low priority (2026-10-01): the backend
+      supports it, but its callback goes to one front end, which is a problem with several.
