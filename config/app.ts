@@ -10,7 +10,7 @@ export default config({
     // Pages are rendered on the server and ship no framework runtime, as ui-pudl's do; the few
     // interactive parts are small scripts in client/. Under `just dev` (UI_DEV=1) the runtime is
     // on, because Primate's dev server renders Marko only in the browser, for live reload.
-    marko({ csr: process.env.UI_DEV === "1" }),
+    marko(),
     // Watched for live reload; Tailwind v4 finds the classes in these itself.
     tailwind({ content: ["./views/**/*.marko", "./client/**/*.ts"] }),
   ],
