@@ -10,7 +10,7 @@ Features, in the order they're being built (as agreed 2026-10-01):
 - [x] Logs
 - [x] RSS reader
 - [x] Tags, and the pages for each tag
-- [ ] Category pages
+- [x] Category pages
 - [x] Search
 - [x] Factoids
 - [x] Karma
