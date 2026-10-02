@@ -11,7 +11,12 @@ export interface Input {
   commentsAvailable: boolean;
   commentCount: number;
   comments: any[];
+  slug: string;
+  talk: { slug: string; signedIn: boolean; admin: boolean; csrf: string; login: string;
+    form: { kind: "new" | "reply" | "edit"; id?: string; draft: string; error: string } | null };
 }
+<const/talk=input.talk>
+<const/fresh=(talk.form?.kind === "new" ? talk.form : null)>
 <section class="py-8 md:py-12" data-read-post=input.id>
   <article class="max-w-3xl mx-auto px-6 md:px-8">
     <header>
@@ -36,14 +41,28 @@ export interface Input {
     <div class="post-body">$!{input.html}</div>
 
     <if=input.commentsAllowed>
-      <section class="comments mt-10 border-t border-border/40 pt-6">
+      <section class="comments mt-10 border-t border-border/40 pt-6" id="comments">
         <h2 class="font-display text-xl mb-4">Comments (${input.commentCount})</h2>
         <if=!input.commentsAvailable><p class="text-muted-foreground">Comments are temporarily unavailable.</p></if>
         <else if=(input.comments.length === 0)><p class="text-muted-foreground">No comments yet.</p></else>
         <else>
           <div class="comment-list">
-            <for|comment| of=input.comments by="id"><comment-item comment=comment/></for>
+            <for|comment| of=input.comments by="id"><comment-item comment=comment talk=talk/></for>
           </div>
+        </else>
+        <if=talk.signedIn>
+          <form class="comment-form" method="post" action=`/posts/${talk.slug}/comments`>
+            <input type="hidden" name="csrf" value=talk.csrf>
+            <label class="byline form-label" for="new-comment">Add a comment</label>
+            <textarea class="form-field form-mono" id="new-comment" name="markdownSource" rows="5" required
+              aria-describedby="new-comment-hint">${fresh?.draft ?? ""}</textarea>
+            <p class="form-hint" id="new-comment-hint">Markdown: **bold**, _italic_, `code`, [link](https://…), and ``` for code blocks. HTML shows as typed.</p>
+            <if=fresh?.error><p class="form-error" role="alert">${fresh.error}</p></if>
+            <button type="submit" class="auth-button mt-3">Post comment</button>
+          </form>
+        </if>
+        <else>
+          <p class="mt-8 text-muted-foreground"><a class="pagelink" href=talk.login>Log in to comment</a></p>
         </else>
       </section>
     </if>

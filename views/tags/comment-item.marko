@@ -1,14 +1,52 @@
 export interface Input {
-  comment: { id: string; author: string; date: string; html: string; deleted: boolean; replies: any[] };
+  comment: { id: string; author: string; date: string; html: string; deleted: boolean; editable: boolean; markdown: string; replies: any[] };
+  talk: { slug: string; signedIn: boolean; admin: boolean; csrf: string;
+    form: { kind: "new" | "reply" | "edit"; id?: string; draft: string; error: string } | null };
 }
 <const/c=(input.comment)>
+<const/talk=(input.talk)>
+<const/reply=(talk.form?.kind === "reply" && talk.form.id === c.id ? talk.form : null)>
+<const/edit=(talk.form?.kind === "edit" && talk.form.id === c.id ? talk.form : null)>
 <article class="comment" id=`comment-${c.id}`>
   <p class="meta">${c.author} at ${c.date}</p>
   <if=c.deleted><p>[deleted]</p></if>
-  <else><div class="post-body comment-body">$!{c.html}</div></else>
+  <else>
+    <div class="post-body comment-body">$!{c.html}</div>
+    <if=(talk.signedIn && c.id)>
+      <div class="comment-actions">
+        <details class="comment-reply" open=!!reply>
+          <summary class="section-label form-helper">Reply</summary>
+          <form method="post" action=`/posts/${talk.slug}/comments`>
+            <input type="hidden" name="csrf" value=talk.csrf>
+            <input type="hidden" name="parentCommentId" value=c.id>
+            <label class="byline form-label" for=`reply-${c.id}`>Reply to ${c.author}</label>
+            <textarea class="form-field form-mono" id=`reply-${c.id}` name="markdownSource" rows="4" required>${reply?.draft ?? ""}</textarea>
+            <if=reply?.error><p class="form-error" role="alert">${reply.error}</p></if>
+            <button type="submit" class="auth-button mt-3">Post reply</button>
+          </form>
+        </details>
+        <if=c.editable>
+          <details class="comment-edit" open=!!edit>
+            <summary class="section-label form-helper">Edit</summary>
+            <form method="post" action=`/comments/${c.id}`>
+              <input type="hidden" name="csrf" value=talk.csrf>
+              <input type="hidden" name="post" value=talk.slug>
+              <label class="byline form-label" for=`edit-${c.id}`>${talk.admin ? "Edit comment" : "Edit your comment"}</label>
+              <textarea class="form-field form-mono" id=`edit-${c.id}` name="markdownSource" rows="4" required>${edit ? edit.draft : c.markdown}</textarea>
+              <if=edit?.error><p class="form-error" role="alert">${edit.error}</p></if>
+              <button type="submit" class="auth-button mt-3">Save</button>
+            </form>
+          </details>
+        </if>
+        <if=talk.admin>
+          <a class="section-label form-helper comment-remove" href=`/comments/${c.id}/remove?post=${encodeURIComponent(talk.slug)}`>Remove…</a>
+        </if>
+      </div>
+    </if>
+  </else>
   <if=c.replies.length>
     <div class="comment-replies">
-      <for|reply| of=c.replies by="id"><comment-item comment=reply/></for>
+      <for|r| of=c.replies by="id"><comment-item comment=r talk=talk/></for>
     </div>
   </if>
 </article>

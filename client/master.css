@@ -1137,6 +1137,42 @@ textarea.form-field {
   color: #bf3d31;
 }
 
+/* ui-nextjs's red is too dark to read on the dark theme; the theme's own is light enough. */
+.dark .form-error {
+  color: var(--destructive);
+}
+
 .form-status {
   @apply text-sm mt-2 text-amber;
+}
+
+/* Comment forms: reply and edit fold away under each comment until asked for. */
+.comment-actions {
+  @apply flex flex-wrap items-start gap-x-5 gap-y-2 mt-2;
+}
+
+.comment-actions details[open] {
+  @apply basis-full;
+}
+
+.comment-actions summary {
+  @apply list-none;
+}
+
+.comment-actions summary::-webkit-details-marker {
+  display: none;
+}
+
+.comment-actions form {
+  @apply mt-3;
+}
+
+.auth-button.danger {
+  border-color: #bf3d31;
+  background: #bf3d31;
+  color: #fff;
+}
+
+.comment-form {
+  @apply mt-8 pt-6 border-t border-border/40;
 }

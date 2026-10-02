@@ -9,9 +9,11 @@ export function useBrowser() {
   afterAll(async () => { await browser?.close(); });
 }
 
-/** A page at [path], in [theme], with its script errors collected. */
-export async function open(path: string, theme: "light" | "dark" = "light"): Promise<{ page: Page; errors: string[] }> {
+/** A page at [path], in [theme], with its script errors collected; [cookies] (a Visitor's, say)
+   carry a session into the browser. */
+export async function open(path: string, theme: "light" | "dark" = "light", cookies: Map<string, string> = new Map()): Promise<{ page: Page; errors: string[] }> {
   const context = await browser.newContext({ colorScheme: theme });
+  await context.addCookies([...cookies].map(([name, value]) => ({ name, value, url: inject("appUrl") })));
   // Seeded once: a reader's own choice, made on the page, stands across reloads.
   await context.addInitScript((t) => { try { if (!localStorage.getItem("theme")) localStorage.setItem("theme", t); } catch {} }, theme);
   const page = await context.newPage();

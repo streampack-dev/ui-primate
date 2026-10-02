@@ -1,79 +1,34 @@
-import response from "primate/response";
 import route from "primate/route";
-import { ApiUnavailable, cachedGet } from "#api/client.ts";
-import type { CommentNode, CommentThread, ContentDetail } from "#api/types.ts";
-import { formatDate, formatUpdatedTime } from "#lib/format.ts";
-import { meta } from "#lib/meta.ts";
-
-const SUMMARY_FALLBACK = "Read the latest content on bytecode.news.";
-
-/* The thread as the view draws it: who, when, what, and the replies under it. */
-type Comment = { id: string; author: string; date: string; html: string; deleted: boolean; replies: Comment[] };
-function thread(nodes: CommentNode[] = []): Comment[] {
-  return nodes.map((n) => ({
-    id: n.id || "",
-    author: n.authorDisplayName || "",
-    date: formatDate(n.createdAt),
-    html: n.renderedHtml || "",
-    deleted: !!n.deleted,
-    replies: thread(n.children),
-  }));
-}
+import { send } from "#api/client.ts";
+import { csrfOk } from "#auth/readers.ts";
+import { bearer } from "#auth/signed-in.ts";
+import { UUID, write } from "#lib/comments.ts";
+import { datedSlug, notFound, postPage } from "#lib/post-page.ts";
 
 /* A post (/posts/{year}/{month}/{slug}) or one of the site's own pages (/posts/{slug}), its
-   comments under it. A post at an old address moves to its own for good. */
+   comments under it. A post at an old address moves to its own for good.
+
+   A comment on a post, or a reply to one of its comments, is posted to the post's address with
+   /comments after it. (Primate won't have a route for that beside this one, so it's here.) */
 export default route({
-  async get(request) {
+  get(request) {
+    return postPage(request.path.get("slug"));
+  },
+
+  async post(request) {
     const path = request.path.get("slug");
-    const [year, month, ...rest] = path.split("/");
-    const dated = !!(year && month && rest.length);
+    const slug = path.endsWith("/comments") ? datedSlug(path.slice(0, -"/comments".length)) : null;
+    if (!slug) return notFound();
+    const form = await request.body.form() as Record<string, string>;
+    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    const parent = UUID.test(form.parentCommentId || "") ? form.parentCommentId : null;
+    const draft = form.markdownSource || "";
 
-    let post: ContentDetail | null;
-    try {
-      post = await cachedGet<ContentDetail>(dated ? `/posts/${path}` : `/pages/${encodeURIComponent(path)}`);
-    } catch (e) {
-      if (!(e instanceof ApiUnavailable)) throw e;
-      return response.view("PostUnavailable.marko", {}, { status: 503, placeholders: { meta: meta({ title: "Post Unavailable" }) } });
-    }
-    if (!post) {
-      return response.view("NotFound.marko", {}, { status: 404, placeholders: { meta: meta({ title: "Not Found" }) } });
-    }
-    if (post.slug && post.slug !== path) return response.redirect(`/posts/${post.slug}`, 301);
-
-    const commentsAllowed = !(post.categories || []).includes("_sidebar");
-    let comments: CommentThread | null = null;
-    if (commentsAllowed) {
-      try {
-        comments = await cachedGet<CommentThread>(`/posts/${path}/comments`);
-      } catch {
-        // The post shows even when its comments can't be had.
-      }
-    }
-
-    return response.view("Post.marko", {
-      id: post.id,
-      title: post.title,
-      author: post.authorDisplayName,
-      published: post.publishedAt,
-      date: formatDate(post.publishedAt),
-      updated: formatUpdatedTime(post.updatedAt),
-      tags: post.tags || [],
-      html: post.renderedHtml || "",
-      commentsAllowed,
-      commentsAvailable: comments !== null,
-      commentCount: comments?.totalActiveCount ?? 0,
-      comments: thread(comments?.comments),
-    }, {
-      placeholders: {
-        meta: meta({
-          title: post.title,
-          description: post.excerpt?.trim() || SUMMARY_FALLBACK,
-          path: `/posts/${post.slug}`,
-          type: "article",
-          // A dated post has its own drawn card; a page keeps the site's.
-          ...(dated ? { image: { path: `/og/posts/${post.slug}.png`, alt: post.title || "" } } : {}),
-        }),
-      },
-    });
+    return write(slug, { kind: parent ? "reply" : "new", id: parent ?? undefined, draft, error: "" },
+      (access) => send("POST", `/posts/${slug}/comments`, { markdownSource: draft, ...(parent ? { parentCommentId: parent } : {}) }, bearer(access)),
+      async (answer) => {
+        const made = await answer.json().catch(() => null) as { id?: string } | null;
+        return `/posts/${slug}#${made?.id ? `comment-${made.id}` : "comments"}`;
+      });
   },
 });
