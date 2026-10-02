@@ -8,7 +8,7 @@ Features, in the order they're being built (as agreed 2026-10-01):
 - [x] Post submission
 - [x] Comment submission: post, reply, edit, admin removal
 - [x] Logs
-- [ ] RSS reader
+- [x] RSS reader
 - [ ] Tags, and the pages for each tag
 - [ ] Category pages
 - [ ] Search

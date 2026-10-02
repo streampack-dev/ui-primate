@@ -1,0 +1,72 @@
+export interface Input {
+  feed: string;
+  title: string;
+  feeds: { value: string; label: string }[];
+  count: string;
+  filtered: boolean;
+  items: { id: string; title: string; link: string; published: string; date: string; summary: string }[];
+  prev: string | null;
+  next: string | null;
+}
+<section class="py-8 md:py-12">
+  <div class="max-w-4xl mx-auto px-6 md:px-8">
+    <header class="mb-10">
+      <div class="border-t-2 border-amber animate-rule-draw"/>
+      <div class="pt-6 pb-8 border-b border-border/40">
+        <p class="section-label text-amber mb-3">Subscribed Sources</p>
+        <h1 class="font-display text-foreground leading-tight submit-title">RSS Reader</h1>
+        <p class="text-muted-foreground text-sm mt-3 leading-relaxed max-w-2xl">
+          Browse stored RSS items across subscribed feeds. Filter by feed title or URL, and narrow results by entry title.
+        </p>
+      </div>
+    </header>
+
+    <form class="rss-filter grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end mb-8" action="/rss" method="get">
+      <label class="section-label form-label-text">
+        Feed title or URL
+        <select class="form-field text-sm p-2 mt-2" name="feed">
+          <option value="" selected=!input.feed>All feeds</option>
+          <for|f| of=input.feeds by="value">
+            <option value=f.value selected=(f.value === input.feed)>${f.label}</option>
+          </for>
+        </select>
+      </label>
+      <label class="section-label form-label-text">
+        Entry title contains
+        <input class="form-field text-sm p-2 mt-2" name="title" type="search" placeholder="spring" value=input.title>
+      </label>
+      <button class="section-label rss-filter-button" type="submit">Filter</button>
+    </form>
+
+    <div class="flex items-center justify-between gap-4 border-b border-border/40 pb-3 mb-6">
+      <p class="rss-count dateline text-muted-foreground">${input.count}</p>
+      <if=input.filtered><a class="rss-clear section-label form-helper" href="/rss">Clear Filters</a></if>
+    </div>
+
+    <if=(input.items.length === 0)>
+      <p class="py-12 text-center text-muted-foreground font-mono text-sm">No RSS items matched these filters.</p>
+    </if>
+    <else>
+      <div class="divide-y divide-border/30">
+        <for|i| of=input.items by="id">
+          <article class="rss-item group py-5">
+            <a class="rss-item-title headline-brief text-foreground group-hover:text-amber transition-colors"
+              href=i.link target="_blank" rel="noopener noreferrer" data-rss-access=(i.id || false)>${i.title}</a>
+            <div class="rss-item-meta mt-3 flex flex-wrap gap-x-4 gap-y-1">
+              <span class="break-all">${i.link}</span>
+              <span aria-hidden="true">|</span>
+              <if=i.published><time datetime=i.published>${i.date}</time></if>
+              <else><span>${i.date}</span></else>
+            </div>
+            <if=i.summary><p class="rss-summary">${i.summary}</p></if>
+          </article>
+        </for>
+      </div>
+    </else>
+
+    <div class="pagination mt-8">
+      <div><if=input.prev><a class="pagelink" rel="prev" href=input.prev>&larr; Previous</a></if></div>
+      <div><if=input.next><a class="pagelink" rel="next" href=input.next>Next &rarr;</a></if></div>
+    </div>
+  </div>
+</section>

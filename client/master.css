@@ -1234,3 +1234,28 @@ textarea.form-field {
 .log-system .log-content {
   @apply italic text-muted-foreground;
 }
+
+/* The RSS reader: ui-nextjs's. */
+.form-label-text {
+  color: color-mix(in srgb, var(--muted-foreground) 85%, transparent);
+}
+
+.rss-filter-button {
+  @apply border border-border px-4 py-2 text-foreground hover:border-amber hover:text-amber transition-colors cursor-pointer;
+}
+
+.rss-item-meta {
+  @apply text-xs font-mono;
+  color: color-mix(in srgb, var(--muted-foreground) 85%, transparent);
+}
+
+.rss-summary {
+  @apply text-sm leading-relaxed mt-2 line-clamp-2;
+  color: color-mix(in srgb, var(--muted-foreground) 90%, transparent);
+}
+
+/* The fields sit inside their section-label labels; they shouldn't take the label's lettering. */
+.rss-filter .form-field {
+  letter-spacing: normal;
+  text-transform: none;
+}
