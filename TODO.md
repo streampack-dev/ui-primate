@@ -52,6 +52,12 @@ Smaller things noticed along the way:
 - [ ] The editor's preview is close to the API's rendering, not exact: markdown-it, where the API has
       flexmark, so asides and admonitions aren't drawn. Not urgent (2026-10-02); the saved post is
       always rendered by the API. ui-pudl's preview is exact because it uses flexmark itself.
+- [x] Client-side navigation (CSR, on since 1.0.3): client/ scripts set up each page shown, not just
+      the first, so reads (and temperature) are counted, code is highlighted, the masthead starts
+      and the theme toggle works; forms are submitted by the browser (2026-10-02)
+- [ ] With CSR, the head (title, canonical, description, OG) stays the first page's after a
+      client-side navigation; no workaround. Remove client/forms.ts when Primate's forms are
+      fixed. Both in primate-bugs/11, filed as primate task #122 (2026-10-02)
 - [ ] Sessions end thirty days after sign-in, not after thirty idle days as ui-pudl's do
 
 Parked:

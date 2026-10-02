@@ -1,4 +1,4 @@
-import { beforeEach, describe, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { expectAccessible, open, useBrowser } from "../support/browser.ts";
 import { post, resetStubs, stub, stubSite } from "../support/stub.ts";
 
@@ -11,6 +11,15 @@ beforeEach(async () => {
 });
 
 describe("search, in a browser", () => {
+  it("searches from its form", async () => {
+    const { page, errors } = await open("/search");
+    await page.fill(".search-form input[name=q]", "loom");
+    await page.press(".search-form input[name=q]", "Enter");
+    await page.waitForURL(/\/search\?q=loom$/);
+    await page.getByText("Virtual threads").waitFor();
+    expect(errors).toEqual([]);
+  });
+
   it("is accessible, light and dark, empty and with results", async () => {
     for (const theme of ["light", "dark"] as const) {
       for (const path of ["/search", "/search?q=loom"]) {

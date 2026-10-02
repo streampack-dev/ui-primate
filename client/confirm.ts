@@ -14,7 +14,8 @@ function closed() {
 
 /** The dialog, made the first time it's needed. */
 function theDialog(): HTMLDialogElement {
-  if (dialog) return dialog;
+  // A page shown since (client-side navigation) took the old one with the body it replaced.
+  if (dialog?.isConnected) return dialog;
   dialog = document.createElement("dialog");
   dialog.className = "confirm-dialog";
   dialog.setAttribute("aria-labelledby", "confirm-dialog-title");
@@ -74,6 +75,6 @@ document.addEventListener("click", async (event) => {
   const link = (event.target as Element | null)?.closest<HTMLAnchorElement>("a[data-confirm]");
   if (!link) return;
   event.preventDefault();
-  if (!dialog) opener = link;
+  if (!dialog?.isConnected) opener = link;
   if (!(await ask(link.href))) location.href = link.href;
 });

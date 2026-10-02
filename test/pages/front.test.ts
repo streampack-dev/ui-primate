@@ -100,12 +100,11 @@ describe("the front page", () => {
     ]));
   });
 
-  it("ships no framework runtime, only its own small scripts, fingerprinted", async () => {
+  it("ships its scripts fingerprinted", async () => {
     await stubFront([post()]);
     const { doc } = await page("/");
     const scripts = doc.querySelectorAll("script[src]").map((s) => s.getAttribute("src")!);
 
-    expect(scripts.some((s) => /\/app-/.test(s))).toBe(false);
     expect(scripts.length).toBeGreaterThan(0);
     for (const src of scripts) expect(src).toMatch(/-[A-Z0-9]{8}\.js$/);
     expect(doc.querySelector("link[rel=stylesheet][href^='/css-']")).not.toBeNull();
