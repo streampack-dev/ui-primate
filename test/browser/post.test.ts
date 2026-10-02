@@ -68,6 +68,14 @@ describe("the front page, in a browser", () => {
     expect(errors).toEqual([]);
   });
 
+  it("hands clicks anywhere on the masthead to the animation, not just the bare art", async () => {
+    const { page } = await open("/?ambient=boids&ambientSeed=3");
+    await page.waitForSelector(".masthead-frame[data-masthead-poke]");
+    // The tagline sits over the art: a click there still reaches it.
+    const tagline = page.locator(".masthead-frame .section-label").first();
+    expect(await tagline.evaluate((el) => !!el.closest("[data-masthead-poke]"))).toBe(true);
+  });
+
   it("switches theme with its button, and remembers", async () => {
     const { page } = await open("/");
     const dark = () => page.evaluate(() => document.documentElement.classList.contains("dark"));

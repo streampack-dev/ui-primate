@@ -14,7 +14,7 @@
     "@primate/postgresql": "^0.10.1",
     "@primate/tailwind": "^0.9.0",
     "@resvg/resvg-js": "^2.6.2",
-    "@streampack-dev/masthead": "^0.2.8",
+    "@streampack-dev/masthead": "^0.2.9",
     "highlight.js": "^11.12.0",
     "markdown-it": "^15.0.2",
     "markdown-it-footnote": "^4.0.0",
