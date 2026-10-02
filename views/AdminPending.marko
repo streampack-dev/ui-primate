@@ -1,0 +1,48 @@
+export interface Input {
+  sections: { href: string; label: string; current: boolean }[];
+  deleted: boolean;
+  failed: boolean;
+  status?: string;
+  drafts: { id: string; title: string; excerpt: string; author: string; published: string; date: string; categories: string[] }[];
+  prev: string | null;
+  next: string | null;
+}
+<admin-shell sections=input.sections>
+  <nav class="admin-tabs flex gap-0 mb-6 border-b border-border/40" aria-label="Drafts">
+    <a class=["admin-nav-link section-label", !input.deleted && "is-current"] href="/admin/pending" aria-current=(!input.deleted ? "page" : false)>Active</a>
+    <a class=["admin-nav-link section-label", input.deleted && "is-current"] href="/admin/pending?deleted" aria-current=(input.deleted ? "page" : false)>Deleted</a>
+  </nav>
+  <if=input.status><div class="mb-6 px-4 py-3 border border-amber/30 bg-amber/5"><p class="section-label text-amber" role="status">${input.status}</p></div></if>
+  <if=input.failed><p class="form-error" role="alert">The drafts can't be loaded just now. Try again shortly.</p></if>
+  <else if=(input.drafts.length === 0)>
+    <div class="py-12 text-center">
+      <p class="section-label form-label-text mb-3">No ${input.deleted ? "deleted" : "pending"} drafts</p>
+      <p class="text-muted-foreground text-sm">${input.deleted ? "No drafts have been deleted." : "All submissions have been reviewed."}</p>
+    </div>
+  </else>
+  <else>
+    <for|d, i| of=input.drafts by="id">
+      <article class=["admin-draft py-6", i > 0 && "border-t border-border/30"]>
+        <h2 class="headline-secondary text-foreground mb-2">${d.title}</h2>
+        <if=d.excerpt><p class="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-3">${d.excerpt}</p></if>
+        <div class="byline text-muted-foreground flex items-center gap-1.5 flex-wrap">
+          <span>By ${d.author}</span>
+          <if=d.date><span aria-hidden="true">|</span> <time datetime=d.published>${d.date}</time></if>
+        </div>
+        <if=d.categories.length><div class="tags mt-3"><for|c| of=d.categories><span class="tag">${c}</span></for></div></if>
+        <div class="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-border/20">
+          <a class="section-label profile-action" href=`/edit/${d.id}`>Edit</a>
+          <if=!input.deleted>
+            <a class="section-label profile-action" href=`/edit/${d.id}/approve?return=%2Fadmin%2Fpending`>Approve…</a>
+            <a class="section-label profile-action danger" href=`/edit/${d.id}/delete`>Delete…</a>
+          </if>
+          <else><a class="section-label profile-action danger" href=`/edit/${d.id}/delete?hard=true`>Delete for good…</a></else>
+        </div>
+      </article>
+    </for>
+  </else>
+  <div class="pagination mt-8">
+    <div><if=input.prev><a class="pagelink" rel="prev" href=input.prev>&larr; Previous</a></if></div>
+    <div><if=input.next><a class="pagelink" rel="next" href=input.next>Next &rarr;</a></if></div>
+  </div>
+</admin-shell>

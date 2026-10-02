@@ -55,17 +55,18 @@ export async function cachedGet<T>(path: string, query: Record<string, string | 
  * A request that changes something ([method] other than GET): never cached, never served stale.
  * Returns the API's response as it came, for the caller to read.
  */
-/** A request not cached: a form's, say. [timeoutMs] is longer for the API's AI helpers. */
-export async function send(method: string, path: string, body?: unknown, headers: Record<string, string> = {}, { timeoutMs = TIMEOUT_MS } = {}): Promise<Response> {
+/** A request not cached: a form's, say. [timeoutMs] is longer for the API's AI helpers. A body is
+   sent as JSON, unless [raw] gives it as text, of [contentType]. */
+export async function send(method: string, path: string, body?: unknown, headers: Record<string, string> = {}, { timeoutMs = TIMEOUT_MS, raw, contentType }: { timeoutMs?: number; raw?: string; contentType?: string } = {}): Promise<Response> {
   return fetch(`${base}${path}`, {
     method,
     headers: {
       "Accept-Version": acceptVersion,
       Accept: "application/json",
-      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      ...(raw !== undefined ? { "Content-Type": contentType || "text/plain" } : body === undefined ? {} : { "Content-Type": "application/json" }),
       ...headers,
     },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: raw !== undefined ? raw : body === undefined ? undefined : JSON.stringify(body),
     signal: AbortSignal.timeout(timeoutMs),
   });
 }

@@ -34,7 +34,7 @@ export default route({
     const hard = data.one("hard") === "true";
     try {
       const answer = await asReader((a) => send("DELETE", `/admin/posts/${id}${hard ? "?hard=true" : ""}`, undefined, bearer(a)));
-      if (answer.ok) return response.redirect("/admin/pending", 303);
+      if (answer.ok) return response.redirect(`/admin/pending?done=${hard ? "purged" : "deleted"}`, 303);
       const post = await load(id);
       if (!post) return notFound();
       return editorPage(id, post, { form: formOf(post, await categories()), notice: await refusal(answer, "The post wasn't deleted.") }, 400);

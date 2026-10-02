@@ -27,3 +27,13 @@ export function asReader(block: (access: string) => Promise<Response>): Promise<
 }
 
 export const bearer = (access: string) => ({ Authorization: `Bearer ${access}` });
+
+/** A GET of [path] as the reader, uncached: the answer's body, or null for a 404. Throws otherwise. */
+export async function getAsReader<T>(path: string, query: Record<string, string | number | undefined> = {}): Promise<T | null> {
+  const search = new URLSearchParams();
+  for (const [k, v] of Object.entries(query)) if (v !== undefined) search.set(k, String(v));
+  const answer = await asReader((a) => send("GET", `${path}${search.size ? `?${search}` : ""}`, undefined, bearer(a)));
+  if (answer.status === 404) return null;
+  if (!answer.ok) throw new Error(`${path}: ${answer.status}`);
+  return await answer.json() as T;
+}

@@ -1,0 +1,21 @@
+export interface Input {
+  sections: { href: string; label: string; current: boolean }[];
+  content: any;
+}
+<section class="py-8 md:py-12">
+  <div class="max-w-4xl mx-auto px-6 md:px-8">
+    <header class="mb-8">
+      <div class="border-t-2 border-amber animate-rule-draw"/>
+      <div class="pt-6 pb-6">
+        <p class="section-label text-amber mb-3">Administration</p>
+        <h1 class="font-display text-foreground leading-tight submit-title">Site Management</h1>
+      </div>
+      <nav class="admin-nav flex flex-wrap gap-0 border-b border-border/40" aria-label="Administration">
+        <for|s| of=input.sections by="href">
+          <a href=s.href aria-current=(s.current ? "page" : false) class=["admin-nav-link section-label", s.current && "is-current"]>${s.label}</a>
+        </for>
+      </nav>
+    </header>
+    <${input.content}/>
+  </div>
+</section>

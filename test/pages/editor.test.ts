@@ -249,7 +249,7 @@ describe("deleting a post", () => {
     const soft = await v.post(`${EDIT}/delete`, {});
     await v.post(`${EDIT}/delete`, { hard: "true" });
 
-    expect(soft.location).toBe("/admin/pending");
+    expect(soft.location).toBe("/admin/pending?done=deleted");
     const deletes = await sent("DELETE", `/admin/posts/${ID}`);
     expect(deletes.map((d) => d.query.hard)).toEqual([undefined, "true"]);
     expect(deletes[0].headers.authorization).toBe("Bearer access-1");

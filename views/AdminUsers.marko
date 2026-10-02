@@ -1,0 +1,61 @@
+export interface Input {
+  sections: { href: string; label: string; current: boolean }[];
+  csrf: string;
+  status: "ACTIVE" | "SUSPENDED" | "ERASED";
+  tabs: { status: string; href: string; current: boolean }[];
+  users: { username: string; displayName: string; role: string }[];
+  failed: boolean;
+  roles: readonly string[];
+  said?: string;
+  error?: string;
+}
+<admin-shell sections=input.sections>
+  <nav class="admin-tabs flex gap-0 mb-6 border-b border-border/40" aria-label="Users by status">
+    <for|t| of=input.tabs by="status">
+      <a class=["admin-nav-link section-label", t.current && "is-current"] href=t.href aria-current=(t.current ? "page" : false)>${t.status.charAt(0) + t.status.slice(1).toLowerCase()}</a>
+    </for>
+  </nav>
+  <if=input.said><div class="mb-6 px-4 py-3 border border-amber/30 bg-amber/5"><p class="section-label text-amber" role="status">${input.said}</p></div></if>
+  <if=input.error><div class="mb-6 px-4 py-3 border border-destructive/30 bg-destructive/5"><p class="form-error mt-0" role="alert">${input.error}</p></div></if>
+  <if=input.failed><p class="form-error" role="alert">The users can't be loaded just now. Try again shortly.</p></if>
+  <else if=(input.users.length === 0)><p class="py-12 text-center section-label form-label-text">No ${input.status.toLowerCase()} users</p></else>
+  <else>
+    <for|u, i| of=input.users by="username">
+      <div class=["admin-user py-5", i > 0 && "border-t border-border/30"] id=`user-${u.username}`>
+        <div class="flex items-start justify-between gap-4 flex-wrap">
+          <div class="min-w-0">
+            <h3 class="headline-brief text-foreground mb-1">${u.displayName}</h3>
+            <div class="byline text-muted-foreground flex items-center gap-1.5 flex-wrap">
+              <span class="as-typed">${u.username}</span> <span aria-hidden="true">|</span> <span class=(u.role === "SUPER_ADMIN" ? "text-amber" : false)>${u.role}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <if=(input.status === "ACTIVE")>
+              <form class="flex items-center gap-2" method="post" action=`/admin/users/${u.username}/role`>
+                <input type="hidden" name="csrf" value=input.csrf>
+                <label class="sr-only" for=`role-${u.username}`>Role for ${u.username}</label>
+                <select class="form-field text-xs p-1.5 w-auto" id=`role-${u.username}` name="newRole">
+                  <for|r| of=input.roles><option value=r selected=(r === u.role)>${r}</option></for>
+                </select>
+                <button type="submit" class="section-label profile-action">Change</button>
+              </form>
+              <a class="section-label profile-action danger" href=`/admin/users/${u.username}/suspend`>Suspend…</a>
+              <a class="section-label profile-action danger" href=`/admin/users/${u.username}/erase`>Erase…</a>
+            </if>
+            <if=(input.status === "SUSPENDED")>
+              <form method="post" action=`/admin/users/${u.username}/unsuspend`>
+                <input type="hidden" name="csrf" value=input.csrf>
+                <button type="submit" class="section-label profile-action">Unsuspend</button>
+              </form>
+              <a class="section-label profile-action danger" href=`/admin/users/${u.username}/erase`>Erase…</a>
+            </if>
+            <if=(input.status === "ERASED")>
+              <a class="section-label profile-action danger" href=`/admin/users/${u.username}/purge`>Purge content…</a>
+            </if>
+            <a class="section-label form-helper" href=`/admin/users/${u.username}/export` download>Export</a>
+          </div>
+        </div>
+      </div>
+    </for>
+  </else>
+</admin-shell>

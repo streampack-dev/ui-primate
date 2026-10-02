@@ -17,7 +17,11 @@ export default route({
     return response.view("Confirm.marko", {
       title: `Approve “${post.title}”?`,
       body: "It's published as last saved, on the date below. Save any changes first.",
-      action: `/edit/${id}/approve`, fields: {}, button: "Approve and publish", back: `/edit/${id}`, csrf: csrf(),
+      action: `/edit/${id}/approve`, button: "Approve and publish", csrf: csrf(),
+      // Asked from the pending list, it goes back there.
+      ...(request.query.try("return") === "/admin/pending"
+        ? { fields: { return: "/admin/pending" }, back: "/admin/pending" }
+        : { fields: {}, back: `/edit/${id}` }),
       field: { name: "publishedAt", label: "Publish at (UTC)", type: "datetime-local", value: toLocal(new Date().toISOString()) },
       tone: "go",
     }, { headers: { "Cache-Control": "private, no-store" }, placeholders: { meta: meta({ title: "Approve post" }) } });
@@ -31,7 +35,7 @@ export default route({
     const at = fromLocal(data.one("publishedAt").trim()) ?? new Date();
     try {
       const answer = await asReader((a) => send("PUT", `/admin/posts/${id}/approve`, { publishedAt: at.toISOString() }, bearer(a)));
-      if (answer.ok) return response.redirect(`/edit/${id}?approved`, 303);
+      if (answer.ok) return response.redirect(data.one("return") === "/admin/pending" ? "/admin/pending?done=approved" : `/edit/${id}?approved`, 303);
       const post = await load(id);
       if (!post) return notFound();
       return editorPage(id, post, { form: formOf(post, await categories()), notice: await refusal(answer, "The post wasn't approved.") }, 400);

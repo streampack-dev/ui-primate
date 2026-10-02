@@ -1332,3 +1332,16 @@ textarea.form-field {
 .editor-preview {
   @apply border border-border/40 bg-card/50 p-5 min-h-40 mt-0;
 }
+
+/* The admin pages. */
+.admin-nav-link {
+  @apply px-4 py-3 -mb-px text-muted-foreground hover:text-foreground transition-colors border-b-2 border-transparent;
+}
+
+.admin-nav-link.is-current {
+  @apply text-amber border-amber;
+}
+
+.admin-stat a:hover .admin-stat-value {
+  @apply text-amber;
+}

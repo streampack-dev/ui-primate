@@ -1,0 +1,58 @@
+export interface Input {
+  sections: { href: string; label: string; current: boolean }[];
+  csrf: string;
+  failed: boolean;
+  categories: { id: string; name: string; orphanOf: string | null; children: { id: string; name: string }[] }[];
+  parents: { id: string; name: string }[];
+  said?: string;
+  error?: string;
+  name?: string;
+  parentId?: string;
+}
+<admin-shell sections=input.sections>
+  <if=input.said><div class="mb-6 px-4 py-3 border border-amber/30 bg-amber/5"><p class="section-label text-amber" role="status">${input.said}</p></div></if>
+
+  <section class="border border-border/40 p-5 mb-8" aria-labelledby="new-category-heading">
+    <h2 class="section-label text-amber mb-4" id="new-category-heading">New Category</h2>
+    <form class="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-4 items-end" method="post" action="/admin/categories">
+      <input type="hidden" name="csrf" value=input.csrf>
+      <div>
+        <label class="byline form-label" for="category-name">Name</label>
+        <input class="form-field text-sm p-2" id="category-name" name="name" required value=(input.name ?? "")
+          aria-invalid=(input.error ? "true" : false) aria-describedby=(input.error ? "category-name-error" : false)>
+      </div>
+      <div>
+        <label class="byline form-label" for="category-parent">Parent</label>
+        <select class="form-field text-sm p-2" id="category-parent" name="parentId">
+          <option value="">(top-level)</option>
+          <for|p| of=input.parents by="id"><option value=p.id selected=(p.id === input.parentId)>${p.name}</option></for>
+        </select>
+      </div>
+      <button type="submit" class="auth-button">Create</button>
+    </form>
+    <if=input.error><p class="form-error" id="category-name-error" role="alert">${input.error}</p></if>
+  </section>
+
+  <if=input.failed><p class="form-error" role="alert">The categories can't be loaded just now. Try again shortly.</p></if>
+  <else if=(input.categories.length === 0)>
+    <div class="py-12 text-center"><p class="section-label form-label-text mb-3">No categories yet</p><p class="text-muted-foreground text-sm">Create your first category above.</p></div>
+  </else>
+  <else>
+    <for|c, i| of=input.categories by="id">
+      <div class=["admin-category py-4", i > 0 && "border-t border-border/30"] id=`category-${c.id}`>
+        <div class="flex items-center justify-between gap-4">
+          <span class="text-muted-foreground text-sm"><if=c.orphanOf>in ${c.orphanOf}, which isn't listed</if></span>
+        </div>
+        <h3 class="headline-brief text-foreground">${c.name}</h3>
+        <p class="mt-2"><a class="section-label profile-action danger" href=`/admin/categories/${c.id}/delete`>Delete…</a></p>
+        <if=c.children.length>
+          <ul class="admin-subcategories mt-3 ml-6 space-y-2">
+            <for|s| of=c.children by="id">
+              <li class="flex items-center justify-between gap-4 text-sm"><span>${s.name}</span> <a class="section-label form-helper" href=`/admin/categories/${s.id}/delete`>Delete…</a></li>
+            </for>
+          </ul>
+        </if>
+      </div>
+    </for>
+  </else>
+</admin-shell>
