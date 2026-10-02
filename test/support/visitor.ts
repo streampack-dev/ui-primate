@@ -6,6 +6,9 @@ import { inject } from "vitest";
 export class Visitor {
   cookies = new Map<string, string>();
 
+  /** A browser on the app at [base], the tests' app by default. */
+  constructor(private base: string = inject("appUrl")) {}
+
   private keep(response: Response) {
     for (const line of response.headers.getSetCookie()) {
       const [pair, ...attrs] = line.split(";");
@@ -22,7 +25,7 @@ export class Visitor {
   }
 
   async get(path: string): Promise<{ status: number; location: string | null; doc: HTMLElement; html: string }> {
-    const response = await fetch(`${inject("appUrl")}${path}`, { headers: this.headers(), redirect: "manual" });
+    const response = await fetch(`${this.base}${path}`, { headers: this.headers(), redirect: "manual" });
     this.keep(response);
     const html = await response.text();
     return { status: response.status, location: response.headers.get("location"), doc: parse(html), html };
@@ -32,7 +35,7 @@ export class Visitor {
   async post(path: string, fields: Record<string, string> = {}, { csrf = true } = {}) {
     const form = new URLSearchParams(fields);
     if (csrf && !form.has("csrf")) form.set("csrf", await this.csrf());
-    const response = await fetch(`${inject("appUrl")}${path}`, {
+    const response = await fetch(`${this.base}${path}`, {
       method: "POST",
       headers: this.headers({ "Content-Type": "application/x-www-form-urlencoded" }),
       body: form.toString(),

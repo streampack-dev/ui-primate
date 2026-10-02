@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@primate/marko": "^0.12.0",
+    "@primate/postgresql": "^0.10.1",
     "@primate/tailwind": "^0.9.0",
     "@streampack-dev/masthead": "^0.2.8",
     "highlight.js": "^11.12.0",
@@ -23,10 +24,12 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
+    "@testcontainers/postgresql": "^12.2.0",
     "@types/node": "^26.6.3",
     "node-html-parser": "^9.0.4",
     "playwright": "^1.63.0",
     "shadcn": "^4.21.1",
+    "testcontainers": "^12.2.0",
     "typescript": "^7.0.2",
     "vitest": "^5.0.3"
   },

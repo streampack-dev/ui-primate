@@ -21,9 +21,14 @@ build:
 run: build
     {{app_env}} npx primate serve
 
-# Run the tests.
+# Run the tests. They start their own Postgres (Testcontainers), so Docker must be running.
 test:
     npm test
+
+# Create ui-primate's own database for development, on streampack's local Postgres
+# (streampack's `docker compose up -d db`), as BCN_DB_URL in .env.default names it.
+create-db:
+    docker compose -f ../streampack/docker-compose.yml exec -T db psql -U nevet -d nevet -c 'CREATE DATABASE ui_primate'
 
 # Refresh the committed OpenAPI snapshot from the API, and the types generated from it.
 refresh-spec:

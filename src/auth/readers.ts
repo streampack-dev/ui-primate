@@ -28,7 +28,7 @@ export function csrf(): string {
   const now = data();
   if (now?.csrf) return now.csrf;
   if (now) session.set({ ...now, csrf: token() });
-  else session.create({ csrf: token() });
+  else session.create({ created: new Date(), csrf: token() });
   return data()!.csrf;
 }
 
@@ -50,7 +50,7 @@ export function setPendingEmail(email: string) {
 /** Signs [reader] in under a new session, so a session id fixed before sign-in is no use. */
 export function signIn(reader: Reader, access: string, refresh: string | null) {
   if (session.exists) session.destroy();
-  session.create({ csrf: token(), ...reader, access: seal(access), ...(refresh ? { refresh: seal(refresh) } : {}) });
+  session.create({ created: new Date(), csrf: token(), ...reader, access: seal(access), ...(refresh ? { refresh: seal(refresh) } : {}) });
 }
 
 export function signOut() {
