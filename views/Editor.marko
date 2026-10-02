@@ -44,7 +44,7 @@ export interface Input {
 
         <div class="mb-6">
           <label class="byline form-label" for="edit-title">Title</label>
-          <input class="form-field submit-title-input" id="edit-title" name="title" required maxlength="255" value=form.title
+          <input class="form-field form-mono" id="edit-title" name="title" required maxlength="255" value=form.title
             aria-invalid=(errors.title ? "true" : false) aria-describedby=(errors.title ? "edit-title-error" : false)>
           <if=errors.title><p class="form-error" id="edit-title-error">${errors.title}</p></if>
         </div>

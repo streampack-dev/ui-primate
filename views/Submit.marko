@@ -40,7 +40,7 @@ export interface Input {
 
       <div class="mb-6">
         <label class="byline form-label" for="submit-title">Title</label>
-        <input class="form-field submit-title-input" id="submit-title" name="title" required maxlength="255" placeholder="Your article's title" value=form.title
+        <input class="form-field form-mono" id="submit-title" name="title" required maxlength="255" placeholder="Your article's title" value=form.title
           aria-invalid=(errors.title ? "true" : false) aria-describedby=(errors.title ? "submit-title-error" : false)>
         <if=errors.title><p class="form-error" id="submit-title-error">${errors.title}</p></if>
       </div>

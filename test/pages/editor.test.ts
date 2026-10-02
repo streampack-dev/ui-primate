@@ -71,6 +71,11 @@ describe("the editor", () => {
     expect((await requests()).find((r) => r.path === `/posts/${ID}`)!.headers.authorization).toBe("Bearer access-1");
   });
 
+  it("sets the title in monospace, as the submission form does", async () => {
+    const v = await signedIn(ADMIN);
+    expect((await v.get(EDIT)).doc.querySelector("input[name=title]")?.classList.contains("form-mono")).toBe(true);
+  });
+
   it("is private, and titled for the post", async () => {
     const v = await signedIn(ADMIN);
     const response = await fetch(`${inject("appUrl")}${EDIT}`, { headers: { Cookie: `session_id=${v.cookies.get("session_id")}` } });

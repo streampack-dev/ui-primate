@@ -54,6 +54,12 @@ describe("the submission form", () => {
     }
   });
 
+  it("sets the title in monospace, as the post's text is (and ui-pudl's is)", async () => {
+    const { doc } = await new Visitor().get("/submit");
+    expect(doc.querySelector("input[name=title]")?.classList.contains("form-mono")).toBe(true);
+    expect(doc.querySelector("textarea[name=markdownSource]")?.classList.contains("form-mono")).toBe(true);
+  });
+
   it("is never kept by a cache, since it carries the time it was shown", async () => {
     const response = await fetch(`${(await import("vitest")).inject("appUrl")}/submit`);
     expect(response.headers.get("cache-control")).toContain("no-store");
