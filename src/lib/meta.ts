@@ -26,11 +26,11 @@ export type Meta = {
   /** The page's address on the site, from its root. */
   path?: string;
   type?: "website" | "article";
-  /** A preview image's address on the site, from its root, and what it shows. */
+  /** A preview image's address on the site, from its root, and what it shows; the site's card by default. */
   image?: { path: string; alt: string };
 };
 
-export function meta({ title, description = DESCRIPTION, path, type = "website", image }: Meta = {}): string {
+export function meta({ title, description = DESCRIPTION, path, type = "website", image, robots }: Meta & { robots?: string } = {}): string {
   const full = title ? `${title} | ${SITE}` : SITE;
   const tags = [
     `<title>${escape(full)}</title>`,
@@ -42,11 +42,20 @@ export function meta({ title, description = DESCRIPTION, path, type = "website",
     `<meta name="twitter:card" content="summary_large_image">`,
     `<link rel="alternate" type="application/rss+xml" title="${SITE}" href="/feed.xml">`,
   ];
+  if (robots) tags.push(`<meta name="robots" content="${escape(robots)}">`);
   if (path) {
     tags.push(`<link rel="canonical" href="${escape(siteUrl() + path)}">`, `<meta property="og:url" content="${escape(siteUrl() + path)}">`);
   }
-  if (image) {
-    tags.push(`<meta property="og:image" content="${escape(siteUrl() + image.path)}">`, `<meta property="og:image:alt" content="${escape(image.alt)}">`);
-  }
+  // Every page has a preview image: its own (a post's card), else the site's.
+  const shown = image ?? { path: "/og/site.png", alt: SITE };
+  const src = escape(siteUrl() + shown.path);
+  tags.push(
+    `<meta property="og:image" content="${src}">`,
+    `<meta property="og:image:width" content="1200">`,
+    `<meta property="og:image:height" content="630">`,
+    `<meta property="og:image:alt" content="${escape(shown.alt)}">`,
+    `<meta name="twitter:image" content="${src}">`,
+    `<meta name="twitter:image:alt" content="${escape(shown.alt)}">`,
+  );
   return tags.join("\n    ");
 }

@@ -1269,3 +1269,29 @@ textarea.form-field {
 .dark .theme-toggle .icon-sun {
   display: block;
 }
+
+/* The link-preview gallery: each card as a shared link shows it. */
+.og-card {
+  @apply mb-8 overflow-hidden border border-border bg-card;
+  border-radius: 12px;
+}
+
+.og-card img {
+  @apply block w-full h-auto;
+}
+
+.og-card figcaption {
+  @apply flex flex-col gap-0.5 px-4 py-3;
+}
+
+.og-card-url {
+  @apply text-xs text-muted-foreground lowercase;
+}
+
+.og-card-title {
+  @apply font-semibold text-foreground leading-snug;
+}
+
+.og-card-description {
+  @apply text-sm text-muted-foreground line-clamp-2;
+}

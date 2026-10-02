@@ -17,7 +17,7 @@ Features, in the order they're being built (as agreed 2026-10-01):
 - [ ] Profile
 - [ ] Editing posts
 - [ ] Admin pages
-- [ ] OG images (`/og/posts/…png`, already linked from post pages) and the OG preview
+- [x] OG images (`/og/posts/…png`, `/og/site.png`) and the OG preview
 - [ ] Sign-in through an outside provider (OIDC, `/auth/callback`)
 
 Before it's deployed:

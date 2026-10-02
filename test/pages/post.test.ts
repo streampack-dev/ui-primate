@@ -150,14 +150,15 @@ describe("a post's comments", () => {
 });
 
 describe("a page of the site's own", () => {
-  it("is read from /pages, with no comments", async () => {
+  it("is read from /pages, with no comments and the site's card", async () => {
     await stub("/pages/about", detail({ title: "About", slug: "about", categories: ["_sidebar"] }));
     const { status, doc } = await page("/posts/about");
 
     expect(status).toBe(200);
     expect(text(doc.querySelector("article h1"))).toBe("About");
     expect(doc.querySelector("section.comments")).toBeNull();
-    expect(doc.querySelector("meta[property='og:image']")).toBeNull();
+    // No card of its own: the site's.
+    expect(doc.querySelector("meta[property='og:image']")?.getAttribute("content")).toMatch(/\/og\/site\.png$/);
   });
 });
 
