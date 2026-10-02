@@ -32,25 +32,9 @@ export interface Input {
         </div>
       </if>
       <else>
-        <for|p, i| of=input.list.posts by="id">
-          <article class=["search-result group py-6", i > 0 && "border-t border-border/30"]>
-            <h2 class="headline-secondary text-foreground group-hover:text-amber transition-colors duration-200 mb-2"><a href=p.href>${p.title}</a></h2>
-            <if=p.excerpt><p class="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-3">${p.excerpt}</p></if>
-            <div class="byline text-muted-foreground flex items-center gap-1.5 flex-wrap">
-              <span>By ${p.author}</span> <span aria-hidden="true">|</span> <time datetime=p.published>${p.date}</time>
-              <if=p.comments> <span aria-hidden="true">|</span> <span>${p.comments}</span></if>
-            </div>
-            <if=p.tags.length><div class="tags mt-3"><for|t| of=p.tags><a class="tag" href=`/tags/${encodeURIComponent(t)}`>${t}</a></for></div></if>
-          </article>
-        </for>
+        <for|p, i| of=input.list.posts by="id"><post-row row=p first=(i === 0) class="search-result"/></for>
       </else>
-      <if=input.list.pages>
-        <div class="mt-10 flex justify-between items-center border-t border-border/40 pt-6">
-          <div><if=input.list.prev><a class="pagelink" rel="prev" href=input.list.prev>&larr; Previous</a></if></div>
-          <span class="search-pages dateline text-muted-foreground">${input.list.pages}</span>
-          <div><if=input.list.next><a class="pagelink" rel="next" href=input.list.next>Next &rarr;</a></if></div>
-        </div>
-      </if>
+      <list-pager pages=input.list.pages prev=input.list.prev next=input.list.next class="search-pages"/>
     </if>
     <else>
       <p class="text-muted-foreground text-sm">Search post titles and summaries.</p>

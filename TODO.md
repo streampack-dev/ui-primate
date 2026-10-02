@@ -9,7 +9,7 @@ Features, in the order they're being built (as agreed 2026-10-01):
 - [x] Comment submission: post, reply, edit, admin removal
 - [x] Logs
 - [x] RSS reader
-- [ ] Tags, and the pages for each tag
+- [x] Tags, and the pages for each tag
 - [ ] Category pages
 - [x] Search
 - [ ] Factoids

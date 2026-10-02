@@ -1,0 +1,29 @@
+export interface Input { tags: { name: string; count: number; href: string }[]; count: string }
+<section class="py-8 md:py-12">
+  <div class="max-w-3xl mx-auto px-6 md:px-8">
+    <header class="mb-10">
+      <div class="border-t-2 border-amber animate-rule-draw"/>
+      <div class="pt-6 pb-8 border-b border-border/40">
+        <p class="section-label text-amber mb-3">Index</p>
+        <h1 class="font-display text-foreground leading-tight submit-title">Tags</h1>
+        <p class="tags-count text-muted-foreground text-sm mt-2">${input.count}</p>
+      </div>
+    </header>
+    <if=(input.tags.length === 0)>
+      <div class="py-12 text-center">
+        <p class="section-label form-label-text mb-3">No tags yet</p>
+        <p class="text-muted-foreground text-sm">Tags will appear here as articles are published.</p>
+      </div>
+    </if>
+    <else>
+      <div class="flex flex-wrap gap-3">
+        <for|t| of=input.tags by="name">
+          <a class="tag-chip group inline-flex items-center gap-2 border border-border/60 px-4 py-2.5 hover:border-amber transition-colors" href=t.href>
+            <span class="tag-chip-name font-mono text-sm text-foreground group-hover:text-amber transition-colors">${t.name}</span>
+            <span class="tag-chip-count font-mono text-xs text-muted-foreground">${t.count}</span>
+          </a>
+        </for>
+      </div>
+    </else>
+  </div>
+</section>

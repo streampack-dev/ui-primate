@@ -1,0 +1,8 @@
+export interface Input { pages: string; prev: string | null; next: string | null; class?: string }
+<if=input.pages>
+  <div class="mt-10 flex justify-between items-center border-t border-border/40 pt-6">
+    <div><if=input.prev><a class="pagelink" rel="prev" href=input.prev>&larr; Previous</a></if></div>
+    <span class=["list-pages dateline text-muted-foreground", input.class]>${input.pages}</span>
+    <div><if=input.next><a class="pagelink" rel="next" href=input.next>Next &rarr;</a></if></div>
+  </div>
+</if>
