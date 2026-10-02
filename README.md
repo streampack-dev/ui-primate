@@ -41,6 +41,7 @@ behind `origin/main`, and changes nothing when it does.
 | `SESSION_SECRET` | none: a random one each start. Seals API tokens in sessions; changing it signs everyone out |
 | `SESSION_COOKIE_SECURE` | `false`; `true` behind a proxy that ends TLS |
 | `SITE_URL` | `https://bytecode.news`, the address for canonical links and link previews |
+| `BCN_API_SITE_URL` | `https://bytecode.news`: the address the API builds its feed and sitemap links on (streampack's `BLOG_BASE_URL`). The feeds and sitemap move it to whatever host the reader asked. Not `SITE_URL`: on primate.bytecode.news that may name this site, but the API still links to bytecode.news. |
 | `PORT` | `3000` |
 
 ## Sessions

@@ -1,11 +1,16 @@
 /* XML the API builds with the site's links in it (the feeds, the sitemap), served on whatever host
-   the reader asked. The API builds every link on the canonical host (SITE_URL), whatever it's told,
-   so, as ui-pudl does, the canonical origin is moved to the reader's: where it stands whole (followed
-   by a path, a quote, a tag, whitespace or the end), and not on the canonical host itself. The
+   the reader asked. The API builds every link on the site's address it's configured with
+   (streampack's BLOG_BASE_URL; here BCN_API_SITE_URL, https://bytecode.news by default), whatever
+   it's told, so that address is moved to the reader's: where it stands whole (followed by a path, a
+   quote, a tag, whitespace or the end), and not where the reader is on it already. It isn't SITE_URL,
+   this site's own address for canonical links: deployed as primate.bytecode.news, SITE_URL may say
+   so, but the API's links are still bytecode.news's (ui-pudl tied the two together, and on
+   pudl.bytecode.news nothing moved). The
    reader's origin is the host, scheme and port a proxy in front of us says, else our own; the API is
    told them too, in case it ever builds for them. The last good copy of each, for each host, is
    served while the API is down. */
-import { siteUrl } from "#lib/meta.ts";
+/** The site's address the API builds its links on. */
+export const apiSiteUrl = () => (process.env.BCN_API_SITE_URL || "https://bytecode.news").replace(/\/$/, "");
 
 const base = () => (process.env.BCN_API_BASE || "https://api.bytecode.news").replace(/\/$/, "");
 const kept = new Map<string, { body: string; type: string }>();
@@ -23,7 +28,7 @@ export async function forwardedXml(request: Request, path: string, unavailable: 
   const key = `${path} ${host}`;
   const defaultPort = proto === "https" ? "443" : "80";
   const origin = `${proto}://${host}${host.includes(":") || port === defaultPort ? "" : `:${port}`}`;
-  const here = (body: string) => onThisHost(body, origin);
+  const here = (body: string) => onThisHost(body, apiSiteUrl(), origin);
   try {
     const response = await fetch(`${base()}${path}`, {
       headers: { Accept: "application/xml,text/xml;q=0.9,*/*;q=0.8", "X-Forwarded-Host": host, "X-Forwarded-Proto": proto, "X-Forwarded-Port": port },
@@ -40,10 +45,10 @@ export async function forwardedXml(request: Request, path: string, unavailable: 
   }
 }
 
-/** [body] with the canonical origin, where it stands whole, moved to [origin]. */
-export function onThisHost(body: string, origin: string): string {
-  const canonical = siteUrl();
-  if (origin.toLowerCase() === canonical.toLowerCase()) return body;
-  const escaped = canonical.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return body.replace(new RegExp(`${escaped}(?=[/"'<\\s]|$)`, "gi"), origin);
+/** [body] with [from] (an origin), where it stands whole, moved to [to]. */
+export function onThisHost(body: string, from: string, to: string): string {
+  const source = from.replace(/\/$/, "");
+  if (to.toLowerCase() === source.toLowerCase()) return body;
+  const escaped = source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return body.replace(new RegExp(`${escaped}(?=[/"'<\\s]|$)`, "gi"), to);
 }
