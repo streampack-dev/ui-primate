@@ -18,6 +18,19 @@ just run               # the production build: server-rendered, as it ships
 `just test` runs the tests against a production build, a stub API and a Postgres of their own
 (Testcontainers), so Docker must be running. `just` lists the rest.
 
+## Releasing
+
+A full release, from an up-to-date `main`:
+
+```sh
+just release patch && git add package*.json && git commit -m "Updating version" && git push
+```
+
+`just full-release` does exactly that, each step only if the one before it worked; give it `minor`
+or `major` for those. `just release` bumps the version in `package.json` and `package-lock.json`
+and builds and pushes the image; it refuses to run from any branch but `main`, or from a `main`
+behind `origin/main`, and changes nothing when it does.
+
 ## Configuration
 
 | Variable | Default |

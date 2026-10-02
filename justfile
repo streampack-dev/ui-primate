@@ -201,3 +201,12 @@ release level="patch": _on-main
     npm version "$next" --no-git-tag-version >/dev/null
     just image "$next"
     echo "Released $next. Commit package.json and package-lock.json."
+
+# The whole release, as it's done from the shell: release, then commit the new version in
+# package.json and package-lock.json and push it. Each step runs only if the one before it worked.
+full-release level="patch":
+    just release {{level}}
+    git add package*.json
+    git commit -m "Updating version"
+    git push
+
