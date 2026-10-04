@@ -42,11 +42,11 @@ export default route({
     const form: EditForm = {
       title: data.one("title"), slug: data.one("slug"), markdownSource: data.one("markdownSource"),
       summary: data.one("summary"), tags: data.one("tags"), categoryIds: data.all("categoryIds"),
-      publishedAt: data.one("publishedAt"), sortOrder: data.one("sortOrder"), action: data.one("action"),
+      publishedAt: data.one("publishedAt"), sortOrder: data.one("sortOrder"), helper: data.one("helper"),
     };
 
-    if (form.action === "preview") return editorPage(id, post, { form });
-    const helped = helper(form.action, form, { ai: true, summary: true }, id);
+    if (form.helper === "preview") return editorPage(id, post, { form });
+    const helped = helper(form.helper, form, { ai: true, summary: true }, id);
     if (helped) {
       const result = await helped;
       if (result === "sign-in") return response.redirect(SIGN_IN(id), 303);

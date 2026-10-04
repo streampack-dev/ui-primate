@@ -32,6 +32,8 @@ export interface Input {
     </if>
 
     <form id="submit-post" method="post" action="/submit">
+      <!-- The helper buttons are named "helper", never "action": a control named action hides the
+           form's own action from script, and Primate's client then posts to the button. -->
       <!-- Enter in a field submits the post: the first button in a form is the one it presses. -->
       <button class="hp" type="submit" tabindex="-1" aria-hidden="true">Submit Draft</button>
       <input type="hidden" name="csrf" value=input.csrf>
@@ -61,8 +63,8 @@ export interface Input {
         <div class="form-label-row">
           <label class="byline form-label" for="submit-tags">Tags</label>
           <span class="flex gap-3">
-            <button class="section-label form-helper" type="submit" name="action" value="suggest-tags" formnovalidate>Suggest</button>
-            <if=input.ai><button class="section-label form-helper" type="submit" name="action" value="ai-tags" formnovalidate>AI Tags</button></if>
+            <button class="section-label form-helper" type="submit" name="helper" value="suggest-tags" formnovalidate>Suggest</button>
+            <if=input.ai><button class="section-label form-helper" type="submit" name="helper" value="ai-tags" formnovalidate>AI Tags</button></if>
           </span>
         </div>
         <input class="form-field" id="submit-tags" name="tags" placeholder="java, spring, architecture" value=form.tags aria-describedby="submit-tags-hint">
@@ -78,7 +80,7 @@ export interface Input {
         <div class="mb-6">
           <div class="form-label-row">
             <label class="byline form-label" for="submit-summary">Summary (optional)</label>
-            <button class="section-label form-helper" type="submit" name="action" value="derive-summary" formnovalidate>Derive Summary</button>
+            <button class="section-label form-helper" type="submit" name="helper" value="derive-summary" formnovalidate>Derive Summary</button>
           </div>
           <textarea class="form-field" id="submit-summary" name="summary" rows="3" aria-describedby="submit-summary-hint"
             placeholder="Brief summary for the front page and feed excerpts.">${form.summary}</textarea>

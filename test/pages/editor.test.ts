@@ -164,7 +164,7 @@ describe("saving an edit", () => {
 describe("the editor's preview and helpers", () => {
   it("previews what was typed, without saving it", async () => {
     const v = await signedIn(ADMIN);
-    const { status, doc } = await v.post(EDIT, await fields(v, { action: "preview", markdownSource: "Now *new*. <script>x</script>" }));
+    const { status, doc } = await v.post(EDIT, await fields(v, { helper: "preview", markdownSource: "Now *new*. <script>x</script>" }));
 
     expect(status).toBe(200);
     expect(doc.querySelector(".editor-preview em")?.textContent).toBe("new");
@@ -189,11 +189,11 @@ describe("the editor's preview and helpers", () => {
     await stub("/posts/derive-summary", { summary: "A heap-dump reader." }, { method: "POST" });
     const v = await signedIn(ADMIN);
 
-    const suggested = (await v.post(EDIT, await fields(v, { action: "suggest-tags" }))).doc;
+    const suggested = (await v.post(EDIT, await fields(v, { helper: "suggest-tags" }))).doc;
     expect(suggested.querySelector("input[name=tags]")?.getAttribute("value")).toBe("jvm, tools, heap");
-    const ai = (await v.post(EDIT, await fields(v, { action: "ai-tags" }))).doc;
+    const ai = (await v.post(EDIT, await fields(v, { helper: "ai-tags" }))).doc;
     expect(ai.querySelector("input[name=tags]")?.getAttribute("value")).toBe("jvm, tools, memory");
-    const summary = (await v.post(EDIT, await fields(v, { action: "derive-summary" }))).doc;
+    const summary = (await v.post(EDIT, await fields(v, { helper: "derive-summary" }))).doc;
     expect(summary.querySelector("textarea[name=summary]")?.textContent).toBe("A heap-dump reader.");
     expect(text(summary.querySelector("#helper-summary"))).toContain("Summary derived.");
     expect(await sent("PUT", `/admin/posts/${ID}`)).toEqual([]);

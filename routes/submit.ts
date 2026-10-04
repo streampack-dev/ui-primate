@@ -22,7 +22,7 @@ type Category = components["schemas"]["CategorySummary"];
 
 type Form = {
   title: string; markdownSource: string; tags: string; summary: string; categoryId: string;
-  formLoadedAt: string; website: string; action: string;
+  formLoadedAt: string; website: string; helper: string;
 };
 type Helper = "tags" | "summary";
 type Shown = {
@@ -74,7 +74,7 @@ async function page(shown: Shown) {
   });
 }
 
-const blank = (): Form => ({ title: "", markdownSource: "", tags: "", summary: "", categoryId: "", formLoadedAt: String(Date.now()), website: "", action: "" });
+const blank = (): Form => ({ title: "", markdownSource: "", tags: "", summary: "", categoryId: "", formLoadedAt: String(Date.now()), website: "", helper: "" });
 
 export default route({
   async get() {
@@ -90,13 +90,13 @@ export default route({
     const form: Form = { ...blank(), ...Object.fromEntries(Object.entries(posted).filter(([k]) => k in blank())) };
     const draft = { title: form.title, markdownSource: form.markdownSource, existingTags: tagList(form.tags) };
 
-    const helped = helper(form.action, form, may);
+    const helped = helper(form.helper, form, may);
     if (helped) {
       const result = await helped;
       if (result === "sign-in") return response.redirect(SIGN_IN, 303);
       return page({ form, helper: result.which, said: result.said });
     }
-    if (form.action && form.action !== "submit") return page({ form });
+    if (form.helper && form.helper !== "submit") return page({ form });
 
     if (form.website.trim()) return response.redirect("/submit/thanks", 303);
     const errors: Shown["errors"] = {};

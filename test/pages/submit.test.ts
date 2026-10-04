@@ -86,7 +86,7 @@ describe("the submission form", () => {
   });
 
   it("offers the helpers each reader may use", async () => {
-    const helpers = async (v: Visitor) => (await v.get("/submit")).doc.querySelectorAll("button[name=action]").map((b) => b.getAttribute("value"));
+    const helpers = async (v: Visitor) => (await v.get("/submit")).doc.querySelectorAll("button[name=helper]").map((b) => b.getAttribute("value"));
 
     expect(await helpers(new Visitor())).toEqual(["suggest-tags"]);
     expect(await helpers(await signedIn())).toEqual(["suggest-tags", "derive-summary"]);
@@ -177,7 +177,7 @@ describe("the form's helpers", () => {
   it("add suggested tags to the reader's own, saying so beside the button, and submit nothing", async () => {
     await stub("/posts/derive-tags", { tags: ["Tools", "heap"] }, { method: "POST" });
     const v = new Visitor();
-    const { status, doc } = await v.post("/submit", await filled(v, { action: "suggest-tags" }));
+    const { status, doc } = await v.post("/submit", await filled(v, { helper: "suggest-tags" }));
 
     expect(status).toBe(200);
     expect(doc.querySelector("input[name=tags]")?.getAttribute("value")).toBe("jvm, tools, heap");
@@ -191,7 +191,7 @@ describe("the form's helpers", () => {
   it("derive a summary for a signed-in reader", async () => {
     await stub("/posts/derive-summary", { summary: "Midden reads heap dumps." }, { method: "POST" });
     const v = await signedIn();
-    const { doc } = await v.post("/submit", await filled(v, { action: "derive-summary" }));
+    const { doc } = await v.post("/submit", await filled(v, { helper: "derive-summary" }));
 
     expect(doc.querySelector("textarea[name=summary]")?.textContent).toBe("Midden reads heap dumps.");
     expect((await requests()).find((r) => r.path === "/posts/derive-summary")!.headers.authorization).toBe("Bearer access-1");
@@ -200,7 +200,7 @@ describe("the form's helpers", () => {
   it("add AI tags for an admin", async () => {
     await stub(`/admin/posts/${UNSAVED}/derive-tags`, { tags: ["memory"] }, { method: "POST" });
     const v = await signedIn(ADMIN);
-    const { doc } = await v.post("/submit", await filled(v, { action: "ai-tags" }));
+    const { doc } = await v.post("/submit", await filled(v, { helper: "ai-tags" }));
 
     expect(doc.querySelector("input[name=tags]")?.getAttribute("value")).toBe("jvm, tools, memory");
     expect((await requests()).find((r) => r.path.endsWith("/derive-tags"))!.headers.authorization).toBe("Bearer access-1");
@@ -208,9 +208,9 @@ describe("the form's helpers", () => {
 
   it("aren't run for a reader not allowed them: the form is just shown again", async () => {
     const anonymous = new Visitor();
-    const summary = await anonymous.post("/submit", await filled(anonymous, { action: "derive-summary" }));
+    const summary = await anonymous.post("/submit", await filled(anonymous, { helper: "derive-summary" }));
     const reader = await signedIn();
-    const ai = await reader.post("/submit", await filled(reader, { action: "ai-tags" }));
+    const ai = await reader.post("/submit", await filled(reader, { helper: "ai-tags" }));
 
     expect([summary.status, ai.status]).toEqual([200, 200]);
     expect(ai.doc.querySelector("input[name=tags]")?.getAttribute("value")).toBe("jvm, tools");

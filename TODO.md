@@ -59,7 +59,13 @@ Smaller things noticed along the way:
       routes put `meta` in the view's props, #lib/view.ts draws it into %meta% for the server's
       render, and each view's <page-meta> applies it in the browser, as terrablue suggested
       (Primate's website's Header.marko) (2026-10-02)
-- [ ] Remove client/forms.ts when Primate's forms are fixed (primate-bugs/11, primate task #122)
+- [x] Primate 0.42 (2026-10-03): its client submits forms properly (GET forms, answers that
+      aren't 2xx, a redirect's #fragment), so client/forms.ts is gone and forms are drawn in place
+      like links (test/browser/navigation.test.ts). The post form's helper buttons are named
+      `helper`, not `action`: a control named `action` hides the form's own action from script, and
+      Primate's client posted to `/[object HTMLButtonElement]`
+- [ ] @primate/marko 0.13 has a `<Head>` tag; <page-meta> and the %meta% placeholder
+      (#lib/view.ts) still work, and could move to it
 - [ ] Sessions end thirty days after sign-in, not after thirty idle days as ui-pudl's do
 
 Parked:
