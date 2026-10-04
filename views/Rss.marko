@@ -5,6 +5,8 @@ export interface Input {
   feeds: { value: string; label: string }[];
   count: string;
   filtered: boolean;
+  refresh: string;
+  newest: string;
   items: { id: string; title: string; link: string; published: string; date: string; summary: string }[];
   prev: string | null;
   next: string | null;
@@ -42,8 +44,11 @@ export interface Input {
     </form>
 
     <div class="flex items-center justify-between gap-4 border-b border-border/40 pb-3 mb-6">
-      <p class="rss-count dateline text-muted-foreground">${input.count}</p>
-      <if=input.filtered><a class="rss-clear section-label form-helper" href="/rss">Clear Filters</a></if>
+      <p class="dateline text-muted-foreground"><span class="rss-count">${input.count}</span><if=input.newest> · <span class="rss-newest">${input.newest}</span></if></p>
+      <span class="flex gap-4">
+        <if=input.filtered><a class="rss-clear section-label form-helper" href="/rss">Clear Filters</a></if>
+        <a class="rss-refresh section-label form-helper" href=input.refresh>Refresh</a>
+      </span>
     </div>
 
     <if=(input.items.length === 0)>

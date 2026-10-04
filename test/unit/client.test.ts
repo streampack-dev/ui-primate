@@ -46,6 +46,20 @@ describe("the API client", () => {
     expect(second.headers["if-none-match"]).toMatch(/^".+"$/);
   });
 
+  it("asks again at once for what a refresh makes stale, and only that", async () => {
+    await stub("/rss/items", { items: ["old"] });
+    await stub("/karma", { entries: [] });
+    await client.cachedGet("/rss/items");
+    await client.cachedGet("/karma");
+    await stub("/rss/items", { items: ["new"] });
+
+    client.stale("/rss/");
+
+    expect(await client.cachedGet("/rss/items")).toEqual({ items: ["new"] });
+    await client.cachedGet("/karma");
+    expect((await seen()).map((r: { path: string }) => r.path)).toEqual(["/rss/items", "/karma", "/rss/items"]);
+  });
+
   it("takes a changed answer", async () => {
     await stub("/posts/b", { title: "old" });
     await client.cachedGet("/posts/b");

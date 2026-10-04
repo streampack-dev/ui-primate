@@ -20,6 +20,11 @@ Features, in the order they're being built (as agreed 2026-10-01):
 - [x] OG images (`/og/posts/…png`, `/og/site.png`) and the OG preview
 - [x] The sitemap (`/sitemap.xml`), the API's, as ui-nextjs serves it
 
+Since (2026-10-03):
+
+- [x] RSS reader: a Refresh that asks the API again past this app's kept answers, drawn in place, and
+      how new the newest item is (#5)
+
 Before it's deployed:
 
 - [x] Favicon
