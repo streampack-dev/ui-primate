@@ -1252,7 +1252,8 @@ textarea.form-field {
 }
 
 /* The fields sit inside their section-label labels; they shouldn't take the label's lettering. */
-.rss-filter .form-field {
+.rss-filter .form-field,
+.log-search .form-field {
   letter-spacing: normal;
   text-transform: none;
 }

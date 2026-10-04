@@ -24,6 +24,9 @@ Since (2026-10-03):
 
 - [x] RSS reader: a Refresh that asks the API again past this app's kept answers, drawn in place, and
       how new the newest item is (#5)
+- [x] Logs: search a channel for text, a nick, or both (/logs/search, #4); each line found links to
+      its day at that line. Anchors are a line's second, so of several lines in one second, the
+      first is the one landed on
 
 Before it's deployed:
 

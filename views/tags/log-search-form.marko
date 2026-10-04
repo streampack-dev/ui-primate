@@ -1,0 +1,22 @@
+/* A search of one channel's logs (#4): text, who said it, or both. On a day's log and on the
+   results, which it keeps in its fields. */
+export interface Input {
+  channel: { name: string; uri: string };
+  all?: boolean;
+  q?: string;
+  from?: string;
+}
+
+<form class="log-search grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end mb-6" action="/logs/search" method="get" role="search" aria-label=`Search ${input.channel.name}`>
+  <input type="hidden" name="provenance" value=input.channel.uri>
+  <if=input.all><input type="hidden" name="all" value="1"></if>
+  <label class="section-label form-label-text">
+    Text
+    <input class="form-field text-sm p-2 mt-2" name="q" type="search" minlength="3" maxlength="200" placeholder=`Search ${input.channel.name}` value=input.q>
+  </label>
+  <label class="section-label form-label-text">
+    Said by
+    <input class="form-field text-sm p-2 mt-2" name="from" type="search" maxlength="255" placeholder="a nick" value=input.from>
+  </label>
+  <button class="section-label rss-filter-button" type="submit">Search</button>
+</form>
