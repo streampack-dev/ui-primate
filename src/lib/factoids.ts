@@ -57,3 +57,54 @@ export function knowledgeBase(q: string, page: number, base = "/factoids"): stri
   if (page > 0) params.set("page", String(page));
   return params.size ? `${base}?${params}` : base;
 }
+
+/**
+ * An attribute a signed-in reader can change, as the API names it, as ui-pudl has them (#170).
+ * These are the ones a factoid's detail shows; the API also sets `see` and `maven`, but doesn't
+ * show them, so they aren't offered to edit blind.
+ */
+export type Field = { name: string; label: string; hint: string; long?: boolean };
+
+export const FIELDS: Field[] = [
+  { name: "text", label: "Text", hint: "What the bot says, as “name is …”. Start with <reply> to have it say only this.", long: true },
+  { name: "urls", label: "URLs", hint: "Web addresses, separated by commas. Empty, it's forgotten." },
+  { name: "tags", label: "Tags", hint: "Separated by commas. Empty, it's forgotten." },
+  { name: "languages", label: "Languages", hint: "Separated by commas. Empty, it's forgotten." },
+  { name: "type", label: "Type", hint: "What sort of thing it is; separated by commas. Empty, it's forgotten." },
+  { name: "seealso", label: "See Also", hint: "Other factoids, separated by commas. Empty, it's forgotten." },
+];
+
+/** [value] as it's stored: trimmed, and a list's items trimmed and joined by ", ". */
+export function normal(field: Field, value: string): string {
+  return field.long ? value.trim() : split(value).join(", ");
+}
+
+/** Each attribute's value as stored, by the API's name for it, the first of each kind. */
+export function stored(all: Attribute[] = []): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const a of all) {
+    const type = String(a.type || "").toLowerCase();
+    if (type && !(type in out)) out[type] = String(a.value || "");
+  }
+  return out;
+}
+
+/**
+ * What a save changes: each field the form has whose value differs from what it showed (its
+ * `was.` twin), with the text first, since for a new factoid it's what creates it. An emptied
+ * field is "" (forget that attribute).
+ */
+export function changes(form: Record<string, string>): { name: string; value: string }[] {
+  return FIELDS.filter((f) => f.name in form)
+    .map((f) => ({ name: f.name, value: normal(f, form[f.name] || ""), was: normal(f, form[`was.${f.name}`] || "") }))
+    .filter((c) => c.value !== c.was)
+    .map(({ name, value }) => ({ name, value }));
+}
+
+/** Whether the form showed nothing as stored: a factoid being taught. */
+export function isNew(form: Record<string, string>): boolean {
+  return FIELDS.every((f) => !(form[`was.${f.name}`] || "").trim());
+}
+
+/** A factoid's page. */
+export const factoidHref = (selector: string) => `/factoids/${encodeURIComponent(selector)}`;

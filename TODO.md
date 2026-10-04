@@ -27,6 +27,9 @@ Since (2026-10-03):
 - [x] Logs: search a channel for text, a nick, or both (/logs/search, #4); each line found links to
       its day at that line. Anchors are a line's second, so of several lines in one second, the
       first is the one landed on
+- [x] Factoids: signed-in readers teach, edit and forget them, admins lock and unlock them, as
+      ui-pudl has it (ui-pudl #170). Only what changed is sent; an emptied field forgets that
+      attribute. `see` and `maven` aren't offered: the API sets them but its detail doesn't show them
 
 Before it's deployed:
 
