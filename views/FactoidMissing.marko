@@ -1,5 +1,14 @@
 <page-meta meta=input.meta/>
-export interface Input { selector: string; back: string }
+export interface Input {
+  meta?: import("#lib/meta.ts").Head;
+  selector: string;
+  back: string;
+  signedIn: boolean;
+  csrf: string;
+  action: string;
+  error: string;
+  text: string;
+}
 <section class="py-8 md:py-12">
   <div class="max-w-3xl mx-auto px-6 md:px-8">
     <a class="factoid-back section-label form-helper inline-flex items-center gap-1.5 mb-6" href=input.back><span aria-hidden="true">&larr;</span> Knowledge Base</a>
@@ -10,8 +19,21 @@ export interface Input { selector: string; back: string }
         <p class="text-muted-foreground leading-relaxed"><code>${input.selector}</code> does not exist yet.</p>
       </header>
       <div class="border-t border-border/40 mb-6"/>
-      <p class="text-muted-foreground leading-relaxed">You can create this factoid through bot operations (for example, in IRC or other connected adapters).</p>
-      <p class="text-muted-foreground leading-relaxed mt-3">Try: <code>!${input.selector} is &lt;value&gt;</code></p>
+      <!-- Teaching it (#170), for a signed-in reader; in chat, for anyone. -->
+      <if=input.signedIn>
+        <form class="factoid-teach space-y-4" method="post" action=input.action>
+          <input type="hidden" name="csrf" value=input.csrf>
+          <label class="byline form-label" for="factoid-text">What “${input.selector}” is</label>
+          <textarea class="form-field form-mono" id="factoid-text" name="text" rows="3" required aria-describedby="factoid-text-hint">${input.text}</textarea>
+          <p class="form-hint" id="factoid-text-hint">What the bot says, as “name is …”. Start with &lt;reply&gt; to have it say only this.</p>
+          <if=input.error><p class="form-error" role="alert">${input.error}</p></if>
+          <button type="submit" class="auth-button">Teach it</button>
+        </form>
+      </if>
+      <else>
+        <p class="text-muted-foreground leading-relaxed"><a class="pagelink-inline" href=`/login?return=${encodeURIComponent(input.action)}`>Sign in</a> to teach it here.</p>
+      </else>
+      <p class="text-muted-foreground leading-relaxed mt-6">It can be taught in chat, too (IRC or other connected adapters): <code>!${input.selector} is &lt;value&gt;</code></p>
     </article>
   </div>
 </section>

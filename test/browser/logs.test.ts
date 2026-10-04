@@ -1,4 +1,4 @@
-import { beforeEach, describe, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { expectAccessible, open, useBrowser } from "../support/browser.ts";
 import { ADMIN, signedIn } from "../support/readers.ts";
 import { resetStubs, stub, stubSite } from "../support/stub.ts";
@@ -51,6 +51,51 @@ describe("the logs, in a browser", () => {
     for (const theme of ["light", "dark"] as const) {
       const { page } = await open(`/logs?${new URLSearchParams({ provenance: JAVA, day: DAY })}`, theme);
       await expectAccessible(page);
+    }
+  });
+});
+
+describe("searching a channel's log, in a browser (#4)", () => {
+  // A long day, so the line found is well below the fold.
+  const long = Array.from({ length: 300 }, (_, i) => {
+    const t = `${String(Math.floor(i / 60)).padStart(2, "0")}:${String(i % 60).padStart(2, "0")}:00`;
+    return { timestamp: `${DAY}T${t}Z`, sender: "ada", content: `line ${i}`, direction: "INBOUND" };
+  });
+
+  it("searches in place, and a line found opens its day there", async () => {
+    await stub("/logs", { provenanceUri: JAVA, day: DAY, entries: long }, { query: { provenance: JAVA, day: DAY } });
+    await stub("/logs/search", {
+      provenanceUri: JAVA, page: 0, size: 50, totalCount: 1, totalPages: 1,
+      hits: [{ timestamp: `${DAY}T04:10:00Z`, day: DAY, sender: "ada", content: "line 250", direction: "INBOUND" }],
+    }, { query: { provenance: JAVA, q: "line 250" } });
+    const { page, errors } = await open(`/logs?${new URLSearchParams({ provenance: JAVA, day: DAY })}`);
+    const documents: string[] = [];
+    page.on("request", (r) => { if (r.resourceType() === "document") documents.push(r.url()); });
+
+    await page.fill("form.log-search input[name=q]", "line 250");
+    await page.press("form.log-search input[name=q]", "Enter");
+    await page.waitForURL(/\/logs\/search\?/);
+    await page.click("li.log-hit a.log-hit-when");
+    await page.waitForURL(/#l-041000$/);
+
+    await expect.poll(() => page.evaluate(() => {
+      const box = document.getElementById("l-041000")!.getBoundingClientRect();
+      return box.top >= 0 && box.bottom <= window.innerHeight;
+    })).toBe(true);
+    expect(documents).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  it("passes axe, light and dark, with results and refused", async () => {
+    await stub("/logs/search", {
+      provenanceUri: JAVA, page: 0, size: 50, totalCount: 1, totalPages: 1,
+      hits: [{ timestamp: `${DAY}T09:00:05Z`, day: DAY, sender: "ada", content: "morning", direction: "INBOUND" }],
+    }, { query: { provenance: JAVA } });
+    for (const theme of ["light", "dark"] as const) {
+      for (const q of ["morning", "mo"]) {
+        const { page } = await open(`/logs/search?${new URLSearchParams({ provenance: JAVA, q })}`, theme);
+        await expectAccessible(page);
+      }
     }
   });
 });

@@ -18,7 +18,7 @@ export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{1
 /** The editor's fields, as posted and as shown again. Dates are UTC, minutes, as the field says. */
 export type EditForm = {
   title: string; slug: string; markdownSource: string; summary: string; tags: string;
-  categoryIds: string[]; publishedAt: string; sortOrder: string; action: string;
+  categoryIds: string[]; publishedAt: string; sortOrder: string; helper: string;
 };
 
 export type EditView = {
@@ -73,7 +73,7 @@ export function formOf(post: ContentDetail, all: { id: string; name: string }[])
     categoryIds: (post.categories || []).map((name) => all.find((c) => c.name === name)?.id).filter((id): id is string => !!id),
     publishedAt: toLocal(post.publishedAt),
     sortOrder: post.sortOrder === undefined || post.sortOrder === null ? "" : String(post.sortOrder),
-    action: "",
+    helper: "",
   };
 }
 

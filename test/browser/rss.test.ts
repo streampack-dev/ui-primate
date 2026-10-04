@@ -26,6 +26,24 @@ describe("the RSS reader, in a browser", () => {
     expect(errors).toEqual([]);
   });
 
+  it("refreshes the list in place, without a new page", async () => {
+    const { page, errors } = await open("/rss");
+    const documents: string[] = [];
+    page.on("request", (r) => { if (r.resourceType() === "document") documents.push(r.url()); });
+    await stub("/rss/items", {
+      items: [{ id: "019f0000-0000-7000-8000-0000000f0002", feedTitle: "Inside Java", feedUrl: "https://inside.java/feed.xml", guid: "g2", link: "about:blank",
+        title: "JDK 27 early access", summary: "", publishedAt: "2026-10-02T02:00:00Z", receivedAt: "2026-10-02T02:05:00Z" }],
+      page: 0, totalPages: 2, totalCount: 22,
+    }, { query: { page: 0, size: 20 } });
+
+    await page.click("a.rss-refresh");
+
+    await page.getByText("JDK 27 early access").waitFor();
+    expect(new URL(page.url()).pathname + new URL(page.url()).search).toBe("/rss");
+    expect(documents).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
   it("is accessible, light and dark", async () => {
     for (const theme of ["light", "dark"] as const) {
       const { page } = await open("/rss", theme);

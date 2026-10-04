@@ -1,37 +1,18 @@
 import route from "primate/route";
-import { cachedGet, send } from "#api/client.ts";
 import type { components } from "#api/schema.d.ts";
 import { current, isAdmin } from "#auth/readers.ts";
-import { asReader, bearer, SignInRequired } from "#auth/signed-in.ts";
 import { formatDate } from "#lib/format.ts";
-import { channelName, lines, shiftDay, today, validDay } from "#lib/logs.ts";
+import { channels as listChannels, readLogs, type Channel } from "#lib/log-channels.ts";
+import { lines, shiftDay, today, validDay } from "#lib/logs.ts";
 import { view } from "#lib/view.ts";
 import { notFound } from "#lib/post-page.ts";
 
-type Channels = components["schemas"]["LogProvenanceListResponse"];
 type Day = components["schemas"]["LogDayResponse"];
 
 /* Channel logs, as ui-nextjs shows them (/logs?provenance=…&day=…), drawn on the server. Some
    channels are public and some only for signed-in readers, so what a reader may see comes from
-   the API as them: signed in, with their token, uncached and private (so no one else is served
-   their channels); signed out, anonymously and cached, as ui-pudl does. IRC channels are listed
-   unless an admin asks for all of them. */
-
-/** [path] from the API, as the signed-in reader when there is one; null for a 404. Throws when it can't be had. */
-async function read<T>(path: string, query: Record<string, string>): Promise<T | null> {
-  if (current()) {
-    try {
-      const answer = await asReader((a) => send("GET", `${path}?${new URLSearchParams(query)}`, undefined, bearer(a)));
-      if (answer.status === 404) return null;
-      if (!answer.ok) throw new Error(`${path}: ${answer.status}`);
-      return await answer.json() as T;
-    } catch (e) {
-      // A reader whose sign-in has lapsed sees what anyone does.
-      if (!(e instanceof SignInRequired)) throw e;
-    }
-  }
-  return cachedGet<T>(path, query);
-}
+   the API as them (#lib/log-channels.ts), and a reader's page is private. IRC channels are listed
+   unless an admin asks for all of them. A channel's day offers a search of it (/logs/search). */
 
 const DAY_LABEL = (day: string) => new Date(`${day}T00:00:00Z`).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
 
@@ -43,16 +24,9 @@ export default route({
     const all = admin && request.query.try("all") !== undefined;
     const privately = current() ? { "Cache-Control": "private, no-store" } : {};
 
-    let channels: { uri: string; name: string; latest: string | null }[];
+    let channels: Channel[];
     try {
-      const listed = await read<Channels>("/logs/provenances", {});
-      channels = (listed?.provenances || [])
-        .filter((c) => c.provenanceUri && (all || c.protocol?.toLowerCase() === "irc"))
-        .map((c) => ({
-          uri: c.provenanceUri!,
-          name: channelName(c.provenanceUri!),
-          latest: c.latestContentPreview ? `${c.latestSender ?? ""}: ${c.latestContentPreview}` : null,
-        }));
+      channels = await listChannels(all);
     } catch {
       return view("LogsUnavailable.marko", { meta: { title: "Logs Unavailable" } }, {
         status: 503, headers: privately,
@@ -68,7 +42,7 @@ export default route({
     let failed = false;
     if (chosen) {
       try {
-        entries = lines((await read<Day>("/logs", { provenance: chosen.uri, day }))?.entries || []);
+        entries = lines((await readLogs<Day>("/logs", { provenance: chosen.uri, day }))?.entries || []);
       } catch {
         failed = true;
       }
@@ -79,7 +53,8 @@ export default route({
       day,
       dayLabel: DAY_LABEL(day),
       channels: channels.map((c) => ({ ...c, href: href(c.uri, day), current: c.uri === chosen?.uri })),
-      chosen: chosen ? { name: chosen.name, href: href(chosen.uri, day) } : null,
+      chosen: chosen ? { uri: chosen.uri, name: chosen.name, href: href(chosen.uri, day) } : null,
+      all,
       lines: entries,
       failed,
       prev: chosen ? href(chosen.uri, shiftDay(day, -1)) : null,

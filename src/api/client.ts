@@ -64,6 +64,14 @@ export async function cachedGet<T>(path: string, query: Record<string, string | 
   return answer;
 }
 
+/**
+ * Has every kept answer from a path starting with [prefix] asked for again on its next use (a
+ * reader's Refresh): conditionally, so an unchanged one costs the API a 304.
+ */
+export function stale(prefix: string) {
+  for (const [url, answer] of kept) if (url.startsWith(`${base}${prefix}`)) answer.checked = 0;
+}
+
 async function ask<T>(url: string, path: string, before: Kept | undefined): Promise<T | null> {
   const headers: Record<string, string> = { "Accept-Version": acceptVersion, Accept: "application/json" };
   if (before?.etag) headers["If-None-Match"] = before.etag;

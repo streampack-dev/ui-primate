@@ -37,6 +37,7 @@ export interface Input {
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <form id="editor" method="post" action=`/edit/${input.id}`>
+        <!-- Helper buttons are named "helper", never "action" (see Submit.marko). -->
         <!-- Enter in a field saves: the first button in a form is the one it presses. -->
         <button class="hp" type="submit" tabindex="-1" aria-hidden="true">Save</button>
         <input type="hidden" name="csrf" value=input.csrf>
@@ -59,7 +60,7 @@ export interface Input {
         <div class="mb-6">
           <div class="form-label-row">
             <label class="byline form-label" for="edit-body">Content (Markdown)</label>
-            <button class="section-label form-helper" type="submit" name="action" value="preview" formnovalidate>Preview</button>
+            <button class="section-label form-helper" type="submit" name="helper" value="preview" formnovalidate>Preview</button>
           </div>
           <textarea class="form-field form-mono" id="edit-body" name="markdownSource" rows="20" required spellcheck="true" data-preview-url=`/edit/${input.id}/preview`
             aria-invalid=(errors.markdownSource ? "true" : false) aria-describedby=(errors.markdownSource ? "edit-body-error" : false)>${form.markdownSource}</textarea>
@@ -69,7 +70,7 @@ export interface Input {
         <div class="mb-6">
           <div class="form-label-row">
             <label class="byline form-label" for="edit-summary">Summary</label>
-            <button class="section-label form-helper" type="submit" name="action" value="derive-summary" formnovalidate>Derive Summary</button>
+            <button class="section-label form-helper" type="submit" name="helper" value="derive-summary" formnovalidate>Derive Summary</button>
           </div>
           <textarea class="form-field" id="edit-summary" name="summary" rows="3">${form.summary}</textarea>
           <div id="helper-summary">
@@ -81,8 +82,8 @@ export interface Input {
           <div class="form-label-row">
             <label class="byline form-label" for="edit-tags">Tags</label>
             <span class="flex gap-3">
-              <button class="section-label form-helper" type="submit" name="action" value="suggest-tags" formnovalidate>Suggest</button>
-              <if=input.ai><button class="section-label form-helper" type="submit" name="action" value="ai-tags" formnovalidate>AI Tags</button></if>
+              <button class="section-label form-helper" type="submit" name="helper" value="suggest-tags" formnovalidate>Suggest</button>
+              <if=input.ai><button class="section-label form-helper" type="submit" name="helper" value="ai-tags" formnovalidate>AI Tags</button></if>
             </span>
           </div>
           <input class="form-field text-sm p-2" id="edit-tags" name="tags" value=form.tags aria-describedby="edit-tags-hint">

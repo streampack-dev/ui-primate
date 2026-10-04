@@ -1,5 +1,6 @@
+import response from "primate/response";
 import route from "primate/route";
-import { cachedGet } from "#api/client.ts";
+import { cachedGet, stale } from "#api/client.ts";
 import type { components } from "#api/schema.d.ts";
 import { view } from "#lib/view.ts";
 
@@ -8,7 +9,9 @@ type Feeds = components["schemas"]["RssFeedSourcesResponse"];
 
 /* The RSS reader, as ui-nextjs has it: the items stored from the site's subscribed feeds, newest
    first, filtered by feed and by title with a plain GET form, twenty to a page. A link out records
-   that it was followed (client/read.ts). */
+   that it was followed (client/read.ts). Refresh (#5) asks the API again past the answers this app
+   keeps for a few minutes, keeping the filters and page; Primate's client draws the answer in place.
+   It can't make streampack poll the feeds sooner: it shows what streampack has gathered. */
 const SIZE = 20;
 
 function href(page: number, feed: string, title: string): string {
@@ -22,12 +25,29 @@ function href(page: number, feed: string, title: string): string {
 const published = (value?: string | null) =>
   value ? new Date(value).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }) : "undated";
 
+/** When the newest item shown arrived, as "newest item 12 minutes ago"; empty without items. */
+function newest(items: { receivedAt?: string }[], now = Date.now()): string {
+  const times = items.map((i) => Date.parse(i.receivedAt || "")).filter(Number.isFinite);
+  if (!times.length) return "";
+  const minutes = Math.max(0, Math.round((now - Math.max(...times)) / 60_000));
+  if (minutes < 1) return "newest item just now";
+  if (minutes < 60) return `newest item ${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 48) return `newest item ${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.round(hours / 24);
+  return `newest item ${days} days ago`;
+}
+
 export default route({
   async get(request) {
     const asked = Number.parseInt(request.query.try("page") || "0", 10);
     const page = Number.isFinite(asked) && asked >= 0 ? asked : 0;
     const feed = (request.query.try("feed") || "").trim();
     const title = (request.query.try("title") || "").trim();
+    if (request.query.try("refresh") !== undefined) {
+      stale("/rss/");
+      return response.redirect(href(page, feed, title), 303);
+    }
 
     const [items, feeds] = await Promise.allSettled([
       cachedGet<Items>("/rss/items", { page, size: SIZE, feed: feed || undefined, title: title || undefined }),
@@ -50,6 +70,8 @@ export default route({
       ],
       count: `${count} item${count === 1 ? "" : "s"}`,
       filtered: !!(feed || title),
+      refresh: `${href(page, feed, title)}${page > 0 || feed || title ? "&" : "?"}refresh`,
+      newest: newest(result.items || []),
       items: (result.items || []).map((i) => ({
         id: i.id || "",
         title: i.title || i.link || "",

@@ -8,6 +8,13 @@ export interface Input {
   lookups: string;
   locked: boolean;
   attributes: { label: string; kind: "text" | "seealso" | "urls"; values: { text: string; href?: string }[] }[];
+  signedIn: boolean;
+  admin: boolean;
+  csrf: string;
+  action: string;
+  error: string;
+  fields: { name: string; label: string; hint: string; long: boolean; value: string; was: string }[];
+  forgetHref: string;
 }
 
 <page-meta meta=input.meta/>
@@ -38,6 +45,44 @@ export interface Input {
             </div>
           </for>
         </dl>
+      </else>
+      <!-- Changing it (#170): a signed-in reader edits or forgets it, an admin locks it. -->
+      <if=input.signedIn>
+        <if=input.error><p class="form-error factoid-error mt-10" role="alert">${input.error}</p></if>
+        <if=input.locked>
+          <p class="factoid-locked-note byline text-muted-foreground mt-10">Locked: it can't be changed or forgotten${input.admin ? " until it's unlocked" : ""}.</p>
+        </if>
+        <else>
+          <details class="factoid-edit mt-10" open=!!input.error>
+            <summary class="section-label form-helper">Edit</summary>
+            <form class="mt-4 space-y-5" method="post" action=input.action>
+              <input type="hidden" name="csrf" value=input.csrf>
+              <for|f| of=input.fields by="name">
+                <div>
+                  <label class="byline form-label" for=`factoid-${f.name}`>${f.label}</label>
+                  <if=f.long><textarea class="form-field form-mono" id=`factoid-${f.name}` name=f.name rows="3" aria-describedby=`factoid-${f.name}-hint`>${f.value}</textarea></if>
+                  <else><input class="form-field text-sm p-2" id=`factoid-${f.name}` name=f.name value=f.value aria-describedby=`factoid-${f.name}-hint`></else>
+                  <input type="hidden" name=`was.${f.name}` value=f.was>
+                  <p class="form-hint" id=`factoid-${f.name}-hint`>${f.hint}</p>
+                </div>
+              </for>
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <button type="submit" class="auth-button">Save</button>
+                <a class="factoid-forget pagelink" href=input.forgetHref data-confirm>Forget…</a>
+              </div>
+            </form>
+          </details>
+        </else>
+        <if=input.admin>
+          <form class="factoid-lock mt-6" method="post" action=input.action>
+            <input type="hidden" name="csrf" value=input.csrf>
+            <input type="hidden" name="do" value=(input.locked ? "unlock" : "lock")>
+            <button type="submit" class="auth-button secondary">${input.locked ? "Unlock" : "Lock"}</button>
+          </form>
+        </if>
+      </if>
+      <else>
+        <p class="factoid-sign-in byline text-muted-foreground mt-10"><a class="pagelink-inline" href=`/login?return=${encodeURIComponent(input.action)}`>Sign in</a> to change this factoid.</p>
       </else>
       <div class="border-t border-border/40 mt-10 pt-6">
         <a class="pagelink inline-flex items-center gap-1.5" href=input.back><span aria-hidden="true">&larr;</span> Back to Knowledge Base</a>

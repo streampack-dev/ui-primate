@@ -6,6 +6,9 @@ export interface Input {
   pages: string;
   prev: string | null;
   next: string | null;
+  signedIn: boolean;
+  csrf: string;
+  teach: { error: string; selector: string; text: string } | null;
 }
 
 <page-meta meta=input.meta/>
@@ -24,6 +27,26 @@ export interface Input {
       <input class="form-field text-sm p-2" id="factoid-q" name="q" type="search" placeholder="Search the knowledge base..." value=input.q>
       <button type="submit" class="auth-button shrink-0">Search</button>
     </form>
+    <!-- Teaching a factoid (#170): its name and text here, the rest on its page. -->
+    <if=input.signedIn>
+      <details class="factoid-teach mb-8" open=!!input.teach>
+        <summary class="section-label form-helper">Teach a factoid</summary>
+        <form class="mt-4 space-y-4" method="post" action="/factoids">
+          <input type="hidden" name="csrf" value=input.csrf>
+          <div>
+            <label class="byline form-label" for="teach-selector">Name</label>
+            <input class="form-field text-sm p-2" id="teach-selector" name="selector" required maxlength="200" value=input.teach?.selector>
+          </div>
+          <div>
+            <label class="byline form-label" for="teach-text">Text</label>
+            <textarea class="form-field form-mono" id="teach-text" name="text" rows="3" required aria-describedby="teach-text-hint">${input.teach?.text ?? ""}</textarea>
+            <p class="form-hint" id="teach-text-hint">What the bot says, as “name is …”. Start with &lt;reply&gt; to have it say only this. Its other attributes can be added on its page.</p>
+          </div>
+          <if=input.teach?.error><p class="form-error" role="alert">${input.teach.error}</p></if>
+          <button type="submit" class="auth-button">Teach it</button>
+        </form>
+      </details>
+    </if>
     <if=(input.factoids.length === 0)>
       <div class="py-12 text-center">
         <p class="section-label form-label-text mb-3">No entries found</p>

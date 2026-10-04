@@ -11,9 +11,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@primate/marko": "^0.12.0",
-    "@primate/postgresql": "^0.10.1",
-    "@primate/tailwind": "^0.9.0",
+    "@primate/marko": "^0.13.0",
+    "@primate/postgresql": "^0.11.0",
+    "@primate/tailwind": "^0.10.0",
     "@resvg/resvg-js": "^2.6.2",
     "@streampack-dev/masthead": "^0.4.0",
     "highlight.js": "^11.12.0",
@@ -22,8 +22,8 @@
     "markdown-it-task-lists": "^2.1.1",
     "marko": "^6.4.0",
     "openapi-fetch": "^0.17.0",
-    "pema": "^0.10.0",
-    "primate": "^0.41.0",
+    "pema": "^0.11.0",
+    "primate": "^0.42.0",
     "sanitize-html": "^2.18.0",
     "satori": "^0.33.5",
     "tailwindcss": "^4.3.3",

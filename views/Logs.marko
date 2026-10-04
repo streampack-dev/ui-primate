@@ -3,7 +3,8 @@ export interface Input {
   day: string;
   dayLabel: string;
   channels: { uri: string; name: string; latest: string | null; href: string; current: boolean }[];
-  chosen: { name: string; href: string } | null;
+  chosen: { uri: string; name: string; href: string } | null;
+  all: boolean;
   lines: { id: string; time: string; iso: string; sender: string | null; segments: { text: string; href?: string }[]; outbound: boolean }[];
   failed: boolean;
   prev: string | null;
@@ -43,6 +44,7 @@ export interface Input {
 
     <div class="min-w-0">
       <if=input.chosen>
+        <log-search-form channel=input.chosen all=input.all/>
         <nav class="log-days flex items-center justify-between border-b border-border/40 pb-3 mb-6" aria-label="Days">
           <a class="log-day-link" rel="prev" href=input.prev>&larr; Previous</a>
           <span class="log-day">${input.chosen.name} · ${input.day}</span>

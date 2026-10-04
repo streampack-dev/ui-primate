@@ -1,0 +1,56 @@
+export interface Input {
+  meta?: import("#lib/meta.ts").Head;
+  channel: { name: string; uri: string; href: string };
+  all: boolean;
+  q: string;
+  from: string;
+  heading: string;
+  notice: string;
+  summary: string;
+  hits: { key: string; href: string; iso: string; when: string; sender: string | null; segments: { text: string; href?: string }[]; outbound: boolean }[];
+  prev: string | null;
+  next: string | null;
+}
+
+<page-meta meta=input.meta/>
+<div class="container max-w-screen-xl mx-auto py-10 px-6">
+  <div class="border-t-2 border-amber pt-6 mb-2 animate-rule-draw"/>
+  <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-2 mb-8">
+    <div>
+      <p class="section-label text-amber mb-2">Community</p>
+      <h1 class="font-display text-3xl md:text-4xl tracking-tight">Chat Logs</h1>
+    </div>
+    <p class="dateline text-muted-foreground">Search</p>
+  </div>
+
+  <div class="max-w-4xl">
+    <log-search-form channel=input.channel all=input.all q=input.q from=input.from/>
+    <div class="flex items-center justify-between gap-4 border-b border-border/40 pb-3 mb-6">
+      <h2 class="log-search-heading log-day">${input.heading}<if=input.summary> · ${input.summary}</if></h2>
+      <a class="log-day-link" href=input.channel.href>Back to ${input.channel.name}</a>
+    </div>
+    <if=input.notice>
+      <div class="log-error border-l-2 border-destructive pl-4 py-2" role="alert">
+        <p class="form-error mt-0">${input.notice}</p>
+      </div>
+    </if>
+    <else if=(input.hits.length === 0)>
+      <p class="py-12 text-center border-t border-border/20 text-muted-foreground font-mono text-sm">No lines in ${input.channel.name} match. Try fewer words, or only a nick.</p>
+    </else>
+    <else>
+      <ol class="log-lines log-hits">
+        <for|hit| of=input.hits by="key">
+          <li class=["log-line", "log-hit", !hit.sender && "log-system", hit.outbound && "log-outbound"]>
+            <a class="log-time log-hit-when" href=hit.href><time datetime=hit.iso>${hit.when}</time></a>
+            <if=hit.sender><span class="log-sender">${hit.sender}</span></if>
+            <span class="log-content"><for|s| of=hit.segments><if=s.href><a href=s.href rel="nofollow ugc noopener">${s.text}</a></if><else>${s.text}</else></for></span>
+          </li>
+        </for>
+      </ol>
+      <div class="pagination mt-8">
+        <div><if=input.prev><a class="pagelink" rel="prev" href=input.prev>&larr; Previous</a></if></div>
+        <div><if=input.next><a class="pagelink" rel="next" href=input.next>Next &rarr;</a></if></div>
+      </div>
+    </else>
+  </div>
+</div>

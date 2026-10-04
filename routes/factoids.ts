@@ -1,44 +1,39 @@
+import response from "primate/response";
 import route from "primate/route";
-import { ApiUnavailable, cachedGet } from "#api/client.ts";
-import type { components } from "#api/schema.d.ts";
-import { knowledgeBase } from "#lib/factoids.ts";
-import { formatDate } from "#lib/format.ts";
-import { view } from "#lib/view.ts";
-import { pageAsked, pager } from "#lib/post-rows.ts";
+import { send } from "#api/client.ts";
+import { refusal } from "#auth/forms.ts";
+import { csrfOk, current } from "#auth/readers.ts";
+import { asReader, bearer, SignInRequired } from "#auth/signed-in.ts";
+import { knowledgeBasePage } from "#lib/factoid-pages.ts";
+import { factoidHref } from "#lib/factoids.ts";
+import { pageAsked } from "#lib/post-rows.ts";
 
-type Factoids = components["schemas"]["FactoidListResponse"];
-
-/* The knowledge base, as ui-nextjs has it: the factoids, searchable, twenty to a page. */
+/* The knowledge base, as ui-nextjs has it: the factoids, searchable, twenty to a page. A signed-in
+   reader teaches a new one here (#170): its name and text, then the rest on its page. */
 export default route({
-  async get(request) {
-    const q = (request.query.try("q") || "").trim();
-    const page = pageAsked(request.query.try("page"));
-    const meta = { title: "Knowledge Base", description: "Browse public factoids and shared reference entries on bytecode.news", path: "/factoids" };
-    let list: Factoids | null;
+  get(request) {
+    return knowledgeBasePage((request.query.try("q") || "").trim(), pageAsked(request.query.try("page")));
+  },
+
+  async post(request) {
+    const form = await request.body.form() as Record<string, string>;
+    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!current()) return response.redirect(`/login?return=${encodeURIComponent("/factoids")}`, 303);
+    const selector = (form.selector || "").trim();
+    const text = (form.text || "").trim();
+    const again = (error: string, status = 400) => knowledgeBasePage("", 0, { error, selector, values: { text: form.text || "" } }, status);
+    if (!selector) return again("A factoid needs a name.");
+    if (!text) return again("A new factoid needs its text.");
+
+    let answer: Response;
     try {
-      list = await cachedGet<Factoids>("/factoids", { q: q || undefined, page, size: 20 });
+      answer = await asReader((a) => send("PUT", `/factoids/${encodeURIComponent(selector)}`, { value: text, attribute: "text" }, bearer(a)));
     } catch (e) {
-      if (!(e instanceof ApiUnavailable)) throw e;
-      return view("FactoidsUnavailable.marko", { title: "Knowledge Base Unavailable", body: "The factoid API is currently unreachable. Please refresh in a moment.", meta },
-        { status: 503 });
+      if (e instanceof SignInRequired) return response.redirect(`/login?return=${encodeURIComponent("/factoids")}`, 303);
+      answer = new Response(null, { status: 503 });
     }
-    const count = Number(list?.totalCount ?? 0);
-    return view("Factoids.marko", {
-      q,
-      count: `${count} entr${count === 1 ? "y" : "ies"}${q ? ` matching “${q}”` : ""}`,
-      factoids: (list?.factoids || []).map((f) => ({
-        selector: f.selector || "",
-        href: knowledgeBase(q, page, `/factoids/${encodeURIComponent(f.selector || "")}`),
-        hits: `${f.accessCount || 0} hits`,
-        text: f.text || "",
-        tags: f.tags || [],
-        by: f.updatedBy || "",
-        updated: f.updatedAt || "",
-        date: formatDate(f.updatedAt),
-        locked: !!f.locked,
-      })),
-      ...pager(page, list?.totalPages ?? 0, (p) => knowledgeBase(q, p)),
-      meta,
-    });
+    if (answer.ok) return response.redirect(factoidHref(selector), 303);
+    if (answer.status >= 500) return again("The factoid couldn't be taught just now. Try again shortly; what you wrote is kept here.", 503);
+    return again(await refusal(answer, "The news service didn't accept that. Try again in a moment."));
   },
 });

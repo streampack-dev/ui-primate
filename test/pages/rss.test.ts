@@ -119,6 +119,32 @@ describe("the RSS reader", () => {
   });
 });
 
+describe("refreshing the RSS reader (#5)", () => {
+  it("offers a Refresh that keeps the filters and page, and says how new the newest item is", async () => {
+    await stub("/rss/items", items([item({ receivedAt: new Date(Date.now() - 12 * 60_000).toISOString() })], 1, 3, 41), { query: { page: 1, size: 20, feed: "https://inside.java/feed.xml" } });
+    const { doc } = await page(`/rss?page=1&feed=${encodeURIComponent("https://inside.java/feed.xml")}`);
+
+    expect(doc.querySelector("a.rss-refresh")!.getAttribute("href"))
+      .toBe(`/rss?page=1&feed=${encodeURIComponent("https://inside.java/feed.xml")}&refresh`);
+    expect(text(doc.querySelector(".rss-newest"))).toBe("newest item 12 minutes ago");
+  });
+
+  it("asks the API again and goes back to the list as it was asked for", async () => {
+    const response = await fetch(`${inject("appUrl")}/rss?title=jdk&refresh`, { redirect: "manual" });
+
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("/rss?title=jdk");
+  });
+
+  it("says nothing of the newest item when nothing is listed", async () => {
+    await stub("/rss/items", items([]), { query: { page: 0, size: 20 } });
+    const { doc } = await page("/rss");
+
+    expect(doc.querySelector(".rss-newest")).toBeNull();
+    expect(doc.querySelector("a.rss-refresh")!.getAttribute("href")).toBe("/rss?refresh");
+  });
+});
+
 describe("opening an RSS item", () => {
   it("is recorded with the API", async () => {
     await stub(`/rss/items/${ITEM}/access`, {}, { method: "POST", status: 202 });

@@ -28,6 +28,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/factoids/{selector}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get"];
+        /**
+         * Set a factoid's attribute, creating the factoid if it's new
+         * @description Sets one attribute (the text, unless another is named) as chat's `selector=value` does, as the signed-in user. A locked factoid is refused.
+         */
+        put: operations["set"];
+        post?: never;
+        /**
+         * Forget a factoid, or one of its attributes
+         * @description As chat's `forget selector` (or `forget selector.attribute`), as the signed-in user. A locked factoid is refused.
+         */
+        delete: operations["forget"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factoids/{selector}/lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Lock a factoid against changes (admins) */
+        put: operations["lock"];
+        post?: never;
+        /** Unlock a factoid (admins) */
+        delete: operations["unlock"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/comments/{id}": {
         parameters: {
             query?: never;
@@ -654,6 +696,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/logs/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search one channel's logs
+         * @description Lines in one channel whose text contains `q`, ignoring case, and written by `sender` (a nick, ignoring case), newest first. Give `q`, `sender`, or both: `sender` alone lists everything that person said there. Only a channel the caller may browse is searched; any other is a 404, as for the day logs, so a search can't reveal that a hidden channel exists. `q` is matched as written, between 3 and 200 characters.
+         */
+        get: operations["search"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/logs/provenances": {
         parameters: {
             query?: never;
@@ -743,22 +805,6 @@ export interface paths {
             cookie?: never;
         };
         get: operations["list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/factoids/{selector}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1058,6 +1104,35 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        FactoidSetHttpRequest: {
+            /**
+             * @description The attribute's new value
+             * @example a string-searching algorithm
+             */
+            value?: string;
+            /**
+             * @description The attribute to set: text (the default), urls, tags, languages, type, seealso, see or maven
+             * @example text
+             */
+            attribute?: string | null;
+        };
+        FactoidAttributeResponse: {
+            type?: string;
+            value?: string | null;
+            rendered?: string;
+        };
+        FactoidDetailResponse: {
+            selector?: string;
+            locked?: boolean;
+            updatedBy?: string | null;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: date-time */
+            lastAccessedAt?: string | null;
+            /** Format: int64 */
+            accessCount?: number;
+            attributes?: components["schemas"]["FactoidAttributeResponse"][];
+        };
         EditCommentHttpRequest: {
             markdownSource?: string;
         };
@@ -1326,6 +1401,29 @@ export interface components {
             /** @enum {string} */
             direction?: "INBOUND" | "OUTBOUND";
         };
+        LogSearchHit: {
+            /** Format: date-time */
+            timestamp?: string;
+            day?: string;
+            sender?: string;
+            content?: string;
+            /** @enum {string} */
+            direction?: "INBOUND" | "OUTBOUND";
+        };
+        LogSearchResponse: {
+            provenanceUri?: string;
+            query?: string | null;
+            sender?: string | null;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+            /** Format: int64 */
+            totalCount?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            hits?: components["schemas"]["LogSearchHit"][];
+        };
         LogProvenanceListResponse: {
             provenances?: components["schemas"]["LogProvenanceSummary"][];
         };
@@ -1403,23 +1501,6 @@ export interface components {
             accessCount?: number;
             text?: string | null;
             tags?: string[];
-        };
-        FactoidAttributeResponse: {
-            type?: string;
-            value?: string | null;
-            rendered?: string;
-        };
-        FactoidDetailResponse: {
-            selector?: string;
-            locked?: boolean;
-            updatedBy?: string | null;
-            /** Format: date-time */
-            updatedAt?: string;
-            /** Format: date-time */
-            lastAccessedAt?: string | null;
-            /** Format: int64 */
-            accessCount?: number;
-            attributes?: components["schemas"]["FactoidAttributeResponse"][];
         };
         CategorySummary: {
             /** Format: uuid */
@@ -1521,6 +1602,266 @@ export interface operations {
                 };
             };
             /** @description Post not found or deleted */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                selector: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactoidDetailResponse"];
+                };
+            };
+        };
+    };
+    set: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                selector: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FactoidSetHttpRequest"];
+            };
+        };
+        responses: {
+            /** @description Updated; the factoid as it now stands */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactoidDetailResponse"];
+                };
+            };
+            /** @description Created; the new factoid */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactoidDetailResponse"];
+                };
+            };
+            /** @description No value, or an attribute that can't be set */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Factoid changes aren't enabled for the web */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The factoid is locked */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    forget: {
+        parameters: {
+            query?: {
+                attribute?: string;
+            };
+            header?: never;
+            path: {
+                selector: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Forgotten */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description An attribute that can't be forgotten */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Factoid changes aren't enabled for the web */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such factoid, or no such attribute on it */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The factoid is locked */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    lock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                selector: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Locked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such factoid */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    unlock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                selector: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Unlocked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not an admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such factoid */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -2841,6 +3182,59 @@ export interface operations {
             };
         };
     };
+    search: {
+        parameters: {
+            query: {
+                provenance: string;
+                q?: string;
+                sender?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of matching lines */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogSearchResponse"];
+                };
+            };
+            /** @description Neither a query nor a sender, a short or long query, or a bad page or size */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Provenance not found or not authorized */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Too many searches; try again shortly */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     listProvenances: {
         parameters: {
             query?: never;
@@ -2963,28 +3357,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FactoidListResponse"];
-                };
-            };
-        };
-    };
-    get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                selector: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FactoidDetailResponse"];
                 };
             };
         };
