@@ -4,7 +4,7 @@ import type { components } from "#api/schema.d.ts";
 import { refusal } from "#auth/forms.ts";
 import { current, isAdmin } from "#auth/readers.ts";
 import { askLogs, channels as listChannels, type Channel } from "#lib/log-channels.ts";
-import { segments } from "#lib/logs.ts";
+import { segments, speaker } from "#lib/logs.ts";
 import { notFound } from "#lib/post-page.ts";
 import { view } from "#lib/view.ts";
 
@@ -78,7 +78,7 @@ export default route({
         href: `/logs?${new URLSearchParams({ ...own, day })}#${anchor}`,
         iso: h.timestamp!,
         when: `${DAY(day)}, ${at.toISOString().slice(11, 16)}`,
-        sender: h.sender && h.sender !== "unknown" ? h.sender : null,
+        sender: speaker(h.sender, h.content),
         segments: segments(h.content || ""),
         outbound: h.direction === "OUTBOUND",
       };
