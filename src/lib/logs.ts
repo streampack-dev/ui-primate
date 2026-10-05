@@ -38,6 +38,16 @@ export function segments(content: string): Segment[] {
   return out;
 }
 
+/**
+ * Who a line is from, as it's shown: null for a line from no one (the API's "unknown", which joins
+ * and parts have been logged as), and for an action or a channel event, whose text names them
+ * already (`* ada waves`, `* ada joined #java`), so the name isn't shown twice.
+ */
+export function speaker(sender: string | null | undefined, content: string | null | undefined): string | null {
+  if (!sender || sender === "unknown") return null;
+  return (content || "").startsWith(`* ${sender} `) ? null : sender;
+}
+
 export type LogLine = { id: string; time: string; iso: string; sender: string | null; segments: Segment[]; outbound: boolean };
 
 /** A day's lines, each anchored by its UTC time (`l-030405`); lines in the same second take -2, -3 and so on. */
@@ -53,7 +63,7 @@ export function lines(entries: { timestamp?: string; sender?: string; content?: 
       id: n === 1 ? base : `${base}-${n}`,
       time,
       iso: e.timestamp || "",
-      sender: e.sender && e.sender !== "unknown" ? e.sender : null,
+      sender: speaker(e.sender, e.content),
       segments: segments(e.content || ""),
       outbound: e.direction === "OUTBOUND",
     };

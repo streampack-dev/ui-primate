@@ -42,6 +42,15 @@ describe("the logs", () => {
     expect(text(links[0])).toContain("ada: morning");
   });
 
+  it("give a channel's latest event as its own text", async () => {
+    await stub("/logs/provenances", { provenances: [channel(JAVA, { latestSender: "unknown", latestContentPreview: "* pebble joined #java" })] });
+    await stubDay(JAVA, DAY, []);
+    const { doc } = await new Visitor().get(`/logs?day=${DAY}`);
+
+    expect(text(doc.querySelector("nav.log-channels a"))).toContain("* pebble joined #java");
+    expect(text(doc.querySelector("nav.log-channels a"))).not.toContain("unknown");
+  });
+
   it("show the first channel's day when none is chosen, and today when no day is", async () => {
     await stubDay(JAVA, TODAY, [entry(`${TODAY}T00:00:01Z`, "ada", "first light")]);
     const { doc } = await new Visitor().get("/logs");
@@ -84,6 +93,32 @@ describe("the logs", () => {
 
     expect(line.classList.contains("log-system")).toBe(true);
     expect(line.querySelector(".log-sender")).toBeNull();
+  });
+
+  it("show an action or an event as its own text, without the name it already gives", async () => {
+    await stubDay(JAVA, DAY, [
+      entry("2026-09-30T10:00:00Z", "ada", "* ada waves"),
+      entry("2026-09-30T10:00:01Z", "pebble", "* pebble joined #java"),
+      entry("2026-09-30T10:00:02Z", "ada", "* not an action of ada's"),
+    ]);
+    const { doc } = await new Visitor().get(logsHref(JAVA, DAY));
+    const lines = doc.querySelectorAll(".log-line");
+
+    expect(lines[0].querySelector(".log-sender")).toBeNull();
+    expect(lines[0].classList.contains("log-system")).toBe(true);
+    expect(text(lines[0])).toContain("* ada waves");
+    expect(lines[1].querySelector(".log-sender")).toBeNull();
+    expect(text(lines[1])).toContain("* pebble joined #java");
+    // Only a line naming its own sender: anyone may start a message with "* ".
+    expect(text(lines[2].querySelector(".log-sender"))).toBe("ada");
+  });
+
+  it("list the channels alphabetically, whatever order the API gives", async () => {
+    await stub("/logs/provenances", { provenances: [channel("irc://libera/%23zulu"), channel(JAVA), channel("irc://libera/%23Android")] });
+    await stubDay("irc://libera/%23Android", DAY, []);
+    const { doc } = await new Visitor().get(`/logs?day=${DAY}`);
+
+    expect(doc.querySelectorAll("nav.log-channels .log-channel-name").map((n) => text(n))).toEqual(["#Android", "#java", "#zulu"]);
   });
 
   it("go back a day, and forward a day but not past today", async () => {
@@ -161,7 +196,7 @@ describe("the logs for a signed-in reader", () => {
     expect(plain.querySelector("a.log-all")?.getAttribute("href")).toBe(`/logs?day=${DAY}&all=1`);
 
     const all = (await admin.get(`/logs?day=${DAY}&all=1`)).doc;
-    expect(all.querySelectorAll("nav.log-channels .log-channel-name").map((n) => n.textContent)).toEqual(["#java", "general", "#kotlin"]);
+    expect(all.querySelectorAll("nav.log-channels .log-channel-name").map((n) => n.textContent)).toEqual(["#java", "#kotlin", "general"]);
     expect(all.querySelector("nav.log-channels a")?.getAttribute("href")).toContain("all=1");
   });
 

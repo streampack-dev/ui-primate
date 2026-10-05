@@ -5,7 +5,7 @@ import { cachedGet, send } from "#api/client.ts";
 import type { components } from "#api/schema.d.ts";
 import { current } from "#auth/readers.ts";
 import { asReader, bearer, SignInRequired } from "#auth/signed-in.ts";
-import { channelName } from "#lib/logs.ts";
+import { channelName, speaker } from "#lib/logs.ts";
 
 type Channels = components["schemas"]["LogProvenanceListResponse"];
 
@@ -27,16 +27,21 @@ export async function readLogs<T>(path: string, query: Record<string, string>): 
   return cachedGet<T>(path, query);
 }
 
-/** The reader's channels: IRC's, or every protocol's when [all] (an admin's choice). Throws when they can't be had. */
+/** The reader's channels, by name: IRC's, or every protocol's when [all] (an admin's choice). Throws when they can't be had. */
 export async function channels(all: boolean): Promise<Channel[]> {
   const listed = await readLogs<Channels>("/logs/provenances", {});
   return (listed?.provenances || [])
     .filter((c) => c.provenanceUri && (all || c.protocol?.toLowerCase() === "irc"))
-    .map((c) => ({
-      uri: c.provenanceUri!,
-      name: channelName(c.provenanceUri!),
-      latest: c.latestContentPreview ? `${c.latestSender ?? ""}: ${c.latestContentPreview}` : null,
-    }));
+    .map((c) => {
+      const who = speaker(c.latestSender, c.latestContentPreview);
+      return {
+        uri: c.provenanceUri!,
+        name: channelName(c.provenanceUri!),
+        latest: c.latestContentPreview ? (who ? `${who}: ${c.latestContentPreview}` : c.latestContentPreview) : null,
+      };
+    })
+    // Alphabetically, as a reader looks a channel up by name.
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
 }
 
 /**
