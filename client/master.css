@@ -484,6 +484,17 @@
   @apply mb-0;
 }
 
+/* Footnotes: each note's return arrow follows its last paragraph, on the same line, rather than
+   sitting under it on a line of its own (as ui-pudl has them). */
+.post-body .footnotes li > p:last-of-type {
+  display: inline;
+}
+
+.post-body a.footnote-backref {
+  margin-inline-start: 0.3em;
+  text-decoration: none;
+}
+
 .post-body .adm-hidden {
   display: none !important;
 }
