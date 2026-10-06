@@ -484,8 +484,39 @@
   @apply mb-0;
 }
 
-/* Footnotes: each note's return arrow follows its last paragraph, on the same line, rather than
-   sitting under it on a line of its own (as ui-pudl has them). */
+/* Footnotes: set apart from the text, as notes: smaller, muted, in the plain sans face, under a
+   hairline; each note's return arrow follows its last paragraph (as ui-pudl has them). */
+.post-body sup {
+  line-height: 0;
+}
+
+.post-body a.footnote-ref {
+  padding: 0 0.1em;
+  text-decoration: none;
+}
+
+.post-body .footnotes {
+  margin-top: 2.5rem;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.post-body .footnotes hr {
+  margin: 0 0 1rem;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+.post-body .footnotes li + li {
+  margin-top: 0.5rem;
+}
+
+.post-body .footnotes p {
+  margin: 0;
+}
+
 .post-body .footnotes li > p:last-of-type {
   display: inline;
 }
