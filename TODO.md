@@ -46,9 +46,9 @@ Smaller things noticed along the way:
 
 - [x] Google Analytics, as ui-nextjs and ui-pudl have it (deploy#3): GA_MEASUREMENT_ID, read at run
       time
-- [ ] Node 24 and 26 crash the server under load (primate-bugs/09); the image stays on Node 22. Locally
-      (Node 26), `just dev` and `just run` can fall over when a browser abandons a request. Retry
-      newer Node when it's fixed.
+- [x] Node 24 and 26 crashed the server under load (primate-bugs/09). Fixed by primate 0.42: 0.42.1
+      held on Node 24 and 26 through ten rounds where 0.41.0 died in the first; the image is on
+      Node 26, as development is, and the toHex shim for primate-bugs/10 is gone (2026-10-07)
 - [x] No compression: Primate sends pages as they are (22 KB for the front page). The proxy in front
       gzips them (deploy/bytecode.news.conf, 2026-10-02)
 - [x] Browser caching: bundles kept for good (their names carry their hash), icons a day
