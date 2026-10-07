@@ -1,14 +1,15 @@
 /* A search of one channel's logs (#4): text, who said it, or both. On a day's log and on the
    results, which it keeps in its fields. */
 export interface Input {
-  channel: { name: string; uri: string };
+  /** [path], the channel's readable address where it has one: the form searches there, else /logs/search with the channel's provenance. */
+  channel: { name: string; uri: string; path?: string | null };
   all?: boolean;
   q?: string;
   from?: string;
 }
 
-<form class="log-search grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end mb-6" action="/logs/search" method="get" role="search" aria-label=`Search ${input.channel.name}`>
-  <input type="hidden" name="provenance" value=input.channel.uri>
+<form class="log-search grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end mb-6" action=(input.channel.path ? `/logs/${input.channel.path}/search` : "/logs/search") method="get" role="search" aria-label=`Search ${input.channel.name}`>
+  <if=!input.channel.path><input type="hidden" name="provenance" value=input.channel.uri></if>
   <if=input.all><input type="hidden" name="all" value="1"></if>
   <label class="section-label form-label-text">
     Text

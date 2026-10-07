@@ -1,6 +1,6 @@
 export interface Input {
   meta?: import("#lib/meta.ts").Head;
-  channel: { name: string; uri: string; href: string };
+  channel: { name: string; uri: string; href: string; path?: string | null };
   all: boolean;
   q: string;
   from: string;

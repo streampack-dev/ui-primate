@@ -346,6 +346,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/posts/derive-factoids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Find the factoids an unsaved draft mentions
+         * @description Returns the factoids the draft's prose mentions (whole words, ignoring case; code and links skipped), each with its definition and whether the draft already links it, and the [[…]] links naming factoids that don't exist. Nothing is stored; no AI. Requires authentication.
+         */
+        post: operations["deriveFactoids"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/mcp": {
         parameters: {
             query?: never;
@@ -356,6 +376,26 @@ export interface paths {
         get: operations["info"];
         put?: never;
         post: operations["handle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factoids/derive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Draft a factoid for a name, for its author to edit and save
+         * @description Writes a draft (text, URLs, tags, see-also) in the knowledge base's style, with the line the bot would say and whether it fits. URLs are checked to answer, tags limited to those in use (one new at most), see-also to existing factoids. Nothing is stored: save with PUT /factoids/{selector}. Needs AI; signed-in readers only.
+         */
+        post: operations["deriveFactoid"];
         delete?: never;
         options?: never;
         head?: never;
@@ -461,6 +501,26 @@ export interface paths {
         put?: never;
         /** Derive AI tag suggestions from unsaved editor content */
         post: operations["deriveTags"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/console": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run a console command
+         * @description Submits one line, as typed at the stdin console (`aho-corasick`, `foo is bar`, `calc 2+2`), and returns at once with its correlation id: 202 means it was accepted, not that it succeeded. Its output arrives on GET /admin/console/stream as `result` events carrying that id, possibly before this answer does; a command may produce none, one or several. Open the stream first; output with no stream open is dropped. Requires an active admin, a JSON body, and the header `X-Web-Console: 1`; a request authenticated by the access-token cookie must also come from a trusted Origin (or Referer). Not retried automatically: a lost answer doesn't mean the command didn't run.
+         */
+        post: operations["command"];
         delete?: never;
         options?: never;
         head?: never;
@@ -964,6 +1024,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/factoids/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Where the factoid graph could be better
+         * @description Advisory, never edits (#133): factoids naming a parent that lists them without linking back; other factoids a factoid names without linking; see-also to factoids that don't exist; factoids whose one-line answer leaves parts out, or is cut off even so.
+         */
+        get: operations["factoidGraphReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/console/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The console's output, as server-sent events
+         * @description A stream of this admin's console output, shared by all their windows. Events: `ready` (once, when the stream is registered: wait for it before submitting), `result` (data: {correlationId, status, text}; status is success, error or unhandled, and text is absent when unhandled; correlationId is null for output nobody asked for here, such as a notification or a tell from elsewhere), and heartbeat comments. Several results may share a correlation id, and none marks a command finished. The stream closes when the credential expires, the account is no longer an admin, the client falls too far behind, or after an hour; reconnect for a fresh stream. Nothing missed while disconnected is replayed. Authenticates by the access-token cookie (as a browser's EventSource sends it) or a bearer token. Single backend instance only. Behind nginx, turn off buffering for this path (the response says `X-Accel-Buffering: no`) and allow a long read timeout.
+         */
+        get: operations["stream"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/account": {
         parameters: {
             query?: never;
@@ -1044,6 +1144,26 @@ export interface paths {
         post?: never;
         /** Soft-delete a category */
         delete: operations["deleteCategory"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/logs/channels/{protocol}/{service}/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Find a channel by its readable address
+         * @description The channel `/logs/{protocol}/{service}/{name}` names, among those the caller may browse: `irc/libera/primate`. An IRC name is matched as written, then with `#`, then with `##`; other protocols' channels by their names, or their ids. Its `provenanceUri` is what the day view and search take. Any other name is a 404, as a hidden channel is, so an address can't reveal one.
+         */
+        get: operations["channel"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1238,6 +1358,25 @@ export interface components {
             /** @enum {string} */
             source?: "ai" | "heuristic";
         };
+        DeriveFactoidsHttpRequest: {
+            markdownSource?: string | null;
+        };
+        DeriveFactoidsResponse: {
+            mentions?: components["schemas"]["FactoidMention"][];
+            missing?: components["schemas"]["MissingFactoid"][];
+        };
+        FactoidMention: {
+            selector?: string;
+            term?: string;
+            /** Format: int32 */
+            occurrences?: number;
+            definition?: string;
+            linked?: boolean;
+        };
+        MissingFactoid: {
+            selector?: string;
+            term?: string;
+        };
         JsonRpcRequest: {
             jsonrpc?: string | null;
             id?: null;
@@ -1245,6 +1384,22 @@ export interface components {
             params?: {
                 [key: string]: unknown;
             } | null;
+        };
+        DeriveFactoidHttpRequest: {
+            selector?: string | null;
+            context?: string | null;
+        };
+        FactoidDraft: {
+            selector?: string;
+            text?: string;
+            urls?: string[];
+            tags?: string[];
+            seeAlso?: string[];
+            line?: string;
+            /** Format: int32 */
+            lineLength?: number;
+            fits?: boolean;
+            droppedUrls?: string[];
         };
         LoginResponse: {
             token?: string;
@@ -1272,6 +1427,13 @@ export interface components {
         };
         DeriveTagsResponse: {
             tags?: string[];
+        };
+        /** @description One command line, as at the console: no prefix, no newlines. */
+        WebConsoleCommand: {
+            line?: string | null;
+        };
+        WebConsoleAccepted: {
+            correlationId?: string;
         };
         CreateCategoryRequest: {
             name?: string;
@@ -1436,6 +1598,7 @@ export interface components {
             latestTimestamp?: string | null;
             latestSender?: string | null;
             latestContentPreview?: string | null;
+            path?: string | null;
         };
         KarmaLeaderboardEntryResponse: {
             subject?: string;
@@ -1509,6 +1672,38 @@ export interface components {
             slug?: string;
             parentName?: string | null;
         };
+        FactoidGraphReport: {
+            parentsNotLinked?: components["schemas"]["UnlinkedMentions"][];
+            mentionsNotLinked?: components["schemas"]["UnlinkedMentions"][];
+            seeAlsoToNothing?: components["schemas"]["SeeAlsoToNothing"][];
+            linesThatDontFit?: components["schemas"]["LineThatDoesntFit"][];
+        };
+        LineThatDoesntFit: {
+            selector?: string;
+            /** Format: int32 */
+            length?: number;
+            /** Format: int32 */
+            saidLength?: number;
+            dropped?: string[];
+            cutOff?: boolean;
+        };
+        SeeAlsoToNothing: {
+            selector?: string;
+            missing?: string[];
+        };
+        UnlinkedMentions: {
+            selector?: string;
+            mentions?: string[];
+        };
+        /** @description The data of a `result` event on GET /admin/console/stream. */
+        WebConsoleResult: {
+            /** @description The command it answers; null for output nobody asked for here. */
+            correlationId?: string | null;
+            /** @enum {string} */
+            status?: "success" | "error" | "unhandled";
+            /** @description Plain text, which may span lines; absent when unhandled. */
+            text?: string | null;
+        };
         DeleteAccountRequest: {
             username?: string | null;
         };
@@ -1516,6 +1711,10 @@ export interface components {
             /** Format: uuid */
             id?: string;
             message?: string;
+        };
+        LogChannelResponse: {
+            path: string;
+            provenanceUri: string;
         };
     };
     responses: never;
@@ -2558,6 +2757,48 @@ export interface operations {
             };
         };
     };
+    deriveFactoids: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeriveFactoidsHttpRequest"];
+            };
+        };
+        responses: {
+            /** @description Factoids mentioned, and links to factoids that don't exist */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeriveFactoidsResponse"];
+                };
+            };
+            /** @description Invalid input */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     info: {
         parameters: {
             query?: never;
@@ -2598,6 +2839,66 @@ export interface operations {
                 };
                 content: {
                     "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    deriveFactoid: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeriveFactoidHttpRequest"];
+            };
+        };
+        responses: {
+            /** @description The draft */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactoidDraft"];
+                };
+            };
+            /** @description No name, or one too long */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description A factoid by that name exists */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description AI isn't configured, or the draft couldn't be written */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
@@ -2798,6 +3099,86 @@ export interface operations {
             };
             /** @description Admin access required */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    command: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Web-Console": "1";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["WebConsoleCommand"];
+            };
+        };
+        responses: {
+            /** @description Accepted for processing */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebConsoleAccepted"];
+                };
+            };
+            /** @description No line, or one with newlines or too long */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not an active admin, or the request's source isn't trusted */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The body is too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The body isn't JSON */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            /** @description Too many commands; try again shortly */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3594,6 +3975,91 @@ export interface operations {
             };
         };
     };
+    factoidGraphReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The report */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactoidGraphReport"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    stream: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The stream (text/event-stream); `result` events carry WebConsoleResult */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["WebConsoleResult"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not an active admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Too many streams open, or opened too often */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     deleteAccount: {
         parameters: {
             query?: never;
@@ -3752,6 +4218,39 @@ export interface operations {
                 };
             };
             /** @description Category not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    channel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                protocol: string;
+                service: string;
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The channel */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogChannelResponse"];
+                };
+            };
+            /** @description No such channel, or not one the caller may browse */
             404: {
                 headers: {
                     [name: string]: unknown;

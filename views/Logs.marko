@@ -3,7 +3,7 @@ export interface Input {
   day: string;
   dayLabel: string;
   channels: { uri: string; name: string; latest: string | null; href: string; current: boolean }[];
-  chosen: { uri: string; name: string; href: string } | null;
+  chosen: { uri: string; name: string; href: string; path?: string | null } | null;
   all: boolean;
   lines: { id: string; time: string; iso: string; sender: string | null; segments: { text: string; href?: string }[]; outbound: boolean }[];
   failed: boolean;
