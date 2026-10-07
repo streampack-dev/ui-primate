@@ -30,6 +30,10 @@ Since (2026-10-03):
 - [x] Logs: channels listed alphabetically; an action or a channel event (`* ada waves`,
       `* pebble joined #java`) shown as its own text, without its sender in front, ready for
       streampack#124 attributing events to the nick
+- [x] Logs at readable addresses (#16, streampack#147): /logs/irc/libera/java, its days
+      (/logs/irc/libera/java/2026-10-06) and its search (/logs/irc/libera/java/search?q=), for the
+      Libera logging notice; the query forms answer 301 there, and another spelling of a channel
+      (%23java) is sent to the API's address for it (2026-10-07)
 - [x] Factoids: signed-in readers teach, edit and forget them, admins lock and unlock them, as
       ui-pudl has it (ui-pudl #170). Only what changed is sent; an emptied field forgets that
       attribute. `see` and `maven` aren't offered: the API sets them but its detail doesn't show them
