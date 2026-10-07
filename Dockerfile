@@ -1,9 +1,10 @@
-# Node 22, deliberately: on Node 24 and 26 the server dies under load, an internal assertion in Node's
-# web streams (writableStreamDefaultControllerGetChunkSize) when clients hang up mid-response
-# (primate-bugs/09). Checked 2026-10-01 with three rounds of load against each; 22 held, 24 and 26 didn't.
+# Node 24, the current LTS. Primate 0.41 died under load on Node 24 and 26 (an internal assertion in
+# Node's web streams when clients hang up mid-response, primate-bugs/09), which kept the image on 22.
+# Retested 2026-10-07: primate 0.42.1 on Node 24.21.0 and 26.10.0 held through ten rounds of the same
+# load (autocannon -c 20 -d 5), where 0.41.0 on Node 24 died in the first.
 
 # Build: Primate compiles the routes, Marko views and client assets (fingerprinted) into build/.
-FROM node:22-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json .npmrc ./
 RUN npm ci
@@ -14,7 +15,7 @@ RUN npx primate build && test -f build/server.js || { echo "The build failed: no
 
 # Run: the build and the production dependencies, no sources, as an unprivileged user. Everything
 # that varies (BCN_API_BASE, BCN_ACCEPT_VERSION, PORT) is read at run time.
-FROM node:22-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 ARG UI_COMMIT=unknown
 ARG UI_BRANCH=unknown
