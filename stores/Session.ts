@@ -1,4 +1,3 @@
-import "#lib/node-compat.ts";
 import postgresql from "@primate/postgresql";
 import memorydb from "primate/memorydb";
 import { sessionDatabase, sessionStore } from "#auth/sessions.ts";

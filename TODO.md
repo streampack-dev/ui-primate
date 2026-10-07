@@ -48,7 +48,7 @@ Smaller things noticed along the way:
       time
 - [x] Node 24 and 26 crashed the server under load (primate-bugs/09). Fixed by primate 0.42: 0.42.1
       held on Node 24 and 26 through ten rounds where 0.41.0 died in the first; the image is on
-      Node 24 (2026-10-07)
+      Node 26, as development is, and the toHex shim for primate-bugs/10 is gone (2026-10-07)
 - [x] No compression: Primate sends pages as they are (22 KB for the front page). The proxy in front
       gzips them (deploy/bytecode.news.conf, 2026-10-02)
 - [x] Browser caching: bundles kept for good (their names carry their hash), icons a day
