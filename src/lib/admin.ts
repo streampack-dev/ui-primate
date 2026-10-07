@@ -11,14 +11,31 @@ export const SECTIONS = [
   { href: "/admin/pending", label: "Pending" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/categories", label: "Categories" },
+  { href: "/admin/moderation", label: "Moderation" },
 ];
+
+/** How many moderation reports are open, for the nav; null when it can't be said. */
+async function openReports(): Promise<number | null> {
+  try {
+    const { getAsReader } = await import("#auth/signed-in.ts");
+    const list = await getAsReader<{ openCount?: number }>("/admin/moderation/reports", { status: "open", page: 0, size: 1 });
+    return typeof list?.openCount === "number" ? list.openCount : null;
+  } catch {
+    return null;
+  }
+}
 
 /** Whether the reader is an admin. */
 export const admin = () => isAdmin(current());
 
-/** [name] with [props], in the admin shell, [here] marked in its nav. Never kept by a cache. */
-export function adminPage(name: string, props: Record<string, unknown>, title: string, here: string, status = 200) {
-  return view(name, { ...props, csrf: csrf(), sections: SECTIONS.map((s) => ({ ...s, current: s.href === here })), meta: { title, robots: "noindex, nofollow" } }, {
+/**
+ * [name] with [props], in the admin shell, [here] marked in its nav, with the open moderation
+ * reports counted there ([open] when the page knows it already). Never kept by a cache.
+ */
+export async function adminPage(name: string, props: Record<string, unknown>, title: string, here: string, status = 200, open?: number | null) {
+  const count = open === undefined ? await openReports() : open;
+  const sections = SECTIONS.map((s) => ({ ...s, current: s.href === here, count: s.href === "/admin/moderation" && count ? count : null }));
+  return view(name, { ...props, csrf: csrf(), sections, meta: { title, robots: "noindex, nofollow" } }, {
     status,
     headers: { "Cache-Control": "private, no-store" },
   });
@@ -36,10 +53,11 @@ export function doneSaying(done: string | undefined, who: string | undefined, wo
 }
 
 /**
- * Runs an admin action [call] as the reader: on success, to [then]; refused, [refused] draws the
+ * Runs an admin action [call] as the reader: on success, to [then] (or where it says, given the
+ * answer); refused, [refused] draws the
  * page again with the API's reason (a 400, or 503 when the API is down).
  */
-export async function act(call: (access: string) => Promise<Response>, then: string, refused: (reason: string, status: number) => unknown, fallback: string) {
+export async function act(call: (access: string) => Promise<Response>, then: string | ((answer: Response) => Promise<string>), refused: (reason: string, status: number) => unknown, fallback: string) {
   const { asReader, SignInRequired } = await import("#auth/signed-in.ts");
   const { refusal } = await import("#auth/forms.ts");
   let answer: Response;
@@ -49,7 +67,7 @@ export async function act(call: (access: string) => Promise<Response>, then: str
     if (e instanceof SignInRequired) return response.redirect("/login?return=%2Fadmin", 303);
     return refused(`${fallback} The site couldn't be reached; try again shortly.`, 503);
   }
-  if (answer.ok) return response.redirect(then, 303);
+  if (answer.ok) return response.redirect(typeof then === "string" ? then : await then(answer), 303);
   return refused(await refusal(answer, fallback), answer.status >= 500 ? 503 : 400);
 }
 

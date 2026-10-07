@@ -507,6 +507,126 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/moderation/reports/{id}/unhide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Unhide lines of a report
+         * @description Puts hidden lines of the report's excerpt back. The report's status stays.
+         */
+        post: operations["unhideModerationReportLines"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/moderation/reports/{id}/purge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Purge lines of a report
+         * @description Deletes lines of the report's excerpt for good, for what must not be kept. It can't be undone, so `confirm` must be true. The ids stay on the report and the action. Marks the report actioned.
+         */
+        post: operations["purgeModerationReportLines"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/moderation/reports/{id}/hide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hide lines of a report
+         * @description Takes lines of the report's excerpt out of the public log browser, its search and everything else that reads the log. They're kept, and an admin can unhide them. Marks the report actioned.
+         */
+        post: operations["hideModerationReportLines"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/moderation/reports/{id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dismiss a report
+         * @description Closes an open report as not abuse. The report stays readable.
+         */
+        post: operations["dismissModerationReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/moderation/lines/unhide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Unhide log lines
+         * @description Puts hidden lines back in public view.
+         */
+        post: operations["unhideModerationLines"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/moderation/lines/hide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hide log lines
+         * @description Hides lines found in a log day rather than a report: kept, and out of public view.
+         */
+        post: operations["hideModerationLines"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/console": {
         parameters: {
             query?: never;
@@ -793,6 +913,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/logs/channels/{protocol}/{service}/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Find a channel by its readable address
+         * @description The channel `/logs/{protocol}/{service}/{name}` names, among those the caller may browse: `irc/libera/primate`. An IRC name is matched as written, then with `#`, then with `##`; other protocols' channels by their names, or their ids. Its `provenanceUri` is what the day view and search take. Any other name is a 404, as a hidden channel is, so an address can't reveal one.
+         */
+        get: operations["channel"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/karma/leaderboard": {
         parameters: {
             query?: never;
@@ -1024,6 +1164,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/moderation/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List abuse reports
+         * @description Reports from the hourly review, open ones first and newest first within each; or only those in `status`. `openCount` is how many are open in all, for a launcher badge.
+         */
+        get: operations["listModerationReports"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/moderation/reports/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One abuse report with its excerpt
+         * @description The report, the lines the review read (the person's and those around them, oldest first, hidden ones included and marked `hidden`; `flagged` raised a signal, `cited` the model pointed at), the ids of excerpt lines since purged, and every action taken on it.
+         */
+        get: operations["getModerationReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/moderation/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A day of a channel's log, hidden lines included
+         * @description One UTC day of a channel's log as an admin reviews it: every line with its id, hidden ones included and marked `hidden`, oldest first, at most 5000. Direct conversations are never returned. `day` defaults to today.
+         */
+        get: operations["getModerationLogDay"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/factoids/report": {
         parameters: {
             query?: never;
@@ -1149,26 +1349,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/logs/channels/{protocol}/{service}/{name}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Find a channel by its readable address
-         * @description The channel `/logs/{protocol}/{service}/{name}` names, among those the caller may browse: `irc/libera/primate`. An IRC name is matched as written, then with `#`, then with `##`; other protocols' channels by their names, or their ids. Its `provenanceUri` is what the day view and search take. Any other name is a 404, as a hidden channel is, so an address can't reveal one.
-         */
-        get: operations["channel"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1187,24 +1367,24 @@ export interface components {
         };
         ContentDetail: {
             /** Format: uuid */
-            id?: string;
-            title?: string;
-            slug?: string;
-            renderedHtml?: string;
+            id: string;
+            title: string;
+            slug: string;
+            renderedHtml: string;
             excerpt?: string | null;
             /** Format: uuid */
             authorId?: string | null;
-            authorDisplayName?: string;
+            authorDisplayName: string;
             /** @enum {string} */
-            status?: "DRAFT" | "APPROVED";
+            status: "DRAFT" | "APPROVED";
             /** Format: date-time */
             publishedAt?: string | null;
             /** Format: int32 */
             sortOrder?: number;
             /** Format: date-time */
-            createdAt?: string;
+            createdAt: string;
             /** Format: date-time */
-            updatedAt?: string;
+            updatedAt: string;
             /** Format: int32 */
             commentCount?: number;
             tags?: string[];
@@ -1229,7 +1409,7 @@ export interface components {
              * @description The attribute's new value
              * @example a string-searching algorithm
              */
-            value?: string;
+            value: string;
             /**
              * @description The attribute to set: text (the default), urls, tags, languages, type, seealso, see or maven
              * @example text
@@ -1237,34 +1417,34 @@ export interface components {
             attribute?: string | null;
         };
         FactoidAttributeResponse: {
-            type?: string;
+            type: string;
             value?: string | null;
-            rendered?: string;
+            rendered: string;
         };
         FactoidDetailResponse: {
-            selector?: string;
-            locked?: boolean;
+            selector: string;
+            locked: boolean;
             updatedBy?: string | null;
             /** Format: date-time */
-            updatedAt?: string;
+            updatedAt: string;
             /** Format: date-time */
             lastAccessedAt?: string | null;
             /** Format: int64 */
-            accessCount?: number;
-            attributes?: components["schemas"]["FactoidAttributeResponse"][];
+            accessCount: number;
+            attributes: components["schemas"]["FactoidAttributeResponse"][];
         };
         EditCommentHttpRequest: {
-            markdownSource?: string;
+            markdownSource: string;
         };
         CommentDetail: {
             /** Format: uuid */
-            id?: string;
+            id: string;
             /** Format: uuid */
-            postId?: string;
-            authorDisplayName?: string;
-            renderedHtml?: string;
+            postId: string;
+            authorDisplayName: string;
+            renderedHtml: string;
             /** Format: date-time */
-            createdAt?: string;
+            createdAt: string;
         };
         EditProfileRequest: {
             displayName?: string | null;
@@ -1272,22 +1452,22 @@ export interface components {
         };
         UserPrincipal: {
             /** Format: uuid */
-            id?: string;
-            username?: string;
-            displayName?: string;
+            id: string;
+            username: string;
+            displayName: string;
             /** @enum {string} */
             role?: "GUEST" | "USER" | "ADMIN" | "SUPER_ADMIN";
         };
         MessageResponse: {
-            message?: string;
+            message: string;
         };
         RoleUpdateRequest: {
             /** @enum {string} */
-            newRole?: "GUEST" | "USER" | "ADMIN" | "SUPER_ADMIN";
+            newRole: "GUEST" | "USER" | "ADMIN" | "SUPER_ADMIN";
         };
         ApproveContentHttpRequest: {
             /** Format: date-time */
-            publishedAt?: string;
+            publishedAt: string;
         };
         /** @description Request body for creating a new blog post draft */
         CreateContentHttpRequest: {
@@ -1295,12 +1475,12 @@ export interface components {
              * @description Post title
              * @example Understanding Virtual Threads
              */
-            title: string;
+            title?: string;
             /**
              * @description Post content in Markdown. No raw HTML allowed.
              * @example Virtual threads change the concurrency model...
              */
-            markdownSource: string;
+            markdownSource?: string;
             /**
              * @description Tag names to associate with the post. Created automatically if new.
              * @example [
@@ -1318,28 +1498,28 @@ export interface components {
              * @description Epoch milliseconds when the form was rendered (Date.now()). Required. Submissions arriving less than 3 seconds after this timestamp are silently rejected.
              * @example 1709740800000
              */
-            formLoadedAt: number | null;
+            formLoadedAt?: number | null;
         };
         CreateContentResponse: {
             /** Format: uuid */
-            id?: string;
-            title?: string;
-            slug?: string;
+            id: string;
+            title: string;
+            slug: string;
             excerpt?: string | null;
             /** @enum {string} */
-            status?: "DRAFT" | "APPROVED";
+            status: "DRAFT" | "APPROVED";
             /** Format: uuid */
             authorId?: string | null;
-            authorDisplayName?: string;
+            authorDisplayName: string;
             /** Format: date-time */
-            createdAt?: string;
+            createdAt: string;
             tags?: string[];
             categories?: string[];
         };
         CreateCommentHttpRequest: {
             /** Format: uuid */
             parentCommentId?: string | null;
-            markdownSource?: string;
+            markdownSource: string;
         };
         SuggestTagsHttpRequest: {
             title?: string | null;
@@ -1347,14 +1527,14 @@ export interface components {
             existingTags?: string[] | null;
         };
         SuggestTagsResponse: {
-            tags?: string[];
+            tags: string[];
         };
         DeriveSummaryHttpRequest: {
             title?: string | null;
             markdownSource?: string | null;
         };
         DeriveSummaryResponse: {
-            summary?: string;
+            summary: string;
             /** @enum {string} */
             source?: "ai" | "heuristic";
         };
@@ -1362,24 +1542,24 @@ export interface components {
             markdownSource?: string | null;
         };
         DeriveFactoidsResponse: {
-            mentions?: components["schemas"]["FactoidMention"][];
-            missing?: components["schemas"]["MissingFactoid"][];
+            mentions: components["schemas"]["FactoidMention"][];
+            missing: components["schemas"]["MissingFactoid"][];
         };
         FactoidMention: {
-            selector?: string;
-            term?: string;
+            selector: string;
+            term: string;
             /** Format: int32 */
-            occurrences?: number;
-            definition?: string;
-            linked?: boolean;
+            occurrences: number;
+            definition: string;
+            linked: boolean;
         };
         MissingFactoid: {
-            selector?: string;
-            term?: string;
+            selector: string;
+            term: string;
         };
         JsonRpcRequest: {
             jsonrpc?: string | null;
-            id?: null;
+            id?: unknown;
             method?: string | null;
             params?: {
                 [key: string]: unknown;
@@ -1390,20 +1570,20 @@ export interface components {
             context?: string | null;
         };
         FactoidDraft: {
-            selector?: string;
-            text?: string;
-            urls?: string[];
-            tags?: string[];
-            seeAlso?: string[];
-            line?: string;
+            selector: string;
+            text: string;
+            urls: string[];
+            tags: string[];
+            seeAlso: string[];
+            line: string;
             /** Format: int32 */
-            lineLength?: number;
-            fits?: boolean;
+            lineLength: number;
+            fits: boolean;
             droppedUrls?: string[];
         };
         LoginResponse: {
-            token?: string;
-            principal?: components["schemas"]["UserPrincipal"];
+            token: string;
+            principal: components["schemas"]["UserPrincipal"];
         };
         OtpVerifyRequest: {
             email?: string | null;
@@ -1426,39 +1606,75 @@ export interface components {
             existingTags?: string[] | null;
         };
         DeriveTagsResponse: {
-            tags?: string[];
+            tags: string[];
+        };
+        ModerationLinesRequest: {
+            /** @description Message log line ids, at most 500 */
+            lineIds: string[];
+            /** @description Why, for the record */
+            note?: string | null;
+        };
+        ModerationActionResult: {
+            action: components["schemas"]["ModerationActionView"];
+            /** Format: int32 */
+            changed: number;
+        };
+        ModerationActionView: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            reportId?: string | null;
+            /** @enum {string} */
+            action: "HIDE" | "UNHIDE" | "PURGE" | "DISMISS";
+            lineIds: string[];
+            note?: string | null;
+            actor: string;
+            /** Format: date-time */
+            actedAt: string;
+        };
+        ModerationPurgeRequest: {
+            /** @description Message log line ids, at most 500 */
+            lineIds: string[];
+            /** @description Must be true: the admin confirmed that this can't be undone */
+            confirm?: boolean;
+            /** @description Why, for the record */
+            note?: string | null;
+        };
+        ModerationDismissRequest: {
+            /** @description Why, for the record */
+            note?: string | null;
         };
         /** @description One command line, as at the console: no prefix, no newlines. */
         WebConsoleCommand: {
             line?: string | null;
         };
         WebConsoleAccepted: {
-            correlationId?: string;
+            correlationId: string;
         };
         CreateCategoryRequest: {
-            name?: string;
+            name: string;
             /** Format: uuid */
             parentId?: string | null;
         };
         CreateCategoryResponse: {
             /** Format: uuid */
-            id?: string;
-            name?: string;
-            slug?: string;
+            id: string;
+            name: string;
+            slug: string;
             parentName?: string | null;
         };
         /** @description Usage counts per taxonomy term. Terms starting with _ are never included. */
         TaxonomySnapshot: {
             /** @description Published posts carrying each tag: approved, published by now, not deleted and not in a hidden category. Matches the totalCount of GET /posts?tag=. */
-            tags?: {
+            tags: {
                 [key: string]: number;
             };
             /** @description Posts in each category. */
-            categories?: {
+            categories: {
                 [key: string]: number;
             };
             /** @description The union of tags, factoidTags and categories, summed per term. */
-            aggregate?: {
+            aggregate: {
                 [key: string]: number;
             };
             /** @description Factoids carrying each tag. */
@@ -1468,56 +1684,56 @@ export interface components {
         };
         RssAggregatedItemResponse: {
             /** Format: uuid */
-            id?: string;
-            feedTitle?: string;
-            feedUrl?: string;
+            id: string;
+            feedTitle: string;
+            feedUrl: string;
             siteUrl?: string | null;
-            guid?: string;
-            link?: string;
-            title?: string;
+            guid: string;
+            link: string;
+            title: string;
             summary?: string | null;
             /** Format: date-time */
             publishedAt?: string | null;
             /** Format: date-time */
-            receivedAt?: string;
+            receivedAt: string;
         };
         RssAggregatedItemsResponse: {
-            items?: components["schemas"]["RssAggregatedItemResponse"][];
+            items: components["schemas"]["RssAggregatedItemResponse"][];
             /** Format: int32 */
-            page?: number;
+            page: number;
             /** Format: int32 */
-            totalPages?: number;
+            totalPages: number;
             /** Format: int64 */
-            totalCount?: number;
+            totalCount: number;
         };
         RssFeedSourceResponse: {
-            title?: string;
-            feedUrl?: string;
+            title: string;
+            feedUrl: string;
             siteUrl?: string | null;
             /** Format: int64 */
-            itemCount?: number;
+            itemCount: number;
             /** Format: date-time */
             latestItemTimestamp?: string | null;
         };
         RssFeedSourcesResponse: {
-            feeds?: components["schemas"]["RssFeedSourceResponse"][];
+            feeds: components["schemas"]["RssFeedSourceResponse"][];
         };
         ContentListResponse: {
-            posts?: components["schemas"]["ContentSummary"][];
+            posts: components["schemas"]["ContentSummary"][];
             /** Format: int32 */
-            page?: number;
+            page: number;
             /** Format: int32 */
-            totalPages?: number;
+            totalPages: number;
             /** Format: int64 */
-            totalCount?: number;
+            totalCount: number;
         };
         ContentSummary: {
             /** Format: uuid */
-            id?: string;
-            title?: string;
-            slug?: string;
+            id: string;
+            title: string;
+            slug: string;
             excerpt?: string | null;
-            authorDisplayName?: string;
+            authorDisplayName: string;
             /** Format: date-time */
             publishedAt?: string | null;
             /** Format: int32 */
@@ -1529,178 +1745,253 @@ export interface components {
         };
         CommentNode: {
             /** Format: uuid */
-            id?: string;
+            id: string;
             /** Format: uuid */
             authorId?: string | null;
-            authorDisplayName?: string;
-            renderedHtml?: string;
+            authorDisplayName: string;
+            renderedHtml: string;
             markdownSource?: string | null;
             /** Format: date-time */
-            createdAt?: string;
+            createdAt: string;
             /** Format: date-time */
-            updatedAt?: string;
-            deleted?: boolean;
-            editable?: boolean;
-            children?: components["schemas"]["CommentNode"][];
+            updatedAt: string;
+            deleted: boolean;
+            editable: boolean;
+            children: components["schemas"]["CommentNode"][];
         };
         CommentThreadResponse: {
             /** Format: uuid */
-            postId?: string;
-            comments?: components["schemas"]["CommentNode"][];
+            postId: string;
+            comments: components["schemas"]["CommentNode"][];
             /** Format: int32 */
-            totalActiveCount?: number;
+            totalActiveCount: number;
         };
         LogDayResponse: {
-            provenanceUri?: string;
-            day?: string;
-            entries?: components["schemas"]["LogEntry"][];
+            provenanceUri: string;
+            day: string;
+            entries: components["schemas"]["LogEntry"][];
         };
         LogEntry: {
             /** Format: date-time */
-            timestamp?: string;
-            sender?: string;
-            content?: string;
+            timestamp: string;
+            sender: string;
+            content: string;
             /** @enum {string} */
-            direction?: "INBOUND" | "OUTBOUND";
+            direction: "INBOUND" | "OUTBOUND";
         };
         LogSearchHit: {
             /** Format: date-time */
-            timestamp?: string;
-            day?: string;
-            sender?: string;
-            content?: string;
+            timestamp: string;
+            day: string;
+            sender: string;
+            content: string;
             /** @enum {string} */
-            direction?: "INBOUND" | "OUTBOUND";
+            direction: "INBOUND" | "OUTBOUND";
         };
         LogSearchResponse: {
-            provenanceUri?: string;
+            provenanceUri: string;
             query?: string | null;
             sender?: string | null;
             /** Format: int32 */
-            page?: number;
+            page: number;
             /** Format: int32 */
-            size?: number;
+            size: number;
             /** Format: int64 */
-            totalCount?: number;
+            totalCount: number;
             /** Format: int32 */
-            totalPages?: number;
-            hits?: components["schemas"]["LogSearchHit"][];
+            totalPages: number;
+            hits: components["schemas"]["LogSearchHit"][];
         };
         LogProvenanceListResponse: {
-            provenances?: components["schemas"]["LogProvenanceSummary"][];
+            provenances: components["schemas"]["LogProvenanceSummary"][];
         };
         LogProvenanceSummary: {
-            provenanceUri?: string;
-            protocol?: string;
+            provenanceUri: string;
+            protocol: string;
             serviceId?: string | null;
-            replyTo?: string;
+            replyTo: string;
             /** Format: date-time */
             latestTimestamp?: string | null;
             latestSender?: string | null;
             latestContentPreview?: string | null;
             path?: string | null;
         };
+        LogChannelResponse: {
+            provenanceUri: string;
+            path: string;
+        };
         KarmaLeaderboardEntryResponse: {
-            subject?: string;
+            subject: string;
             /** Format: int32 */
-            score?: number;
+            score: number;
             /** Format: date */
-            lastUpdated?: string;
+            lastUpdated: string;
         };
         KarmaLeaderboardResponse: {
-            top?: components["schemas"]["KarmaLeaderboardEntryResponse"][];
-            bottom?: components["schemas"]["KarmaLeaderboardEntryResponse"][];
+            top: components["schemas"]["KarmaLeaderboardEntryResponse"][];
+            bottom: components["schemas"]["KarmaLeaderboardEntryResponse"][];
             /** Format: int32 */
-            limit?: number;
+            limit: number;
         };
         AuthenticationFeatures: {
-            otp?: boolean;
-            otpFrom?: string;
+            otp: boolean;
+            otpFrom: string;
             oidc?: components["schemas"]["OidcFeatures"] | null;
             codeChannels?: components["schemas"]["CodeChannelFeature"][];
         };
         CodeChannelFeature: {
-            channel?: string;
+            channel: string;
             servers?: string[];
         };
         FeaturesResponse: {
-            siteName?: string;
-            version?: components["schemas"]["VersionInfo"];
-            authentication?: components["schemas"]["AuthenticationFeatures"];
-            operationGroups?: string[];
-            adapters?: string[];
-            ai?: boolean;
-            anonymousSubmission?: boolean;
+            siteName: string;
+            version: components["schemas"]["VersionInfo"];
+            authentication: components["schemas"]["AuthenticationFeatures"];
+            operationGroups: string[];
+            adapters: string[];
+            ai: boolean;
+            anonymousSubmission: boolean;
         };
         OidcFeatures: {
-            google?: boolean;
-            github?: boolean;
+            google: boolean;
+            github: boolean;
         };
         VersionInfo: {
-            name?: string;
+            name: string;
             version?: string | null;
             commit?: string | null;
             branch?: string | null;
             buildTime?: string | null;
         };
         FactoidListResponse: {
-            factoids?: components["schemas"]["FactoidSummaryResponse"][];
+            factoids: components["schemas"]["FactoidSummaryResponse"][];
             /** Format: int32 */
-            page?: number;
+            page: number;
             /** Format: int32 */
-            totalPages?: number;
+            totalPages: number;
             /** Format: int64 */
-            totalCount?: number;
+            totalCount: number;
         };
         FactoidSummaryResponse: {
-            selector?: string;
-            locked?: boolean;
+            selector: string;
+            locked: boolean;
             updatedBy?: string | null;
             /** Format: date-time */
-            updatedAt?: string;
+            updatedAt: string;
             /** Format: date-time */
             lastAccessedAt?: string | null;
             /** Format: int64 */
-            accessCount?: number;
+            accessCount: number;
             text?: string | null;
-            tags?: string[];
+            tags: string[];
         };
         CategorySummary: {
             /** Format: uuid */
-            id?: string;
-            name?: string;
-            slug?: string;
+            id: string;
+            name: string;
+            slug: string;
             parentName?: string | null;
         };
+        ReportListResponse: {
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            size: number;
+            /** Format: int64 */
+            totalCount: number;
+            /** Format: int32 */
+            totalPages: number;
+            /** Format: int64 */
+            openCount: number;
+            reports: components["schemas"]["ReportSummary"][];
+        };
+        ReportSummary: {
+            /** Format: uuid */
+            id: string;
+            provenanceUri: string;
+            protocol: string;
+            serviceId?: string | null;
+            channel: string;
+            sender: string;
+            /** Format: uuid */
+            userId?: string | null;
+            /** Format: double */
+            score: number;
+            signals: {
+                [key: string]: number;
+            };
+            verdict?: components["schemas"]["VerdictView"] | null;
+            /** @enum {string} */
+            status: "OPEN" | "DISMISSED" | "ACTIONED";
+            /** Format: date-time */
+            windowStart: string;
+            /** Format: date-time */
+            windowEnd: string;
+            /** Format: date-time */
+            createdAt: string;
+            actedBy?: string | null;
+            /** Format: date-time */
+            actedAt?: string | null;
+        };
+        VerdictView: {
+            abusive: boolean;
+            reason?: string | null;
+            model?: string | null;
+        };
+        ModerationLine: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            timestamp: string;
+            day: string;
+            sender: string;
+            content: string;
+            /** @enum {string} */
+            direction: "INBOUND" | "OUTBOUND";
+            hidden: boolean;
+            flagged: boolean;
+            cited: boolean;
+        };
+        ReportDetail: {
+            report: components["schemas"]["ReportSummary"];
+            lines: components["schemas"]["ModerationLine"][];
+            purgedLineIds: string[];
+            actions: components["schemas"]["ModerationActionView"][];
+        };
+        ModerationLogDay: {
+            provenanceUri: string;
+            day: string;
+            lines: components["schemas"]["ModerationLine"][];
+        };
         FactoidGraphReport: {
-            parentsNotLinked?: components["schemas"]["UnlinkedMentions"][];
-            mentionsNotLinked?: components["schemas"]["UnlinkedMentions"][];
-            seeAlsoToNothing?: components["schemas"]["SeeAlsoToNothing"][];
-            linesThatDontFit?: components["schemas"]["LineThatDoesntFit"][];
+            parentsNotLinked: components["schemas"]["UnlinkedMentions"][];
+            mentionsNotLinked: components["schemas"]["UnlinkedMentions"][];
+            seeAlsoToNothing: components["schemas"]["SeeAlsoToNothing"][];
+            linesThatDontFit: components["schemas"]["LineThatDoesntFit"][];
         };
         LineThatDoesntFit: {
-            selector?: string;
+            selector: string;
             /** Format: int32 */
-            length?: number;
+            length: number;
             /** Format: int32 */
-            saidLength?: number;
-            dropped?: string[];
-            cutOff?: boolean;
+            saidLength: number;
+            dropped: string[];
+            cutOff: boolean;
         };
         SeeAlsoToNothing: {
-            selector?: string;
-            missing?: string[];
+            selector: string;
+            missing: string[];
         };
         UnlinkedMentions: {
-            selector?: string;
-            mentions?: string[];
+            selector: string;
+            mentions: string[];
         };
         /** @description The data of a `result` event on GET /admin/console/stream. */
         WebConsoleResult: {
             /** @description The command it answers; null for output nobody asked for here. */
             correlationId?: string | null;
             /** @enum {string} */
-            status?: "success" | "error" | "unhandled";
+            status: "success" | "error" | "unhandled";
             /** @description Plain text, which may span lines; absent when unhandled. */
             text?: string | null;
         };
@@ -1709,12 +2000,8 @@ export interface components {
         };
         ContentOperationConfirmation: {
             /** Format: uuid */
-            id?: string;
-            message?: string;
-        };
-        LogChannelResponse: {
-            path: string;
-            provenanceUri: string;
+            id: string;
+            message: string;
         };
     };
     responses: never;
@@ -2963,6 +3250,15 @@ export interface operations {
                     "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
+            /** @description Too many attempts for this identity; try again shortly */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
         };
     };
     requestOtp: {
@@ -3080,6 +3376,356 @@ export interface operations {
                 };
             };
             /** @description Invalid input or AI unavailable */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    unhideModerationReportLines: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerationLinesRequest"];
+            };
+        };
+        responses: {
+            /** @description The action, as recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationActionResult"];
+                };
+            };
+            /** @description No lines, too many, or lines not in the report's excerpt */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such report */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    purgeModerationReportLines: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerationPurgeRequest"];
+            };
+        };
+        responses: {
+            /** @description The action, as recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationActionResult"];
+                };
+            };
+            /** @description Not confirmed, no lines, too many, or lines not in the report's excerpt */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such report */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    hideModerationReportLines: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerationLinesRequest"];
+            };
+        };
+        responses: {
+            /** @description The action, as recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationActionResult"];
+                };
+            };
+            /** @description No lines, too many, or lines not in the report's excerpt */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such report */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    dismissModerationReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ModerationDismissRequest"];
+            };
+        };
+        responses: {
+            /** @description The action, as recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationActionResult"];
+                };
+            };
+            /** @description The report isn't open */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such report */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    unhideModerationLines: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerationLinesRequest"];
+            };
+        };
+        responses: {
+            /** @description The action, as recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationActionResult"];
+                };
+            };
+            /** @description No lines, too many, or lines that don't exist */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    hideModerationLines: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModerationLinesRequest"];
+            };
+        };
+        responses: {
+            /** @description The action, as recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationActionResult"];
+                };
+            };
+            /** @description No lines, too many, or lines that don't exist */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3636,6 +4282,39 @@ export interface operations {
             };
         };
     };
+    channel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                protocol: string;
+                service: string;
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The channel */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogChannelResponse"];
+                };
+            };
+            /** @description No such channel, or not one the caller may browse */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     leaderboard: {
         parameters: {
             query?: {
@@ -3975,6 +4654,156 @@ export interface operations {
             };
         };
     };
+    listModerationReports: {
+        parameters: {
+            query?: {
+                status?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of reports */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportListResponse"];
+                };
+            };
+            /** @description A bad status, page or size */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getModerationReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The report */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such report */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getModerationLogDay: {
+        parameters: {
+            query: {
+                provenance: string;
+                day?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The day's lines */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModerationLogDay"];
+                };
+            };
+            /** @description A day that isn't YYYY-MM-DD */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     factoidGraphReport: {
         parameters: {
             query?: never;
@@ -4218,39 +5047,6 @@ export interface operations {
                 };
             };
             /** @description Category not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemDetail"];
-                };
-            };
-        };
-    };
-    channel: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                protocol: string;
-                service: string;
-                name: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The channel */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["LogChannelResponse"];
-                };
-            };
-            /** @description No such channel, or not one the caller may browse */
             404: {
                 headers: {
                     [name: string]: unknown;

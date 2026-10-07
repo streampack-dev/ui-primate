@@ -1,0 +1,55 @@
+export interface Input {
+  meta?: import("#lib/meta.ts").Head;
+  sections: { href: string; label: string; current: boolean; count?: number | null }[];
+  csrf: string;
+  failed: boolean;
+  provenance: string;
+  day: string;
+  channel: string;
+  lines: {
+    id: string; time: string; iso: string; day: string; sender: string | null; segments: { text: string; href?: string }[];
+    outbound: boolean; hidden: boolean; flagged: boolean; cited: boolean; publicHref: string;
+  }[];
+  publicHref: string;
+  prev: string;
+  next: string | null;
+  said?: string;
+  error?: string;
+  checked?: string[];
+  note?: string;
+}
+
+<page-meta meta=input.meta/>
+<admin-shell sections=input.sections>
+  <p class="mb-6"><a class="pagelink" href="/admin/moderation">&larr; All reports</a></p>
+  <h2 class="headline-secondary text-foreground mb-2">${input.channel}, with hidden lines</h2>
+  <p class="text-sm text-muted-foreground mb-6">Every line of the day, the hidden ones marked. Hidden lines are kept, and gone from <a class="pagelink" href=input.publicHref>the public log</a>.</p>
+  <if=input.said><div class="mb-6 px-4 py-3 border border-amber/30 bg-amber/5"><p class="section-label text-amber" role="status">${input.said}</p></div></if>
+  <if=input.error><div class="mb-6 px-4 py-3 border border-destructive/30 bg-destructive/5"><p class="form-error mt-0" role="alert">${input.error}</p></div></if>
+  <nav class="log-days flex items-center justify-between border-b border-border/40 pb-3 mb-6" aria-label="Days">
+    <a class="log-day-link" rel="prev" href=input.prev>&larr; Previous</a>
+    <span class="log-day">${input.channel} · ${input.day}</span>
+    <if=input.next><a class="log-day-link" rel="next" href=input.next>Next &rarr;</a></if>
+    <else><span class="log-day-link is-disabled" aria-hidden="true">Next &rarr;</span></else>
+  </nav>
+  <if=input.failed><p class="form-error" role="alert">This day's log can't be loaded just now. Try again shortly.</p></if>
+  <else if=(input.lines.length === 0)>
+    <p class="py-12 text-center border-t border-border/20 text-muted-foreground font-mono text-sm">No entries for this day.</p>
+  </else>
+  <else>
+    <form class="mod-lines-form" method="post" action="/admin/moderation/lines/hide">
+      <input type="hidden" name="csrf" value=input.csrf>
+      <input type="hidden" name="provenance" value=input.provenance>
+      <input type="hidden" name="day" value=input.day>
+      <moderation-lines lines=input.lines selectable=true checked=input.checked/>
+      <div class="mt-4">
+        <label class="byline form-label" for="mod-note">Note, for the record (optional)</label>
+        <input class="form-field text-sm p-2" id="mod-note" name="note" maxlength="1000" value=(input.note || "")>
+      </div>
+      <div class="flex flex-wrap items-center gap-2 mt-4">
+        <button type="submit" class="auth-button">Hide selected</button>
+        <button type="submit" class="auth-button secondary" formaction="/admin/moderation/lines/unhide">Unhide selected</button>
+      </div>
+    </form>
+  </else>
+</admin-shell>

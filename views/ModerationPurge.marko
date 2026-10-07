@@ -1,0 +1,34 @@
+export interface Input {
+  meta?: import("#lib/meta.ts").Head;
+  title: string;
+  action: string;
+  back: string;
+  lineIds: string;
+  lines: {
+    id: string; time: string; iso: string; day: string; sender: string | null; segments: { text: string; href?: string }[];
+    outbound: boolean; hidden: boolean; flagged: boolean; cited: boolean; publicHref: string;
+  }[];
+  note: string;
+  csrf: string;
+}
+
+<page-meta meta=input.meta/>
+<section class="py-8 md:py-12">
+  <div class="confirm-page max-w-3xl mx-auto px-6 md:px-8">
+    <div class="border-t-2 border-amber mb-6"/>
+    <h1 class="confirm-title font-display text-2xl mb-3">${input.title}</h1>
+    <p class="confirm-body text-muted-foreground mb-6">This can't be undone. Purged lines are deleted from the log, not hidden: no one, admins included, can see them again. To take them out of the public log and keep them, hide them instead.</p>
+    <if=input.lines.length><div class="mb-6"><moderation-lines lines=input.lines selectable=false/></div></if>
+    <form method="post" action=input.action class="flex flex-wrap items-end gap-4">
+      <input type="hidden" name="csrf" value=input.csrf>
+      <input type="hidden" name="lines" value=input.lineIds>
+      <input type="hidden" name="confirm" value="yes">
+      <div class="basis-full">
+        <label class="byline form-label" for="purge-note">Note, for the record (optional)</label>
+        <input class="form-field text-sm p-2" id="purge-note" name="note" maxlength="1000" value=input.note>
+      </div>
+      <button type="submit" class="auth-button danger">Purge for good</button>
+      <a class="confirm-cancel pagelink" href=input.back>Cancel</a>
+    </form>
+  </div>
+</section>

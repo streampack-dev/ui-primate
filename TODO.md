@@ -37,6 +37,15 @@ Since (2026-10-03):
 - [x] Factoids: signed-in readers teach, edit and forget them, admins lock and unlock them, as
       ui-pudl has it (ui-pudl #170). Only what changed is sent; an emptied field forgets that
       attribute. `see` and `maven` aren't offered: the API sets them but its detail doesn't show them
+- [x] Moderation (streampack#150): /admin/moderation lists the abuse reports by status, the open
+      ones counted in the admin nav; a report's page shows its lines with their context (flagged,
+      cited and hidden marked), the AI's verdict, its history, and ways to the public log's days and
+      the sender's lines in that channel (the log search: the API has no cross-channel search).
+      Checked lines are hidden, unhidden or purged (asked first, on a page of its own, saying it
+      can't be undone; only that page's form sends confirm: true), and an open report dismissed.
+      /admin/moderation/logs is a day with its hidden lines, to hide or unhide them, and the public
+      log's day links to it for admins. Nothing is hidden by itself, and the bot bans no one
+      (2026-10-07)
 
 Before it's deployed:
 
