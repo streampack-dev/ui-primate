@@ -1,6 +1,6 @@
 import response from "primate/response";
 import route from "primate/route";
-import { searchHref } from "#lib/log-channels.ts";
+import { conversationOnly, filterParams, searchHref } from "#lib/log-channels.ts";
 import { browsable, everyProtocol, searchPage } from "#lib/log-pages.ts";
 import { notFound } from "#lib/post-page.ts";
 import { view } from "#lib/view.ts";
@@ -16,6 +16,8 @@ export default route({
     const asked = Number.parseInt(request.query.try("page") || "1", 10);
     const page = Number.isFinite(asked) && asked >= 1 ? asked : 1;
     const all = everyProtocol(request.query.try("all"));
+    // Searching from a filtered day searches what was said only (ui-pudl#202).
+    const conversation = conversationOnly(request.query.try("events"));
 
     const offered = await browsable();
     if (!offered) {
@@ -24,8 +26,8 @@ export default route({
     const channel = offered.find((c) => c.uri === provenance);
     if (!channel) return notFound();
     if (channel.path) {
-      return response.redirect(searchHref(channel, { ...(q ? { q } : {}), ...(from ? { from } : {}), ...(page > 1 ? { page: String(page) } : {}) }, all), 301);
+      return response.redirect(searchHref(channel, { ...(q ? { q } : {}), ...(from ? { from } : {}), ...filterParams(conversation), ...(page > 1 ? { page: String(page) } : {}) }, all), 301);
     }
-    return searchPage(channel, q, from, page, all);
+    return searchPage(channel, q, from, page, all, conversation);
   },
 });

@@ -2,7 +2,7 @@ import response from "primate/response";
 import route from "primate/route";
 import type { components } from "#api/schema.d.ts";
 import { current } from "#auth/readers.ts";
-import { readLogs } from "#lib/log-channels.ts";
+import { conversationOnly, readLogs } from "#lib/log-channels.ts";
 import { browsable, everyProtocol, logPage, searchPage } from "#lib/log-pages.ts";
 import { today, validDay } from "#lib/logs.ts";
 import { notFound } from "#lib/post-page.ts";
@@ -34,6 +34,8 @@ export default route({
     const day = last && !search ? validDay(last) : null;
     if (last && !search && (!day || day > today())) return notFound();
     const all = everyProtocol(request.query.try("all"));
+    // Only what was said (`?events=none`, ui-pudl#202); anything else is the whole day, as without it.
+    const conversation = conversationOnly(request.query.try("events"));
 
     const channels = await browsable();
     if (!channels) {
@@ -54,8 +56,8 @@ export default route({
       const q = (request.query.try("q") || "").trim();
       const from = (request.query.try("from") || "").trim();
       const page = Number.parseInt(request.query.try("page") || "1", 10);
-      return searchPage(channel, q, from, Number.isFinite(page) && page >= 1 ? page : 1, all);
+      return searchPage(channel, q, from, Number.isFinite(page) && page >= 1 ? page : 1, all, conversation);
     }
-    return logPage(channel.uri, day, all);
+    return logPage(channel.uri, day, all, conversation);
   },
 });

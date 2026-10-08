@@ -33,7 +33,7 @@ describe("the moderation pages, in a browser", () => {
   it("are accessible, light and dark", async () => {
     const v = await signedIn(ADMIN);
     for (const theme of ["light", "dark"] as const) {
-      for (const path of ["/admin/moderation", `/admin/moderation/${REPORT}?done=hidden&n=2`, `/admin/moderation/logs?provenance=${encodeURIComponent(JAVA)}&day=2026-10-06`]) {
+      for (const path of ["/admin/moderation", `/admin/moderation/${REPORT}?done=hidden&n=2`, `/admin/moderation/logs?provenance=${encodeURIComponent(JAVA)}&day=2026-10-06`, `/admin/moderation/logs?provenance=${encodeURIComponent(JAVA)}&day=2026-10-06&events=none`]) {
         const { page } = await open(path, theme, v.cookies);
         await expectAccessible(page);
       }

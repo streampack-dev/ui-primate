@@ -5,7 +5,11 @@ export interface Input {
   channels: { uri: string; name: string; latest: string | null; href: string; current: boolean }[];
   chosen: { uri: string; name: string; href: string; path?: string | null } | null;
   all: boolean;
-  lines: { id: string; time: string; iso: string; sender: string | null; segments: { text: string; href?: string }[]; outbound: boolean }[];
+  /** Only what was said: joins, parts, quits, nick changes and topics left out (ui-pudl#202). */
+  conversation?: boolean;
+  /** The filter's two choices, this day's address with and without `events=none`. */
+  filters?: { label: string; href: string; current: boolean }[];
+  lines: { id: string; time: string; iso: string; sender: string | null; segments: { text: string; href?: string }[]; outbound: boolean; event?: boolean }[];
   failed: boolean;
   prev: string | null;
   next: string | null;
@@ -45,7 +49,14 @@ export interface Input {
 
     <div class="min-w-0">
       <if=input.chosen>
-        <log-search-form channel=input.chosen all=input.all/>
+        <log-search-form channel=input.chosen all=input.all conversation=input.conversation/>
+        <if=(input.filters && input.filters.length)>
+          <nav class="log-filter flex gap-0 mb-4" aria-label="Lines shown">
+            <for|f| of=input.filters by="label">
+              <a class=["log-filter-choice", f.current && "is-current"] href=f.href aria-current=(f.current ? "page" : false)>${f.label}</a>
+            </for>
+          </nav>
+        </if>
         <nav class="log-days flex items-center justify-between border-b border-border/40 pb-3 mb-6" aria-label="Days">
           <a class="log-day-link" rel="prev" href=input.prev>&larr; Previous</a>
           <span class="log-day">${input.chosen.name} · ${input.day}</span>
@@ -59,12 +70,12 @@ export interface Input {
           </div>
         </if>
         <else if=(input.lines.length === 0)>
-          <p class="py-12 text-center border-t border-border/20 text-muted-foreground font-mono text-sm">No entries for this day.</p>
+          <p class="py-12 text-center border-t border-border/20 text-muted-foreground font-mono text-sm">${input.conversation ? "Nothing was said this day." : "No entries for this day."}</p>
         </else>
         <else>
           <ol class="log-lines">
             <for|line| of=input.lines by="id">
-              <li id=line.id class=["log-line", !line.sender && "log-system", line.outbound && "log-outbound"]>
+              <li id=line.id class=["log-line", !line.sender && "log-system", line.outbound && "log-outbound", line.event && "log-event"]>
                 <a class="log-time" href=`${input.chosen.href}#${line.id}`><time datetime=line.iso>${line.time}</time></a>
                 <if=line.sender><span class="log-sender">${line.sender}</span></if>
                 <span class="log-content"><for|s| of=line.segments><if=s.href><a href=s.href rel="nofollow ugc noopener">${s.text}</a></if><else>${s.text}</else></for></span>

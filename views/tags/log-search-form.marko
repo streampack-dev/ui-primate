@@ -4,6 +4,8 @@ export interface Input {
   /** [path], the channel's readable address where it has one: the form searches there, else /logs/search with the channel's provenance. */
   channel: { name: string; uri: string; path?: string | null };
   all?: boolean;
+  /** Searching from a filtered day: what was said only (ui-pudl#202), kept for the results. */
+  conversation?: boolean;
   q?: string;
   from?: string;
 }
@@ -11,6 +13,7 @@ export interface Input {
 <form class="log-search grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end mb-6" action=(input.channel.path ? `/logs/${input.channel.path}/search` : "/logs/search") method="get" role="search" aria-label=`Search ${input.channel.name}`>
   <if=!input.channel.path><input type="hidden" name="provenance" value=input.channel.uri></if>
   <if=input.all><input type="hidden" name="all" value="1"></if>
+  <if=input.conversation><input type="hidden" name="events" value="none"></if>
   <label class="section-label form-label-text">
     Text
     <input class="form-field text-sm p-2 mt-2" name="q" type="search" minlength="3" maxlength="200" placeholder=`Search ${input.channel.name}` value=input.q>

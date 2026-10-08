@@ -1270,8 +1270,25 @@ textarea.form-field {
   @apply underline underline-offset-2 hover:text-amber;
 }
 
-.log-system .log-content {
+.log-system .log-content,
+.log-event .log-content {
   @apply italic text-muted-foreground;
+}
+
+/* The log filter (ui-pudl#202): everything, or the conversation only. The choice in use is filled,
+   bold and aria-current, never told by colour alone. */
+.log-filter-choice {
+  @apply px-3 py-1.5 font-mono text-xs font-normal uppercase tracking-widest border border-amber text-amber hover:text-foreground transition-colors;
+}
+
+.log-filter-choice + .log-filter-choice {
+  border-left: none;
+}
+
+.log-filter-choice.is-current {
+  @apply font-bold;
+  background: var(--amber);
+  color: var(--primary-foreground);
 }
 
 /* The RSS reader: ui-nextjs's. */
