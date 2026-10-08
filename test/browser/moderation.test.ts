@@ -16,6 +16,8 @@ const report = {
 };
 const line = (id: string, time: string, sender: string, content: string, hidden = false) => ({
   id, timestamp: `2026-10-06T${time}Z`, day: "2026-10-06", sender, content, direction: "INBOUND", hidden, flagged: !hidden, cited: false,
+  // Why it was flagged (streampack#169), drawn beside its mark: weak, so it isn't checked to begin with.
+  signals: hidden ? null : ["AIMED_HOSTILITY", "REPETITION"], weight: hidden ? null : 2, strong: hidden ? null : false,
 });
 const lines = [line(L1, "03:03:00", "ada", "morning", true), line(L2, "03:04:05", "mallory", "you are all idiots")];
 

@@ -16,7 +16,7 @@ export default route({
     if (!admin() || !ID.test(id)) return notFound();
     const { lineIds, note, one } = readForm(await request.body.formEntries());
     if (!csrfOk(one("csrf"))) return new Response("Forbidden", { status: 403 });
-    if (lineIds.length === 0) return reportPage(id, { error: "Select the lines to purge first.", note }, 400);
+    if (lineIds.length === 0) return reportPage(id, { error: "Select the lines to purge first.", checked: lineIds, note }, 400);
 
     if (one("confirm") !== "yes") {
       let lines: ReturnType<typeof shownLines> = [];

@@ -5,7 +5,7 @@ export interface Input {
   failed: boolean;
   report: {
     id: string; href: string; sender: string; channel: string; protocol: string; status: string; score: string;
-    signals: { name: string; count: number }[];
+    signals: { name: string; label: string; count: number }[];
     verdict: { abusive: boolean; reason: string; model: string } | null;
     window: string; windowStart: string; created: string; createdAt: string; acted: string;
   } | null;
@@ -13,6 +13,7 @@ export interface Input {
   lines?: {
     id: string; time: string; iso: string; day: string; sender: string | null; segments: { text: string; href?: string }[];
     outbound: boolean; hidden: boolean; flagged: boolean; cited: boolean; publicHref: string;
+    signals: string[]; strong: boolean;
   }[];
   purged?: number;
   actions?: { id: string; what: string; actor: string; when: string; at: string; note: string }[];
@@ -46,7 +47,7 @@ export interface Input {
         </div>
         <if=r.signals.length>
           <ul class="mod-signals tags mt-3 list-none p-0" aria-label="Signals">
-            <for|s| of=r.signals by="name"><li class="tag">${s.name} ×${s.count}</li></for>
+            <for|s| of=r.signals by="name"><li class="tag">${s.label} ×${s.count}</li></for>
           </ul>
         </if>
         <if=r.verdict>

@@ -55,12 +55,20 @@ export async function channelFor(uri: string): Promise<Channel> {
 /** The admin day view of [uri]'s [day]. */
 export const dayHref = (uri: string, day: string) => `/admin/moderation/logs?${new URLSearchParams({ provenance: uri, day })}`;
 
+/** A detector signal in words, as the pages show it: AIMED_HOSTILITY is "aimed hostility". */
+export const signalLabel = (name: string) => name.toLowerCase().replaceAll("_", " ");
+
 /** A line's anchor on its public day's page (#lib/logs.ts): its second. */
 const anchor = (iso: string) => `l-${new Date(iso).toISOString().slice(11, 19).replaceAll(":", "")}`;
 
 export type ShownLine = {
   id: string; time: string; iso: string; day: string; sender: string | null; segments: Segment[];
   outbound: boolean; hidden: boolean; flagged: boolean; cited: boolean; publicHref: string;
+  /** Why a flagged line was flagged, in words; empty for other lines and older reports. */
+  signals: string[];
+  /** Whether the line alone weighed enough to hide (streampack#169): an aimed insult, personal
+      details, a slur or a threat, not repetition, flood or untargeted swearing. False when unknown. */
+  strong: boolean;
 };
 
 /** [lines] as they're shown, each with its way to the public log. */
@@ -78,6 +86,8 @@ export function shownLines(lines: ModerationLine[], channel: Channel): ShownLine
       hidden: l.hidden,
       flagged: l.flagged,
       cited: l.cited,
+      signals: l.flagged ? (l.signals || []).map(signalLabel) : [],
+      strong: l.flagged && l.strong === true,
       publicHref: `${logHref(channel, l.day)}${valid ? `#${anchor(l.timestamp)}` : ""}`,
     };
   });
@@ -95,7 +105,7 @@ export function shownReport(r: Report) {
     provenance: r.provenanceUri,
     status: r.status,
     score: Number.isFinite(r.score) ? r.score.toFixed(2) : "",
-    signals: signals.map(([name, count]) => ({ name, count })),
+    signals: signals.map(([name, count]) => ({ name, label: signalLabel(name), count })),
     verdict: r.verdict
       ? { abusive: r.verdict.abusive, reason: r.verdict.reason || "", model: r.verdict.model || "" }
       : null,

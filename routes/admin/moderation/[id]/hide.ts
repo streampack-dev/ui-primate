@@ -11,7 +11,7 @@ export default route({
     if (!admin() || !ID.test(id)) return notFound();
     const { lineIds, note, one } = readForm(await request.body.formEntries());
     if (!csrfOk(one("csrf"))) return new Response("Forbidden", { status: 403 });
-    if (lineIds.length === 0) return reportPage(id, { error: "Select the lines to hide first.", note }, 400);
+    if (lineIds.length === 0) return reportPage(id, { error: "Select the lines to hide first.", checked: lineIds, note }, 400);
     return moderate(`/admin/moderation/reports/${id}/hide`, { lineIds, ...(note ? { note } : {}) }, `/admin/moderation/${id}`, "hidden",
       (error, status) => reportPage(id, { error, checked: lineIds, note }, status), "The lines weren't hidden.");
   },

@@ -12,6 +12,7 @@ const QUIET = "019f0000-0000-7000-8000-0000000e0002";
 const L1 = "019f0000-0000-7000-8000-0000000f0001";
 const L2 = "019f0000-0000-7000-8000-0000000f0002";
 const L3 = "019f0000-0000-7000-8000-0000000f0003";
+const L4 = "019f0000-0000-7000-8000-0000000f0004";
 const ACTION = "019f0000-0000-7000-8000-0000000a0a01";
 
 const sent = async (method: string, path: string) => (await requests()).filter((r) => r.method === method && r.path === path);
@@ -25,7 +26,7 @@ function report(fields: Partial<Record<string, unknown>> = {}) {
   };
 }
 
-const line = (id: string, time: string, sender: string, content: string, marks: Partial<Record<"hidden" | "flagged" | "cited", boolean>> = {}) => ({
+const line = (id: string, time: string, sender: string, content: string, marks: Partial<Record<"hidden" | "flagged" | "cited" | "strong", boolean> & { signals: string[]; weight: number }> = {}) => ({
   id, timestamp: `2026-10-06T${time}Z`, day: "2026-10-06", sender, content, direction: "INBOUND", hidden: false, flagged: false, cited: false, ...marks,
 });
 
@@ -86,7 +87,7 @@ describe("moderation", () => {
     expect(text(first.querySelector("h2"))).toBe("mallory in #java");
     expect(first.querySelector("h2 a")?.getAttribute("href")).toBe(`/admin/moderation/${REPORT}`);
     expect(text(first)).toContain("2026-10-06 03:04 to 03:09 UTC");
-    expect(first.querySelectorAll(".mod-signals li").map((li) => text(li))).toEqual(["SLUR ×2", "CAPS ×1"]);
+    expect(first.querySelectorAll(".mod-signals li").map((li) => text(li))).toEqual(["slur ×2", "caps ×1"]);
     expect(text(first.querySelector(".mod-verdict"))).toBe("AI: abusive. Insults another user. (claude-opus-5-5)");
     expect(text(second.querySelector(".mod-verdict"))).toBe("No AI verdict");
     expect(text(second.querySelector(".mod-acted"))).toBe("Dismissed by ed, 2026-10-06 06:00 UTC");
@@ -136,6 +137,43 @@ describe("moderation", () => {
     expect(form.querySelectorAll("button").map((b) => b.getAttribute("formaction") ?? "")).toEqual(["", `/admin/moderation/${REPORT}/unhide`, `/admin/moderation/${REPORT}/purge`]);
     expect(form.querySelector("button")?.classList.contains("danger")).toBe(false);
     expect(main.querySelector(`form.mod-dismiss[action='/admin/moderation/${REPORT}/dismiss']`)).not.toBeNull();
+  });
+
+  it("checks only a report's strong lines, and says beside each flagged one why it was flagged", async () => {
+    // streampack#169: an aimed insult weighs enough to hide; repetition alone doesn't.
+    await stub(`/admin/moderation/reports/${REPORT}`, {
+      ...DETAIL,
+      lines: [
+        line(L1, "03:03:00", "ada", "morning", { signals: null, weight: null, strong: null } as never),
+        line(L2, "03:04:05", "mallory", "you are an idiot, ada", { flagged: true, signals: ["AIMED_HOSTILITY", "INSULT"], weight: 4, strong: true }),
+        line(L4, "03:04:30", "mallory", "~sentiment", { flagged: true, signals: ["REPETITION"], weight: 1, strong: false }),
+      ],
+    });
+    const v = await signedIn(ADMIN);
+    const { doc } = await v.get(`/admin/moderation/${REPORT}`);
+    const rows = doc.querySelectorAll("li.mod-line");
+    expect(rows.map((r) => r.querySelector("input[type=checkbox]")?.hasAttribute("checked"))).toEqual([false, true, false]);
+    expect(rows.map((r) => text(r.querySelector(".mod-why")))).toEqual(["", "aimed hostility, insult", "repetition"]);
+    // Beside the mark it explains.
+    expect(rows[1].querySelector(".mod-mark.flagged")?.nextElementSibling?.classList.contains("mod-why")).toBe(true);
+
+    // A refused step draws the page again as it was left, not as it began.
+    await stub(`/admin/moderation/reports/${REPORT}/hide`, { status: 400, detail: "Those lines changed." }, { method: "POST", status: 400 });
+    const refused = await v.post(`/admin/moderation/${REPORT}/hide`, [["line", L4]]);
+    expect(refused.status).toBe(400);
+    expect(text(refused.doc.querySelector(".form-error[role=alert]"))).toBe("Those lines changed.");
+    expect(refused.doc.querySelectorAll("li.mod-line input[type=checkbox]").map((c) => c.hasAttribute("checked"))).toEqual([false, false, true]);
+    const empty = await v.post(`/admin/moderation/${REPORT}/hide`, []);
+    expect(empty.doc.querySelectorAll("li.mod-line input[type=checkbox][checked]").length).toBe(0);
+  });
+
+  it("checks nothing in an older report, which doesn't say why its lines were flagged", async () => {
+    const v = await signedIn(ADMIN);
+    const { doc } = await v.get(`/admin/moderation/${REPORT}`);
+    const rows = doc.querySelectorAll("li.mod-line");
+    expect(rows.map((r) => r.querySelector("input[type=checkbox]")?.hasAttribute("checked"))).toEqual([false, false, false]);
+    expect(doc.querySelectorAll(".mod-why").length).toBe(0);
+    expect(rows[1].querySelectorAll(".mod-mark").map((m) => text(m))).toEqual(["flagged", "cited"]);
   });
 
   it("offers no dismissal for a report that isn't open, and has nothing for one that doesn't exist", async () => {

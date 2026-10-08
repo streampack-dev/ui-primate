@@ -2,26 +2,27 @@ export interface Input {
   lines: {
     id: string; time: string; iso: string; day: string; sender: string | null; segments: { text: string; href?: string }[];
     outbound: boolean; hidden: boolean; flagged: boolean; cited: boolean; publicHref: string;
+    signals: string[]; strong: boolean;
   }[];
   /** Whether each line can be checked, for the form it's in. */
   selectable: boolean;
   /** Whether to say each line's day (an excerpt can cross midnight; a day view needn't). */
   days?: boolean;
-  /** Lines checked already: a refused step's, drawn again. */
+  /** Lines checked already: a refused step's, drawn again, as it was left. Without it, the strong lines are. */
   checked?: string[];
 }
 <!-- A day's or a report's lines, as the public log has them, with what moderation knows of each:
-     flagged by the detector, cited by the AI's verdict, hidden from the public log. -->
+     flagged by the detector (and why, when the report says), cited by the AI's verdict, hidden from the public log. -->
 <ol class="log-lines mod-lines">
   <for|line| of=input.lines by="id">
     <li id=`line-${line.id}` class=["log-line mod-line", !line.sender && "log-system", line.outbound && "log-outbound", line.flagged && "is-flagged", line.hidden && "is-hidden"]>
       <if=input.selectable>
-        <input type="checkbox" name="line" value=line.id id=`pick-${line.id}` checked=(input.checked?.includes(line.id) || false) aria-label=`Select the line at ${line.time}${line.sender ? ` from ${line.sender}` : ""}`>
+        <input type="checkbox" name="line" value=line.id id=`pick-${line.id}` checked=(input.checked ? input.checked.includes(line.id) : line.strong) aria-label=`Select the line at ${line.time}${line.sender ? ` from ${line.sender}` : ""}`>
       </if>
       <a class="log-time" href=line.publicHref title="This line in the public log"><time datetime=line.iso>${input.days ? `${line.day} ` : ""}${line.time}</time></a>
       <if=line.sender><span class="log-sender">${line.sender}</span></if>
       <span class="log-content"><for|s| of=line.segments><if=s.href><a href=s.href rel="nofollow ugc noopener">${s.text}</a></if><else>${s.text}</else></for></span>
-      <if=line.flagged><span class="mod-mark flagged">flagged</span></if>
+      <if=line.flagged><span class="mod-mark flagged">flagged</span><if=line.signals.length><span class="mod-why">${line.signals.join(", ")}</span></if></if>
       <if=line.cited><span class="mod-mark cited">cited</span></if>
       <if=line.hidden><span class="mod-mark hidden-line">hidden</span></if>
     </li>

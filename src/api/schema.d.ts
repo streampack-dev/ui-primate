@@ -1951,6 +1951,10 @@ export interface components {
             hidden: boolean;
             flagged: boolean;
             cited: boolean;
+            signals?: string[] | null;
+            /** Format: double */
+            weight?: number | null;
+            strong?: boolean | null;
         };
         ReportDetail: {
             report: components["schemas"]["ReportSummary"];

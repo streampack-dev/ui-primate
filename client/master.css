@@ -1508,6 +1508,13 @@ textarea.form-field {
   @apply text-amber border-amber/50;
 }
 
+/* Why a line was flagged, beside its mark: the detector's signals, in words. */
+.mod-why {
+  @apply font-mono text-muted-foreground shrink-0 self-start;
+  font-size: 0.7rem;
+  line-height: 1.6;
+}
+
 .mod-mark.cited {
   @apply text-foreground border-border;
 }

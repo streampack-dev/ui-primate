@@ -46,6 +46,10 @@ Since (2026-10-03):
       /admin/moderation/logs is a day with its hidden lines, to hide or unhide them, and the public
       log's day links to it for admins. Nothing is hidden by itself, and the bot bans no one
       (2026-10-07)
+- [x] Moderation's lines say why (ui-primate #19, streampack#169): each flagged line shows its
+      signals in words beside its mark, as the list does, and only strong lines (an aimed insult,
+      personal details, a slur or a threat) start checked; repetition, flood and untargeted swearing
+      don't, nor older reports' lines. A refused step keeps the checks as they were left (2026-10-07)
 
 Before it's deployed:
 

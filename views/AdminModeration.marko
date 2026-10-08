@@ -6,7 +6,7 @@ export interface Input {
   tabs: { label: string; href: string; current: boolean }[];
   reports: {
     id: string; href: string; sender: string; channel: string; protocol: string; status: string; score: string;
-    signals: { name: string; count: number }[];
+    signals: { name: string; label: string; count: number }[];
     verdict: { abusive: boolean; reason: string; model: string } | null;
     window: string; windowStart: string; created: string; createdAt: string; acted: string;
   }[];
@@ -43,7 +43,7 @@ export interface Input {
         </div>
         <if=r.signals.length>
           <ul class="mod-signals tags mt-3 list-none p-0" aria-label="Signals">
-            <for|s| of=r.signals by="name"><li class="tag">${s.name} ×${s.count}</li></for>
+            <for|s| of=r.signals by="name"><li class="tag">${s.label} ×${s.count}</li></for>
           </ul>
         </if>
         <if=r.verdict>
