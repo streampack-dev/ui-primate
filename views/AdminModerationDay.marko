@@ -12,6 +12,9 @@ export interface Input {
     signals: string[]; strong: boolean;
   }[];
   publicHref: string;
+  /** Only what was said (ui-pudl#202), and the filter's two choices. */
+  conversation?: boolean;
+  filters?: { label: string; href: string; current: boolean }[];
   prev: string;
   next: string | null;
   said?: string;
@@ -27,6 +30,13 @@ export interface Input {
   <p class="text-sm text-muted-foreground mb-6">Every line of the day, the hidden ones marked. Hidden lines are kept, and gone from <a class="pagelink" href=input.publicHref>the public log</a>.</p>
   <if=input.said><div class="mb-6 px-4 py-3 border border-amber/30 bg-amber/5"><p class="section-label text-amber" role="status">${input.said}</p></div></if>
   <if=input.error><div class="mb-6 px-4 py-3 border border-destructive/30 bg-destructive/5"><p class="form-error mt-0" role="alert">${input.error}</p></div></if>
+  <if=(input.filters && input.filters.length)>
+    <nav class="log-filter flex gap-0 mb-4" aria-label="Lines shown">
+      <for|f| of=input.filters by="label">
+        <a class=["log-filter-choice", f.current && "is-current"] href=f.href aria-current=(f.current ? "page" : false)>${f.label}</a>
+      </for>
+    </nav>
+  </if>
   <nav class="log-days flex items-center justify-between border-b border-border/40 pb-3 mb-6" aria-label="Days">
     <a class="log-day-link" rel="prev" href=input.prev>&larr; Previous</a>
     <span class="log-day">${input.channel} · ${input.day}</span>
@@ -42,6 +52,7 @@ export interface Input {
       <input type="hidden" name="csrf" value=input.csrf>
       <input type="hidden" name="provenance" value=input.provenance>
       <input type="hidden" name="day" value=input.day>
+      <if=input.conversation><input type="hidden" name="events" value="none"></if>
       <moderation-lines lines=input.lines selectable=true checked=input.checked/>
       <div class="mt-4">
         <label class="byline form-label" for="mod-note">Note, for the record (optional)</label>

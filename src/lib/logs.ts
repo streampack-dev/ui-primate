@@ -48,10 +48,15 @@ export function speaker(sender: string | null | undefined, content: string | nul
   return (content || "").startsWith(`* ${sender} `) ? null : sender;
 }
 
-export type LogLine = { id: string; time: string; iso: string; sender: string | null; segments: Segment[]; outbound: boolean };
+export type LogLine = { id: string; time: string; iso: string; sender: string | null; segments: Segment[]; outbound: boolean; event: boolean };
+
+/** Whether a line of [kind] is a channel event (a join, part, quit, nick change or topic): a line without a kind is something said, as the field is optional. */
+export function isEvent(kind: string | null | undefined): boolean {
+  return !!kind && kind !== "MESSAGE";
+}
 
 /** A day's lines, each anchored by its UTC time (`l-030405`); lines in the same second take -2, -3 and so on. */
-export function lines(entries: { timestamp?: string; sender?: string; content?: string; direction?: string }[]): LogLine[] {
+export function lines(entries: { timestamp?: string; sender?: string; content?: string; direction?: string; kind?: string }[]): LogLine[] {
   const seen = new Map<string, number>();
   return entries.map((e, i) => {
     const when = e.timestamp ? new Date(e.timestamp) : null;
@@ -66,6 +71,7 @@ export function lines(entries: { timestamp?: string; sender?: string; content?: 
       sender: speaker(e.sender, e.content),
       segments: segments(e.content || ""),
       outbound: e.direction === "OUTBOUND",
+      event: isEvent(e.kind),
     };
   });
 }

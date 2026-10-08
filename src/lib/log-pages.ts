@@ -8,8 +8,8 @@ import type { components } from "#api/schema.d.ts";
 import { refusal } from "#auth/forms.ts";
 import { current, isAdmin } from "#auth/readers.ts";
 import { formatDate } from "#lib/format.ts";
-import { askLogs, channels as listChannels, logHref, readLogs, searchHref, type Channel } from "#lib/log-channels.ts";
-import { lines, segments, shiftDay, speaker, today } from "#lib/logs.ts";
+import { askLogs, channels as listChannels, filterParams, logHref, readLogs, searchHref, type Channel } from "#lib/log-channels.ts";
+import { isEvent, lines, segments, shiftDay, speaker, today } from "#lib/logs.ts";
 import { dayHref } from "#lib/moderation.ts";
 import { notFound } from "#lib/post-page.ts";
 import { view } from "#lib/view.ts";
@@ -46,9 +46,10 @@ export async function browsable(): Promise<Channel[] | null> {
 
 /**
  * The day page. [chosen] is the channel asked for (null for the first listed), [day] the day (null
- * for today, as an address without one means), [all] an admin's every-protocol listing.
+ * for today, as an address without one means), [all] an admin's every-protocol listing, and
+ * [conversation] only what was said, without joins, parts and the like (`events=none`, ui-pudl#202).
  */
-export async function logPage(chosenUri: string | null, day: string | null, all: boolean) {
+export async function logPage(chosenUri: string | null, day: string | null, all: boolean, conversation = false) {
   const shown = day ?? today();
   const admin = isAdmin(current());
   let channels: Channel[];
@@ -67,30 +68,35 @@ export async function logPage(chosenUri: string | null, day: string | null, all:
   let failed = false;
   if (chosen) {
     try {
-      entries = lines((await readLogs<Day>("/logs", { provenance: chosen.uri, day: shown }))?.entries || []);
+      entries = lines((await readLogs<Day>("/logs", { provenance: chosen.uri, day: shown, ...filterParams(conversation) }))?.entries || []);
     } catch {
       failed = true;
     }
   }
   const next = shiftDay(shown, 1);
-  const href = chosen ? logHref(chosen, shown, all) : null;
+  // Previous, next, the lines' own links and the channels keep the filter.
+  const href = chosen ? logHref(chosen, shown, all, conversation) : null;
+  // The filter's two choices: this same address, with and without it.
+  const choice = (c: boolean) => ({ label: c ? "Conversation only" : "Everything", href: logHref(chosen!, day, all, c), current: c === conversation });
 
   return view("Logs.marko", {
     day: shown,
     dayLabel: DAY_LABEL(shown),
-    channels: channels.map((c) => ({ ...c, href: logHref(c, shown, all), current: c.uri === chosen?.uri })),
+    channels: channels.map((c) => ({ ...c, href: logHref(c, shown, all, conversation), current: c.uri === chosen?.uri })),
     chosen: chosen && href ? { uri: chosen.uri, name: chosen.name, href, path: chosen.path } : null,
     all,
+    conversation,
+    filters: chosen ? [choice(false), choice(true)] : [],
     lines: entries,
     failed,
-    prev: chosen ? logHref(chosen, shiftDay(shown, -1), all) : null,
-    next: chosen && next <= today() ? logHref(chosen, next, all) : null,
+    prev: chosen ? logHref(chosen, shiftDay(shown, -1), all, conversation) : null,
+    next: chosen && next <= today() ? logHref(chosen, next, all, conversation) : null,
     // An admin's way to every protocol's channels (and back).
-    allToggle: admin ? { href: `/logs?${new URLSearchParams({ day: shown, ...(all ? {} : { all: "1" }) })}`, all } : null,
+    allToggle: admin ? { href: `/logs?${new URLSearchParams({ day: shown, ...(all ? {} : { all: "1" }), ...filterParams(conversation) })}`, all } : null,
     // An admin's way to this day with its hidden lines, to hide or unhide them (streampack#150).
-    moderate: admin && chosen ? dayHref(chosen.uri, shown) : null,
+    moderate: admin && chosen ? dayHref(chosen.uri, shown, conversation) : null,
     meta: {
-      title: chosen ? `${chosen.name}, ${formatDate(`${shown}T00:00:00Z`)}` : "Chat Logs",
+      title: chosen ? `${chosen.name}, ${formatDate(`${shown}T00:00:00Z`)}${conversation ? ", conversation only" : ""}` : "Chat Logs",
       path: chosen?.path ? `/logs/${chosen.path}${day ? `/${day}` : ""}` : "/logs",
     },
   }, {
@@ -98,16 +104,19 @@ export async function logPage(chosenUri: string | null, day: string | null, all:
   });
 }
 
-/** A search of [channel]'s log for [q] and/or [from], page [page] (from 1). */
-export async function searchPage(channel: Channel, q: string, from: string, page: number, all: boolean) {
+/**
+ * A search of [channel]'s log for [q] and/or [from], page [page] (from 1); with [conversation], of
+ * what was said only, as the filtered day it was asked from (ui-pudl#202), its lines linked filtered.
+ */
+export async function searchPage(channel: Channel, q: string, from: string, page: number, all: boolean, conversation = false) {
   // Nothing to look for: the channel's log.
-  if (!q && !from) return response.redirect(logHref(channel, null, all), 303);
+  if (!q && !from) return response.redirect(logHref(channel, null, all, conversation), 303);
 
-  const href = (n: number) => searchHref(channel, { ...(q ? { q } : {}), ...(from ? { from } : {}), ...(n > 1 ? { page: String(n) } : {}) }, all);
+  const href = (n: number) => searchHref(channel, { ...(q ? { q } : {}), ...(from ? { from } : {}), ...filterParams(conversation), ...(n > 1 ? { page: String(n) } : {}) }, all);
   const shown = {
-    channel: { name: channel.name, uri: channel.uri, href: logHref(channel, null, all), path: channel.path },
-    all, q, from,
-    heading: [q && `“${q}”`, from && `from ${from}`, `in ${channel.name}`].filter(Boolean).join(" "),
+    channel: { name: channel.name, uri: channel.uri, href: logHref(channel, null, all, conversation), path: channel.path },
+    all, conversation, q, from,
+    heading: [q && `“${q}”`, from && `from ${from}`, `in ${channel.name}`, conversation && "(conversation only)"].filter(Boolean).join(" "),
     meta: { title: `Search ${channel.name}`, path: channel.path ? `/logs/${channel.path}/search` : "/logs", robots: "noindex" },
   };
   const refused = (notice: string, status: number) =>
@@ -117,7 +126,7 @@ export async function searchPage(channel: Channel, q: string, from: string, page
 
   let answer: Response;
   try {
-    answer = await askLogs("/logs/search", { provenance: channel.uri, ...(q ? { q } : {}), ...(from ? { sender: from } : {}), page: String(page - 1), size: String(SIZE) });
+    answer = await askLogs("/logs/search", { provenance: channel.uri, ...(q ? { q } : {}), ...(from ? { sender: from } : {}), ...filterParams(conversation), page: String(page - 1), size: String(SIZE) });
   } catch {
     return unavailable();
   }
@@ -135,12 +144,13 @@ export async function searchPage(channel: Channel, q: string, from: string, page
     const anchor = `l-${at.toISOString().slice(11, 19).replaceAll(":", "")}`;
     return {
       key: `${h.timestamp}-${i}`,
-      href: `${logHref(channel, day, all)}#${anchor}`,
+      href: `${logHref(channel, day, all, conversation)}#${anchor}`,
       iso: h.timestamp!,
       when: `${SHORT_DAY(day)}, ${at.toISOString().slice(11, 16)}`,
       sender: speaker(h.sender, h.content),
       segments: segments(h.content || ""),
       outbound: h.direction === "OUTBOUND",
+      event: isEvent(h.kind),
     };
   });
   return view("LogSearch.marko", {

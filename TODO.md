@@ -34,6 +34,12 @@ Since (2026-10-03):
       (/logs/irc/libera/java/2026-10-06) and its search (/logs/irc/libera/java/search?q=), for the
       Libera logging notice; the query forms answer 301 there, and another spelling of a channel
       (%23java) is sent to the API's address for it (2026-10-07)
+- [x] Logs: "Everything" / "Conversation only" on a day (ui-pudl#202, as ui-pudl#211), real links,
+      `?events=none` on any log address and the API's `events=none` behind it; everything is the
+      default, so no address changes meaning. Previous/next, line links, channels, the query forms'
+      301s and the search (its results too) keep it; event lines (`kind` not MESSAGE; none is a
+      message) are marked `log-event`, italic. The admin day keeps the lines the public filtered day
+      has, and every hidden line; every line when the public day can't be read (2026-10-08)
 - [x] Factoids: signed-in readers teach, edit and forget them, admins lock and unlock them, as
       ui-pudl has it (ui-pudl #170). Only what changed is sent; an emptied field forgets that
       attribute. `see` and `maven` aren't offered: the API sets them but its detail doesn't show them

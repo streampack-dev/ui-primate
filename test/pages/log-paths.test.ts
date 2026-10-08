@@ -68,6 +68,17 @@ describe("a channel's readable address", () => {
       .toMatchObject({ status: 301, location: `/logs/irc/libera/java/${DAY}` });
   });
 
+  it("answers with the conversation filter too, today, a day, and the query form's move (ui-pudl#202)", async () => {
+    await stubDay(JAVA, TODAY, []);
+    await stubDay(JAVA, DAY, []);
+    for (const path of ["/logs/irc/libera/java", `/logs/irc/libera/java/${DAY}`]) {
+      expect((await new Visitor().get(path)).status, path).toBe(200);
+      expect((await new Visitor().get(`${path}?events=none`)).status, `${path}?events=none`).toBe(200);
+    }
+    expect(await new Visitor().get(`/logs?${new URLSearchParams({ provenance: JAVA, day: DAY, events: "none" })}`))
+      .toMatchObject({ status: 301, location: `/logs/irc/libera/java/${DAY}?events=none` });
+  });
+
   it("names no channel when the API knows none, or a day that isn't one", async () => {
     expect((await new Visitor().get("/logs/irc/libera/nowhere")).status).toBe(404);
     expect((await new Visitor().get("/logs/irc/libera/java/2026-02-30")).status).toBe(404);
@@ -87,6 +98,13 @@ describe("a channel's search, at its readable address", () => {
     expect(doc.querySelector("form.log-search")?.getAttribute("action")).toBe("/logs/irc/libera/java/search");
     expect(doc.querySelector("form.log-search input[name=provenance]")).toBeNull();
     expect(doc.querySelector(".log-hit a, a[href*='#l-']")?.getAttribute("href")).toBe(`/logs/irc/libera/java/${DAY}#l-030405`);
+  });
+
+  it("answers filtered, and the query form's filtered search moves there with its filter", async () => {
+    await stub("/logs/search", { provenanceUri: JAVA, page: 0, size: 50, totalCount: 0, totalPages: 0, hits: [] }, { query: { provenance: JAVA } });
+    expect((await new Visitor().get("/logs/irc/libera/java/search?q=hello&events=none")).status).toBe(200);
+    expect(await new Visitor().get(`/logs/search?${new URLSearchParams({ provenance: JAVA, q: "hello", events: "none" })}`))
+      .toMatchObject({ status: 301, location: "/logs/irc/libera/java/search?q=hello&events=none" });
   });
 
   it("is where the query form's search sends a reader, for good", async () => {

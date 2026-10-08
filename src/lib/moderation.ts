@@ -6,7 +6,7 @@ import { send } from "#api/client.ts";
 import type { components } from "#api/schema.d.ts";
 import { bearer } from "#auth/signed-in.ts";
 import { act } from "#lib/admin.ts";
-import { channels as listChannels, logHref, searchHref, type Channel } from "#lib/log-channels.ts";
+import { channels as listChannels, filterParams, logHref, searchHref, type Channel } from "#lib/log-channels.ts";
 import { channelName, segments, speaker, type Segment } from "#lib/logs.ts";
 
 export type Report = components["schemas"]["ReportSummary"];
@@ -52,8 +52,37 @@ export async function channelFor(uri: string): Promise<Channel> {
   return { uri, name: channelName(uri), latest: null, path: null };
 }
 
-/** The admin day view of [uri]'s [day]. */
-export const dayHref = (uri: string, day: string) => `/admin/moderation/logs?${new URLSearchParams({ provenance: uri, day })}`;
+/** The admin day view of [uri]'s [day]; with [conversation], what was said only (`events=none`, ui-pudl#202). */
+export const dayHref = (uri: string, day: string, conversation = false) =>
+  `/admin/moderation/logs?${new URLSearchParams({ provenance: uri, day, ...filterParams(conversation) })}`;
+
+/**
+ * Moderation's day carries no line kinds (and takes no `events`), so an admin's conversation is its
+ * lines that the public conversation (`events=none`) has too, matched by time, sender and text, and
+ * its hidden lines, which the public log leaves out whatever they are. If the public day can't be
+ * read ([said] null), every line is kept rather than none.
+ */
+export function conversationLines(lines: ModerationLine[], said: { timestamp?: string; sender?: string; content?: string }[] | null): ModerationLine[] {
+  if (!said) return lines;
+  const at = (timestamp: string | undefined, sender: string | undefined, content: string | undefined) => {
+    const when = timestamp ? new Date(timestamp).getTime() : Number.NaN;
+    return JSON.stringify([Number.isNaN(when) ? timestamp ?? null : when, sender ?? null, content ?? null]);
+  };
+  const left = new Map<string, number>();
+  for (const s of said) {
+    const key = at(s.timestamp, s.sender, s.content);
+    left.set(key, (left.get(key) ?? 0) + 1);
+  }
+  return lines.filter((l) => {
+    const key = at(l.timestamp, l.sender, l.content);
+    const n = left.get(key) ?? 0;
+    if (n > 0) {
+      left.set(key, n - 1);
+      return true;
+    }
+    return l.hidden;
+  });
+}
 
 /** A detector signal in words, as the pages show it: AIMED_HOSTILITY is "aimed hostility". */
 export const signalLabel = (name: string) => name.toLowerCase().replaceAll("_", " ");

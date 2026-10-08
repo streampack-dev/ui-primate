@@ -10,10 +10,10 @@ export default route({
     if (!admin()) return notFound();
     const { lineIds, note, one } = readForm(await request.body.formEntries());
     if (!csrfOk(one("csrf"))) return new Response("Forbidden", { status: 403 });
-    const at = asked(one("provenance"), one("day"));
+    const at = asked(one("provenance"), one("day"), one("events"));
     if (!at) return notFound();
-    if (lineIds.length === 0) return dayPage(at.provenance, at.day, { error: "Select the lines to unhide first.", note }, 400);
-    return moderate("/admin/moderation/lines/unhide", { lineIds, ...(note ? { note } : {}) }, dayHref(at.provenance, at.day), "unhidden",
-      (error, status) => dayPage(at.provenance, at.day, { error, checked: lineIds, note }, status), "The lines weren't unhidden.");
+    if (lineIds.length === 0) return dayPage(at.provenance, at.day, { error: "Select the lines to unhide first.", note }, 400, at.conversation);
+    return moderate("/admin/moderation/lines/unhide", { lineIds, ...(note ? { note } : {}) }, dayHref(at.provenance, at.day, at.conversation), "unhidden",
+      (error, status) => dayPage(at.provenance, at.day, { error, checked: lineIds, note }, status, at.conversation), "The lines weren't unhidden.");
   },
 });

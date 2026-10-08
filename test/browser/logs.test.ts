@@ -99,3 +99,47 @@ describe("searching a channel's log, in a browser (#4)", () => {
     }
   });
 });
+
+describe("the log filter, in a browser (ui-pudl#202)", () => {
+  const day = (entries: unknown[], query: Record<string, string>) => stub("/logs", { provenanceUri: JAVA, day: DAY, entries }, { query });
+
+  beforeEach(async () => {
+    const every = [
+      { timestamp: "2026-09-30T09:00:00Z", sender: "ada", content: "* ada joined #java", direction: "INBOUND", kind: "JOIN" },
+      { timestamp: "2026-09-30T09:00:05Z", sender: "ada", content: "morning all", direction: "INBOUND", kind: "MESSAGE" },
+      { timestamp: "2026-09-30T09:00:09Z", sender: "bob", content: "* bob has quit", direction: "INBOUND", kind: "QUIT" },
+    ];
+    await day(every, { provenance: JAVA, day: DAY });
+    await day(every.filter((e) => e.kind === "MESSAGE"), { provenance: JAVA, day: DAY, events: "none" });
+  });
+
+  it("shows the conversation only when asked, and keeps it through a reload", async () => {
+    const { page, errors } = await open(`/logs?${new URLSearchParams({ provenance: JAVA, day: DAY })}`);
+    await expect.poll(() => page.locator("li.log-line").count()).toBe(3);
+
+    await page.getByRole("link", { name: "Conversation only" }).click();
+    await page.waitForURL(/[?&]events=none/);
+    await expect.poll(() => page.locator("li.log-line").count()).toBe(1);
+    expect(await page.locator("nav.log-filter a[aria-current=page]").textContent()).toBe("Conversation only");
+
+    await page.reload();
+    await expect.poll(() => page.locator("li.log-line").count()).toBe(1);
+    expect(await page.locator("li.log-line .log-content").textContent()).toBe("morning all");
+    expect(await page.locator("a[rel=prev]").getAttribute("href")).toContain("events=none");
+
+    await page.getByRole("link", { name: "Everything" }).click();
+    await expect.poll(() => page.locator("li.log-line").count()).toBe(3);
+    expect(page.url()).not.toContain("events=");
+    expect(errors).toEqual([]);
+  });
+
+  for (const theme of ["light", "dark"] as const) {
+    it(`passes axe in the ${theme} theme, filtered and not, its events marked`, async () => {
+      for (const query of ["", "&events=none"]) {
+        const { page } = await open(`/logs?${new URLSearchParams({ provenance: JAVA, day: DAY })}${query}`, theme);
+        await page.locator("nav.log-filter").waitFor();
+        await expectAccessible(page);
+      }
+    });
+  }
+});

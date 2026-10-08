@@ -12,13 +12,39 @@ type Channels = components["schemas"]["LogProvenanceListResponse"];
 /** A channel: its provenance, its name, its latest line, and its readable address (`irc/libera/java`, #16) where the API gives one. */
 export type Channel = { uri: string; name: string; latest: string | null; path: string | null };
 
-/** A channel's log: its readable address where it has one (`/logs/irc/libera/java/2026-10-06`), else the query form. A [day] of null is today's, as the address says nothing of it. */
-export function logHref(channel: Channel, day: string | null, all = false): string {
-  if (channel.path) return `/logs/${channel.path}${day ? `/${day}` : ""}${all ? "?all=1" : ""}`;
-  return `/logs?${new URLSearchParams({ provenance: channel.uri, ...(day ? { day } : {}), ...(all ? { all: "1" } : {}) })}`;
+/**
+ * The log filter (ui-pudl#202): the whole day, as ever, or the conversation only, without joins,
+ * parts, quits, nick changes and topics. Everything is the default, so no address changes meaning:
+ * the conversation is `?events=none` on any log address, the API's own spelling.
+ */
+export const EVENTS = "events";
+const NONE = "none";
+
+/** Whether an address's `events` asks for the conversation only; anything else is everything. */
+export function conversationOnly(events: string | undefined | null): boolean {
+  return (events || "").trim().toLowerCase() === NONE;
 }
 
-/** A search of a channel's log, with [params] (q, from, page), in the same two forms. */
+/** The filter as address (and API) parameters: none for everything. */
+export function filterParams(conversation: boolean): Record<string, string> {
+  return conversation ? { [EVENTS]: NONE } : {};
+}
+
+/**
+ * A channel's log: its readable address where it has one (`/logs/irc/libera/java/2026-10-06`), else
+ * the query form. A [day] of null is today's, as the address says nothing of it; [conversation]
+ * adds `events=none`.
+ */
+export function logHref(channel: Channel, day: string | null, all = false, conversation = false): string {
+  const extra = { ...(all ? { all: "1" } : {}), ...filterParams(conversation) };
+  if (channel.path) {
+    const query = new URLSearchParams(extra).toString();
+    return `/logs/${channel.path}${day ? `/${day}` : ""}${query ? `?${query}` : ""}`;
+  }
+  return `/logs?${new URLSearchParams({ provenance: channel.uri, ...(day ? { day } : {}), ...extra })}`;
+}
+
+/** A search of a channel's log, with [params] (q, from, events, page), in the same two forms. */
 export function searchHref(channel: Channel, params: Record<string, string>, all = false): string {
   const own = { ...params, ...(all ? { all: "1" } : {}) };
   if (channel.path) {
