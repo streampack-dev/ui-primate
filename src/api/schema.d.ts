@@ -664,6 +664,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/atlas/relayout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Lay the Atlas out again (admin)
+         * @description Recomputes the whole layout from every published post and factoid, stores it and returns it. Every place may move, so readers lose the map they've learned; new tags are placed without this.
+         */
+        post: operations["relayout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/taxonomy": {
         parameters: {
             query?: never;
@@ -866,7 +886,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get one day of logs for a provenance */
+        /**
+         * Get one day of logs for a provenance
+         * @description Every line of one UTC day, oldest first, each with its `kind`: `MESSAGE`, `JOIN`, `PART`, `QUIT`, `NICK` or `TOPIC`. `events=none` leaves out channel events (joins, parts, quits, nick changes and topics); `kinds` picks the kinds to include. Without either, every line is returned.
+         */
         get: operations["getDayLogs"];
         put?: never;
         post?: never;
@@ -885,7 +908,7 @@ export interface paths {
         };
         /**
          * Search one channel's logs
-         * @description Lines in one channel whose text contains `q`, ignoring case, and written by `sender` (a nick, ignoring case), newest first. Give `q`, `sender`, or both: `sender` alone lists everything that person said there. Only a channel the caller may browse is searched; any other is a 404, as for the day logs, so a search can't reveal that a hidden channel exists. `q` is matched as written, between 3 and 200 characters.
+         * @description Lines in one channel whose text contains `q`, ignoring case, and written by `sender` (a nick, ignoring case), newest first. Give `q`, `sender`, or both: `sender` alone lists everything that person said there. Only a channel the caller may browse is searched; any other is a 404, as for the day logs, so a search can't reveal that a hidden channel exists. `q` is matched as written, between 3 and 200 characters. Each hit carries its `kind`. `events=none` leaves out channel events (joins, parts, quits, nick changes and topics); `kinds` picks the kinds to include. Without either, every line is returned.
          */
         get: operations["search"];
         put?: never;
@@ -1088,6 +1111,46 @@ export interface paths {
         };
         /** Export the authenticated user's data */
         get: operations["exportUserData"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/atlas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The Atlas: regions and places (tags) with positions, counts and pins
+         * @description Laid out on the first request and stored; later requests read the stored map. A new tag is placed beside its strongest relative without moving anything; a tag no longer used is left out but keeps its place. Conditional (ETag, Last-Modified).
+         */
+        get: operations["getAtlas"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/atlas/places/{tag}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One place on the Atlas, with every article and factoid found there
+         * @description The tag is matched ignoring case. 404 when it isn't on the map.
+         */
+        get: operations["getPlace"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1431,6 +1494,8 @@ export interface components {
             lastAccessedAt?: string | null;
             /** Format: int64 */
             accessCount: number;
+            /** Format: date-time */
+            createdAt?: string | null;
             attributes: components["schemas"]["FactoidAttributeResponse"][];
         };
         EditCommentHttpRequest: {
@@ -1663,6 +1728,128 @@ export interface components {
             slug: string;
             parentName?: string | null;
         };
+        /** @description A rectangle in world units. */
+        AtlasBounds: {
+            /** Format: double */
+            x: number;
+            /** Format: double */
+            y: number;
+            /** Format: double */
+            width: number;
+            /** Format: double */
+            height: number;
+        };
+        /** @description An article or factoid pinned around its place. */
+        AtlasPin: {
+            /**
+             * @description What a pin is: an article or a factoid.
+             * @enum {string}
+             */
+            kind: "article" | "factoid";
+            /** @description An article's title, or a factoid's selector. */
+            title: string;
+            /** @description An article's canonical slug path (GET /posts/{slug}). */
+            slug?: string | null;
+            /** @description A factoid's selector (GET /factoids/{selector}). */
+            selector?: string | null;
+            /** Format: double */
+            x: number;
+            /** Format: double */
+            y: number;
+            /**
+             * Format: date-time
+             * @description When an article was published.
+             */
+            publishedAt?: string | null;
+            /**
+             * Format: date-time
+             * @description When a factoid was first taught.
+             */
+            createdAt?: string | null;
+            /**
+             * Format: date-time
+             * @description When a factoid last changed.
+             */
+            updatedAt?: string | null;
+        };
+        /** @description A place on the map: a tag, where it is, and what's found there. */
+        AtlasPlaceResponse: {
+            /** @description The tag, lowercased, as /taxonomy and /posts?tag= name it. */
+            tag: string;
+            /**
+             * Format: int32
+             * @description The id of the region it's in.
+             */
+            region: number;
+            /** Format: double */
+            x: number;
+            /** Format: double */
+            y: number;
+            /**
+             * Format: int64
+             * @description Published posts carrying the tag: taxonomy's tags count.
+             */
+            articleCount: number;
+            /**
+             * Format: int64
+             * @description Factoids carrying the tag: taxonomy's factoidTags count.
+             */
+            factoidCount: number;
+            /**
+             * @description What is found at a place: articles only, factoids only, or both.
+             * @enum {string}
+             */
+            kind: "articles" | "factoids" | "shared";
+            /**
+             * Format: double
+             * @description The mark's radius, in world units: 4 + 2.6·√(articles + factoids).
+             */
+            r: number;
+            /**
+             * Format: double
+             * @description The label's font size, in pixels: 10 + √size, at most 20.
+             */
+            labelSize: number;
+            /** @description A small place (size under 3): its name shows only when zoomed in. */
+            minor: boolean;
+            /** @description The newest articles and the factoids (by name) found here, at most 8 of each, each placed around the mark. GET /atlas/places/{tag} lists them all. */
+            pins: components["schemas"]["AtlasPin"][];
+        };
+        /** @description A region of the map: tags that go together. */
+        AtlasRegionResponse: {
+            /**
+             * Format: int32
+             * @description Stable while the layout is kept; 0 is the Uncharted region.
+             */
+            id: number;
+            /** @description The region's two biggest tags when laid out, joined by " · "; "Uncharted" for id 0. */
+            name: string;
+            /** Format: double */
+            x: number;
+            /** Format: double */
+            y: number;
+            /**
+             * Format: double
+             * @description How far the region reaches: its outermost place's mark, and a margin.
+             */
+            r: number;
+            /** @description True for the region of tags tied to nothing (id 0). */
+            uncharted: boolean;
+        };
+        /** @description The Atlas: a map of the site's tags, grouped into regions by how they're used together. */
+        AtlasResponse: {
+            /** @description The regions, biggest first, the Uncharted region (id 0) last. */
+            regions: components["schemas"]["AtlasRegionResponse"][];
+            /** @description Every tag in use, each with its region and position, in region order and then biggest first. A stored tag no longer used is left out but keeps its position for when it's back. */
+            places: components["schemas"]["AtlasPlaceResponse"][];
+            /** @description The world the map spans, with a margin and room for region names. */
+            bounds: components["schemas"]["AtlasBounds"];
+            /**
+             * Format: date-time
+             * @description When the oldest place was laid out: the last full layout. Null for an empty map.
+             */
+            laidOutAt?: string | null;
+        };
         /** @description Usage counts per taxonomy term. Terms starting with _ are never included. */
         TaxonomySnapshot: {
             /** @description Published posts carrying each tag: approved, published by now, not deleted and not in a hidden category. Matches the totalCount of GET /posts?tag=. */
@@ -1778,6 +1965,8 @@ export interface components {
             content: string;
             /** @enum {string} */
             direction: "INBOUND" | "OUTBOUND";
+            /** @enum {string} */
+            kind?: "MESSAGE" | "JOIN" | "PART" | "QUIT" | "NICK" | "TOPIC";
         };
         LogSearchHit: {
             /** Format: date-time */
@@ -1787,6 +1976,8 @@ export interface components {
             content: string;
             /** @enum {string} */
             direction: "INBOUND" | "OUTBOUND";
+            /** @enum {string} */
+            kind?: "MESSAGE" | "JOIN" | "PART" | "QUIT" | "NICK" | "TOPIC";
         };
         LogSearchResponse: {
             provenanceUri: string;
@@ -1882,6 +2073,8 @@ export interface components {
             lastAccessedAt?: string | null;
             /** Format: int64 */
             accessCount: number;
+            /** Format: date-time */
+            createdAt?: string | null;
             text?: string | null;
             tags: string[];
         };
@@ -1891,6 +2084,36 @@ export interface components {
             name: string;
             slug: string;
             parentName?: string | null;
+        };
+        /** @description A published post found at a place. */
+        AtlasArticle: {
+            title: string;
+            /** @description Its canonical slug path; null only for a post without one. */
+            slug?: string | null;
+            /** Format: date-time */
+            publishedAt: string;
+            /** @description Every tag it carries: the places it's found at. */
+            tags: string[];
+        };
+        /** @description A factoid found at a place. */
+        AtlasFactoid: {
+            selector: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description Every tag it carries: the places it's found at. */
+            tags: string[];
+        };
+        /** @description One place, with everything found there. */
+        AtlasPlaceDetailResponse: {
+            place: components["schemas"]["AtlasPlaceResponse"];
+            /** @description The name of the place's region. */
+            regionName: string;
+            /** @description Every published post carrying the tag, newest first. */
+            articles: components["schemas"]["AtlasArticle"][];
+            /** @description Every factoid carrying the tag, by selector. */
+            factoids: components["schemas"]["AtlasFactoid"][];
         };
         ReportListResponse: {
             /** Format: int32 */
@@ -3880,6 +4103,44 @@ export interface operations {
             };
         };
     };
+    relayout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The new map */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtlasResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     getTaxonomy: {
         parameters: {
             query?: never;
@@ -4186,6 +4447,10 @@ export interface operations {
             query: {
                 provenance: string;
                 day?: string;
+                /** @description `all` (the default) for every line, `none` for what was said only, without joins, parts, quits, nick changes and topics */
+                events?: string;
+                /** @description Only these kinds, comma-separated: `MESSAGE`, `JOIN`, `PART`, `QUIT`, `NICK`, `TOPIC` (any case). With `events`, a line must pass both. */
+                kinds?: string;
             };
             header?: never;
             path?: never;
@@ -4200,6 +4465,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LogDayResponse"];
+                };
+            };
+            /** @description A bad day, or an unknown `events` or `kinds` value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
             /** @description Provenance not found or not authorized */
@@ -4221,6 +4495,10 @@ export interface operations {
                 sender?: string;
                 page?: number;
                 size?: number;
+                /** @description `all` (the default) for every line, `none` for what was said only, without joins, parts, quits, nick changes and topics */
+                events?: string;
+                /** @description Only these kinds, comma-separated: `MESSAGE`, `JOIN`, `PART`, `QUIT`, `NICK`, `TOPIC` (any case). With `events`, a line must pass both. */
+                kinds?: string;
             };
             header?: never;
             path?: never;
@@ -4237,7 +4515,7 @@ export interface operations {
                     "application/json": components["schemas"]["LogSearchResponse"];
                 };
             };
-            /** @description Neither a query nor a sender, a short or long query, or a bad page or size */
+            /** @description Neither a query nor a sender, a short or long query, a bad page or size, or an unknown `events` or `kinds` value */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -4530,6 +4808,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    getAtlas: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The map */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtlasResponse"];
+                };
+            };
+        };
+    };
+    getPlace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tag: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The place */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtlasPlaceDetailResponse"];
+                };
+            };
+            /** @description No place on the map has that tag */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
