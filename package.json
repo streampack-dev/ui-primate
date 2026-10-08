@@ -23,7 +23,7 @@
     "marko": "^6.4.4",
     "openapi-fetch": "^0.17.0",
     "pema": "^0.11.0",
-    "primate": "^0.42.1",
+    "primate": "^0.42.2",
     "sanitize-html": "^2.18.0",
     "satori": "^0.41.0",
     "tailwindcss": "^4.3.3",

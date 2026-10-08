@@ -63,8 +63,9 @@ Since (2026-10-03):
       zooms, pans, finds and keeps region names from overlapping. What's new since the last visit
       (bcn-atlas-seen and bcn-atlas-since, timestamps only; a first visit counts two weeks) is
       listed and marked, so the page is private, no-cache. In the header and footer (2026-10-08)
-- [x] Every Set-Cookie of an answer is sent (src/lib/set-cookies.ts): Primate's Node server sent
-      only the last (primate-bugs/14), which the Atlas's two cookies found
+- [x] Every Set-Cookie of an answer is sent: Primate's Node server sent only the last
+      (primate-bugs/14, primate task #183), which the Atlas's two cookies found. Fixed upstream in
+      @rcompat/http 0.32.4 (primate 0.42.2); ui-primate's setHeader patch is gone (2026-10-08)
 - [ ] The Atlas's page carries its map twice, as SVG and as Primate's hydration props (about 250 KB
       each for 248 places, before the proxy's gzip). A view whose props aren't hydrated would halve
       it
