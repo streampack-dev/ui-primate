@@ -50,6 +50,20 @@ Since (2026-10-03):
       signals in words beside its mark, as the list does, and only strong lines (an aimed insult,
       personal details, a slur or a threat) start checked; repetition, flood and untargeted swearing
       don't, nor older reports' lines. A refused step keeps the checks as they were left (2026-10-07)
+- [x] The Atlas (ui-pudl#184, streampack's GET /atlas): /atlas draws the API's layout as SVG on the
+      server, every place a link to its tag's page and every pin to its post or factoid, told by
+      shape (disc, ring, diamond; square, triangle; a dot for new, a small ring for changed) with a
+      legend, beside a list of regions and places. /atlas?at=<tag> frames a place. client/atlas.ts
+      zooms, pans, finds and keeps region names from overlapping. What's new since the last visit
+      (bcn-atlas-seen and bcn-atlas-since, timestamps only; a first visit counts two weeks) is
+      listed and marked, so the page is private, no-cache. In the header and footer (2026-10-08)
+- [x] Every Set-Cookie of an answer is sent (src/lib/set-cookies.ts): Primate's Node server sent
+      only the last (primate-bugs/14), which the Atlas's two cookies found
+- [ ] The Atlas's page carries its map twice, as SVG and as Primate's hydration props (about 250 KB
+      each for 248 places, before the proxy's gzip). A view whose props aren't hydrated would halve
+      it
+- [ ] The Atlas's admin relayout (POST /admin/atlas/relayout) isn't offered here; pudl is the
+      admin home
 
 Before it's deployed:
 
