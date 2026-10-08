@@ -27,7 +27,7 @@ export const api = createClient<paths>({ baseUrl: base });
 const FRESH: [RegExp, number][] = [
   [/^\/(features|categories)$/, 600],
   [/^\/(pages|factoids|karma|rss)\b/, 300],
-  [/^\/(taxonomy|posts\/popular)$/, 60],
+  [/^\/(taxonomy|posts\/popular|atlas)$/, 60],
   [/^\/posts\/search$/, 30],
   [/^\/posts\/.+\/comments$/, 15],
   [/^\/(posts\/.+|logs\b)/, 30],

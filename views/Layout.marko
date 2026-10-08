@@ -30,6 +30,7 @@ export interface Input {
             <nav class="flex items-center gap-5 min-w-0">
               <a href="/" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 whitespace-nowrap">Front Page</a>
               <a href="/tags" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 whitespace-nowrap">Tags</a>
+              <a href="/atlas" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 whitespace-nowrap">Atlas</a>
             </nav>
           </div>
           <div class="md:hidden">
@@ -79,6 +80,7 @@ export interface Input {
         <nav class="md:hidden flex items-center gap-4 overflow-x-auto px-6 pb-2">
           <a href="/" class="section-label text-muted-foreground hover:text-amber transition-colors whitespace-nowrap">Front Page</a>
           <a href="/tags" class="section-label text-muted-foreground hover:text-amber transition-colors whitespace-nowrap">Tags</a>
+          <a href="/atlas" class="section-label text-muted-foreground hover:text-amber transition-colors whitespace-nowrap">Atlas</a>
           <form action="/search" method="get" class="flex items-center gap-1">
             <label for="mobile-header-search" class="sr-only">Search posts</label>
             <input id="mobile-header-search" name="q" type="search" placeholder="Search..."
@@ -107,6 +109,7 @@ export interface Input {
             <h2 class="section-label text-amber mb-4">Sections</h2>
             <nav class="flex flex-col gap-2">
               <a href="/" class="text-muted-foreground hover:text-foreground text-sm transition-colors">Articles</a>
+              <a href="/atlas" class="text-muted-foreground hover:text-foreground text-sm transition-colors">Atlas</a>
               <if=input.factoids><a href="/factoids" class="text-muted-foreground hover:text-foreground text-sm transition-colors">Factoids</a></if>
               <if=input.rss><a href="/rss" class="text-muted-foreground hover:text-foreground text-sm transition-colors">RSS Reader</a></if>
               <a href="/karma" class="text-muted-foreground hover:text-foreground text-sm transition-colors">Karma</a>

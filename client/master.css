@@ -1540,3 +1540,168 @@ textarea.form-field {
 .mod-line .log-time {
   @apply leading-relaxed;
 }
+
+/* The Atlas (ui-pudl#184): the site's tags as a map (views/Atlas.marko). What's found at a place is
+   told by shape first (a disc for articles only, a ring for factoids only, a diamond for both; a
+   square for an article and a triangle for a factoid close up; a dot for something new and a small
+   ring for something changed), and by colour only as a second cue: ui-pudl's colours, each at least
+   4.5:1 on the page in both themes. Labels keep their size in pixels at any zoom: --u on the SVG is
+   one screen pixel in world units, set by client/atlas.ts (the server guesses it first). */
+.atlas-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 2rem; }
+.atlas-find { display: flex; gap: 0.5rem; align-items: center; }
+.atlas-find .form-field { width: 14rem; max-width: 60vw; }
+.atlas-layout { display: grid; grid-template-columns: minmax(0, 1fr) 22rem; gap: 1.5rem; }
+.atlas {
+  position: relative; display: flex; flex-direction: column; min-width: 0;
+  height: max(32rem, calc(100vh - 15rem)); border: 1px solid var(--border); background: var(--background); overflow: hidden;
+}
+.atlas-side { height: max(32rem, calc(100vh - 15rem)); overflow-y: auto; padding-right: 0.25rem; }
+@media (max-width: 1023px) {
+  .atlas-layout { grid-template-columns: minmax(0, 1fr); }
+  .atlas { height: max(22rem, 68vh); }
+  .atlas-side { height: auto; overflow: visible; }
+}
+.atlas-hud {
+  position: absolute; top: 0.5rem; left: 0.5rem; right: 0.5rem; z-index: 1;
+  display: flex; flex-wrap: wrap; gap: 0.5rem 0.75rem; align-items: flex-start; pointer-events: none;
+}
+.atlas-hud > * { pointer-events: auto; }
+.atlas-key-box { display: flex; align-items: flex-start; gap: 0.5rem; max-width: 100%; }
+.atlas-key-button, .atlas-zoom-button {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 2rem; min-width: 2rem; padding: 0.15rem 0.6rem;
+  font-size: 0.8rem; cursor: pointer; color: var(--foreground);
+  background: color-mix(in srgb, var(--background) 92%, transparent); border: 1px solid var(--border);
+}
+.atlas-key-button { list-style: none; }
+.atlas-key-button::-webkit-details-marker { display: none; }
+.atlas-key-button::before { content: "▸"; margin-right: 0.35em; }
+.atlas-key-box[open] > .atlas-key-button::before { content: "▾"; }
+.atlas-key-button:hover, .atlas-zoom-button:hover { border-color: var(--amber); }
+.atlas-legend {
+  display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; margin: 0; padding: 0.3rem 0.7rem; list-style: none;
+  font-size: 0.8rem; color: var(--foreground);
+  background: color-mix(in srgb, var(--background) 92%, transparent); border: 1px solid var(--border);
+}
+.atlas-legend li { display: inline-flex; align-items: center; gap: 0.3rem; }
+.atlas-legend-shape { color: var(--muted-foreground); }
+.atlas-zoom { display: inline-flex; gap: 0.25rem; margin-left: auto; }
+.atlas-zoom[hidden] { display: none; }
+.atlas-missed {
+  position: absolute; bottom: 0.75rem; left: 0.75rem; z-index: 1; margin: 0; padding: 0.25rem 0.75rem; font-size: 0.875rem;
+  background: var(--background); border: 1px solid var(--border);
+}
+.atlas-map { flex: 1; width: 100%; height: 100%; min-height: 0; display: block; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.atlas-map.dragging { cursor: grabbing; }
+.atlas-map .region {
+  fill: color-mix(in srgb, var(--foreground) 3%, transparent); stroke: color-mix(in srgb, var(--muted-foreground) 45%, transparent);
+  stroke-width: calc(1 * var(--u, 1px)); stroke-dasharray: calc(4 * var(--u, 1px)) calc(5 * var(--u, 1px));
+}
+.atlas-map .region-name {
+  fill: var(--muted-foreground); font-family: var(--font-mono); font-size: calc(12 * var(--u, 1px)); font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; text-anchor: middle; paint-order: stroke; stroke: var(--background); stroke-width: calc(3 * var(--u, 1px));
+  stroke-linejoin: round; pointer-events: none;
+}
+/* From afar a region's name sits across its middle, a tag a line, over its unnamed places; closer
+   in, it moves above the region, and the places are named. */
+.atlas-map .region-name.above { display: none; }
+.atlas-map:not([data-zoom="far"]) .region-name.across { display: none; }
+/* So far out (a phone's whole map) that only the bigger regions are named. */
+.atlas-map[data-tiny] .region-name.across.small { display: none; }
+.atlas-map:not([data-zoom="far"]) .region-name.above { display: inline; }
+/* A name that would overlap a bigger region's at this zoom (client/atlas.ts); closer in it returns.
+   As specific as the rules above that show names, so it wins over them. */
+.atlas-map:is([data-zoom]) .region-name.crowded,
+.atlas-map:not([data-zoom="far"]) .region-name.above.crowded { display: none; }
+.atlas-map .mark { stroke: var(--background); stroke-width: calc(1.5 * var(--u, 1px)); }
+.atlas-map .place-articles .mark-disc, .atlas-key .mark-disc { fill: #a24a06; }
+.atlas-map .place-factoids .mark-ring, .atlas-key .mark-ring { fill: var(--background); stroke: #0d6e66; }
+.atlas-map .place-shared .mark-diamond, .atlas-key .mark-diamond { fill: #6a2fc9; }
+.dark .atlas-map .place-articles .mark-disc, .dark .atlas-key .mark-disc { fill: #f0a050; }
+.dark .atlas-map .place-factoids .mark-ring, .dark .atlas-key .mark-ring { stroke: #4fc1b2; }
+.dark .atlas-map .place-shared .mark-diamond, .dark .atlas-key .mark-diamond { fill: #b89cf2; }
+.atlas-key .mark { stroke-width: 1; }
+.atlas-key .mark-ring { stroke-width: 2.4; }
+.atlas-map .label {
+  fill: var(--foreground); font-family: var(--font-mono); font-size: calc(var(--fs, 12) * var(--u, 1px)); text-anchor: middle;
+  paint-order: stroke; stroke: var(--background); stroke-width: calc(3 * var(--u, 1px)); stroke-linejoin: round; pointer-events: none;
+}
+/* Names by zoom: only the regions' from afar, then the bigger places', then every one close up. */
+.atlas-map[data-zoom="far"] .place:not(.here) .label,
+.atlas-map[data-zoom="mid"] .place.minor:not(.here) .label { display: none; }
+.atlas-map .place:hover .label, .atlas-map .place:focus-visible .label { display: inline; font-weight: 700; }
+.atlas-map .place { cursor: pointer; text-decoration: none; }
+.atlas-map .place:focus { outline: none; }
+.atlas-map .place:focus-visible .mark, .atlas-map .place.here .mark { stroke: var(--foreground); stroke-width: calc(3 * var(--u, 1px)); }
+.atlas-map .place.here .mark-ring { stroke: #0d6e66; }
+.dark .atlas-map .place.here .mark-ring { stroke: #4fc1b2; }
+.atlas-map .place.here .label { font-weight: 700; }
+/* Pins, close up: the framed place's, and the pointed-at place's nearer in; closer still, every
+   place's (with all of them at once, neighbouring places' pins interleave). */
+.atlas-map .pins { display: none; }
+.atlas-map:not([data-zoom="far"]) .pins.here, .atlas-map[data-zoom="near"] .pins.shown, .atlas-map[data-close] .pins { display: inline; }
+.atlas-map .pin { cursor: pointer; }
+.atlas-map .pin-mark { stroke: var(--background); stroke-width: calc(1 * var(--u, 1px)); }
+.atlas-map .pin-mark-article, .atlas-key .pin-mark-article { fill: #a24a06; }
+.atlas-map .pin-mark-factoid, .atlas-key .pin-mark-factoid { fill: #0d6e66; }
+.dark .atlas-map .pin-mark-article, .dark .atlas-key .pin-mark-article { fill: #f0a050; }
+.dark .atlas-map .pin-mark-factoid, .dark .atlas-key .pin-mark-factoid { fill: #4fc1b2; }
+.atlas-map .pin:hover .pin-mark { stroke: var(--foreground); stroke-width: calc(1.5 * var(--u, 1px)); }
+/* What's new: a dot for a place holding something new, with a slow glow; a small ring and a quiet
+   dashed glow for one holding only changes. The dot and the ring say it, and the place's name says
+   "2 new, 1 changed"; the glow is only a third cue. They keep their size on screen at any zoom. */
+.atlas-map .glow { fill: none; pointer-events: none; r: max(calc(var(--gr, 10) * 1px), calc(11 * var(--u, 1px))); }
+.atlas-map .fresh-new .glow { stroke: var(--foreground); stroke-width: calc(3 * var(--u, 1px)); animation: atlas-glow 3.2s ease-in-out infinite; }
+.atlas-map .fresh-changed .glow {
+  stroke: var(--muted-foreground); stroke-width: calc(1.5 * var(--u, 1px)); opacity: 0.6;
+  stroke-dasharray: calc(3 * var(--u, 1px)) calc(3 * var(--u, 1px));
+}
+@keyframes atlas-glow { 0%, 100% { stroke-opacity: 0.3; } 50% { stroke-opacity: 0.95; } }
+@media (prefers-reduced-motion: reduce) { .atlas-map .fresh-new .glow { animation: none; stroke-opacity: 0.8; } }
+.atlas-map .badge { r: calc(4.5 * var(--u, 1px)); }
+.atlas-map .badge-changed { r: calc(3.6 * var(--u, 1px)); }
+.atlas-map .badge-new, .atlas-key .badge-new { fill: var(--foreground); stroke: var(--background); stroke-width: calc(1.5 * var(--u, 1px)); }
+.atlas-map .badge-changed, .atlas-key .badge-changed { fill: var(--background); stroke: var(--foreground); stroke-width: calc(1.8 * var(--u, 1px)); }
+.atlas-key .badge-changed { stroke-width: 1.8; }
+.atlas-key .badge-new { stroke-width: 1; }
+/* Beside the map: What's new, then every region and its places. */
+.atlas-side .section-label { display: block; margin-bottom: 0.5rem; }
+.whats-new { padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.whats-new-since { margin: 0 0 0.5rem; color: var(--muted-foreground); font-size: 0.8rem; }
+.whats-new-list { list-style: none; margin: 0; padding: 0; }
+.whats-new-item { padding: 0.5rem 0; border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent); font-size: 0.8rem; }
+.whats-new-item:last-child { border-bottom: 0; }
+.whats-new-title { display: block; font-weight: 600; font-size: 0.95rem; color: var(--foreground); }
+.whats-new-title:hover, .whats-new-meta a:hover, .atlas-row:hover .atlas-row-tag { color: var(--amber); }
+.whats-new-kind, .whats-new-meta, .whats-new-none, .whats-new-more { color: var(--muted-foreground); }
+.whats-new-meta { display: block; }
+.whats-new-meta a { text-decoration: underline; text-underline-offset: 2px; }
+.fresh-badge {
+  display: inline-flex; align-items: center; gap: 0.35em; margin-right: 0.4em; font-size: 0.65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--foreground);
+}
+.fresh-badge::before { content: ""; display: inline-block; width: 0.6em; height: 0.6em; border-radius: 50%; box-sizing: border-box; }
+.fresh-badge-new::before { background: var(--foreground); }
+.fresh-badge-changed::before { border: 2px solid var(--foreground); }
+.atlas-list-region {
+  margin: 0.9rem 0 0.25rem; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted-foreground);
+}
+.atlas-list-places { list-style: none; margin: 0; padding: 0; }
+.atlas-row { display: flex; align-items: baseline; gap: 0.4rem; padding: 0.15rem 0; font-size: 0.85rem; color: var(--foreground); }
+.atlas-row[aria-current="true"] { font-weight: 700; }
+.atlas-row-tag { font-family: var(--font-mono); }
+.atlas-row-counts { color: var(--muted-foreground); font-size: 0.75rem; margin-right: auto; }
+.atlas-row .fresh-badge { margin: 0; }
+.atlas-kind { flex: none; display: inline-block; width: 0.65em; height: 0.65em; box-sizing: border-box; }
+.atlas-kind-articles { border-radius: 50%; background: #a24a06; }
+.atlas-kind-factoids { border-radius: 50%; border: 2px solid #0d6e66; background: transparent; }
+.atlas-kind-shared { background: #6a2fc9; transform: rotate(45deg) scale(0.85); }
+.dark .atlas-kind-articles { background: #f0a050; }
+.dark .atlas-kind-factoids { border-color: #4fc1b2; }
+.dark .atlas-kind-shared { background: #b89cf2; }
+@media (max-width: 640px) {
+  .atlas-hud { top: auto; bottom: 0.5rem; }
+  .atlas-legend { font-size: 0.7rem; }
+  .atlas-find .form-field { width: 100%; }
+  .atlas-find { width: 100%; }
+}

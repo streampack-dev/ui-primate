@@ -2,6 +2,10 @@ import marko from "@primate/marko";
 import tailwind from "@primate/tailwind";
 import config from "primate/config";
 import assetCache from "../src/lib/asset-cache.ts";
+import { keepEverySetCookie } from "../src/lib/set-cookies.ts";
+
+// Every Set-Cookie an answer carries is sent, not only the last (primate-bugs/14).
+keepEverySetCookie();
 
 export default config({
   modules: [
