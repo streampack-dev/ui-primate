@@ -1490,3 +1490,53 @@ textarea.form-field {
 .karma-bar-fill.is-negative {
   background: var(--destructive);
 }
+
+/* Moderation (streampack#150): the open reports counted in the admin nav, and lines marked. */
+.admin-nav-count {
+  @apply inline-block ml-1 px-1.5 font-mono text-amber border border-amber/40 tabular-nums;
+  font-size: 0.65rem;
+  line-height: 1.4;
+}
+
+.mod-mark {
+  @apply inline-block px-1.5 font-mono uppercase tracking-wider border shrink-0 self-start;
+  font-size: 0.6rem;
+  line-height: 1.6;
+}
+
+.mod-mark.flagged {
+  @apply text-amber border-amber/50;
+}
+
+/* Why a line was flagged, beside its mark: the detector's signals, in words. */
+.mod-why {
+  @apply font-mono text-muted-foreground shrink-0 self-start;
+  font-size: 0.7rem;
+  line-height: 1.6;
+}
+
+.mod-mark.cited {
+  @apply text-foreground border-border;
+}
+
+/* The word in the foreground's colour: the destructive red is too faint at this size. */
+.mod-mark.hidden-line {
+  @apply text-foreground border-destructive bg-destructive/10;
+}
+
+.mod-line.is-flagged {
+  @apply bg-amber/5;
+}
+
+.mod-line.is-hidden .log-content {
+  @apply line-through decoration-destructive/60;
+}
+
+.mod-line input[type="checkbox"] {
+  @apply shrink-0 mt-1;
+  accent-color: var(--amber);
+}
+
+.mod-line .log-time {
+  @apply leading-relaxed;
+}

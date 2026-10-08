@@ -10,6 +10,7 @@ export interface Input {
   prev: string | null;
   next: string | null;
   allToggle: { href: string; all: boolean } | null;
+  moderate?: string | null;
 }
 
 <page-meta meta=input.meta/>
@@ -51,6 +52,7 @@ export interface Input {
           <if=input.next><a class="log-day-link" rel="next" href=input.next>Next &rarr;</a></if>
           <else><span class="log-day-link is-disabled" aria-hidden="true">Next &rarr;</span></else>
         </nav>
+        <if=input.moderate><p class="mb-4 -mt-3 text-right"><a class="log-moderate section-label form-helper" href=input.moderate>Moderate this day</a></p></if>
         <if=input.failed>
           <div class="log-error border-l-2 border-destructive pl-4 py-2" role="alert">
             <p class="form-error mt-0">This day's log couldn't be loaded just now. Try again shortly.</p>

@@ -1,0 +1,62 @@
+export interface Input {
+  meta?: import("#lib/meta.ts").Head;
+  sections: { href: string; label: string; current: boolean; count?: number | null }[];
+  status: string | null;
+  failed: boolean;
+  tabs: { label: string; href: string; current: boolean }[];
+  reports: {
+    id: string; href: string; sender: string; channel: string; protocol: string; status: string; score: string;
+    signals: { name: string; label: string; count: number }[];
+    verdict: { abusive: boolean; reason: string; model: string } | null;
+    window: string; windowStart: string; created: string; createdAt: string; acted: string;
+  }[];
+  total: number;
+  prev: string | null;
+  next: string | null;
+}
+
+<page-meta meta=input.meta/>
+<admin-shell sections=input.sections>
+  <nav class="admin-tabs flex flex-wrap gap-0 mb-6 border-b border-border/40" aria-label="Reports by status">
+    <for|t| of=input.tabs by="href">
+      <a class=["admin-nav-link section-label", t.current && "is-current"] href=t.href aria-current=(t.current ? "page" : false)>${t.label}</a>
+    </for>
+  </nav>
+  <p class="text-muted-foreground text-sm mb-6">Reports come from the abuse detector, and nothing is hidden until an admin hides it. The bot doesn't ban anyone; bans stay with each channel's operators.</p>
+  <if=input.failed><p class="form-error" role="alert">The reports can't be loaded just now. Try again shortly.</p></if>
+  <else if=(input.reports.length === 0)>
+    <p class="py-12 text-center section-label form-label-text">No ${input.status ? `${input.status} ` : ""}reports</p>
+  </else>
+  <else>
+    <for|r, i| of=input.reports by="id">
+      <article class=["mod-report py-6", i > 0 && "border-t border-border/30"] id=`report-${r.id}`>
+        <div class="flex items-start justify-between gap-4 flex-wrap">
+          <h2 class="headline-brief text-foreground mb-1">
+            <a class="hover:text-amber" href=r.href><span class="as-typed">${r.sender}</span> in ${r.channel}</a>
+          </h2>
+          <span class=["mod-status section-label", r.status === "OPEN" && "text-amber"]>${r.status.toLowerCase()}</span>
+        </div>
+        <div class="byline text-muted-foreground flex items-center gap-1.5 flex-wrap">
+          <time datetime=r.windowStart>${r.window}</time>
+          <span aria-hidden="true">|</span> <span>${r.protocol}</span>
+          <if=r.score><span aria-hidden="true">|</span> <span>score ${r.score}</span></if>
+        </div>
+        <if=r.signals.length>
+          <ul class="mod-signals tags mt-3 list-none p-0" aria-label="Signals">
+            <for|s| of=r.signals by="name"><li class="tag">${s.label} ×${s.count}</li></for>
+          </ul>
+        </if>
+        <if=r.verdict>
+          <p class="mod-verdict text-sm mt-3"><strong class=(r.verdict.abusive ? "text-destructive" : "text-foreground")>${r.verdict.abusive ? "AI: abusive" : "AI: not abusive"}</strong><if=r.verdict.reason>. ${r.verdict.reason}</if><if=r.verdict.model> <span class="text-muted-foreground">(${r.verdict.model})</span></if></p>
+        </if>
+        <else><p class="mod-verdict text-sm mt-3 text-muted-foreground">No AI verdict</p></else>
+        <if=r.acted><p class="mod-acted byline text-muted-foreground mt-2">${r.status === "DISMISSED" ? "Dismissed" : "Acted on"} by ${r.acted}</p></if>
+        <p class="mt-4"><a class="section-label profile-action" href=r.href>Review</a></p>
+      </article>
+    </for>
+  </else>
+  <div class="pagination mt-8">
+    <div><if=input.prev><a class="pagelink" rel="prev" href=input.prev>&larr; Previous</a></if></div>
+    <div><if=input.next><a class="pagelink" rel="next" href=input.next>Next &rarr;</a></if></div>
+  </div>
+</admin-shell>

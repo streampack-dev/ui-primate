@@ -1,0 +1,119 @@
+export interface Input {
+  meta?: import("#lib/meta.ts").Head;
+  sections: { href: string; label: string; current: boolean; count?: number | null }[];
+  csrf: string;
+  failed: boolean;
+  report: {
+    id: string; href: string; sender: string; channel: string; protocol: string; status: string; score: string;
+    signals: { name: string; label: string; count: number }[];
+    verdict: { abusive: boolean; reason: string; model: string } | null;
+    window: string; windowStart: string; created: string; createdAt: string; acted: string;
+  } | null;
+  open?: boolean;
+  lines?: {
+    id: string; time: string; iso: string; day: string; sender: string | null; segments: { text: string; href?: string }[];
+    outbound: boolean; hidden: boolean; flagged: boolean; cited: boolean; publicHref: string;
+    signals: string[]; strong: boolean;
+  }[];
+  purged?: number;
+  actions?: { id: string; what: string; actor: string; when: string; at: string; note: string }[];
+  days?: { day: string; admin: string; public: string }[];
+  senderLines?: string;
+  said?: string;
+  error?: string;
+  checked?: string[];
+  note?: string;
+}
+
+<page-meta meta=input.meta/>
+<admin-shell sections=input.sections>
+  <p class="mb-6"><a class="pagelink" href="/admin/moderation">&larr; All reports</a></p>
+  <if=input.said><div class="mb-6 px-4 py-3 border border-amber/30 bg-amber/5"><p class="section-label text-amber" role="status">${input.said}</p></div></if>
+  <if=input.error><div class="mb-6 px-4 py-3 border border-destructive/30 bg-destructive/5"><p class="form-error mt-0" role="alert">${input.error}</p></div></if>
+  <if=(input.failed || !input.report)><p class="form-error" role="alert">The report can't be loaded just now. Try again shortly.</p></if>
+  <else>
+    <const/r=input.report/>
+    <article class="mod-report-detail">
+      <header class="mb-6">
+        <div class="flex items-start justify-between gap-4 flex-wrap">
+          <h2 class="headline-secondary text-foreground mb-2"><span class="as-typed">${r.sender}</span> in ${r.channel}</h2>
+          <span class=["mod-status section-label", r.status === "OPEN" && "text-amber"]>${r.status.toLowerCase()}</span>
+        </div>
+        <div class="byline text-muted-foreground flex items-center gap-1.5 flex-wrap">
+          <time datetime=r.windowStart>${r.window}</time>
+          <span aria-hidden="true">|</span> <span>${r.protocol}</span>
+          <if=r.score><span aria-hidden="true">|</span> <span>score ${r.score}</span></if>
+          <span aria-hidden="true">|</span> <span>reported <time datetime=r.createdAt>${r.created}</time></span>
+        </div>
+        <if=r.signals.length>
+          <ul class="mod-signals tags mt-3 list-none p-0" aria-label="Signals">
+            <for|s| of=r.signals by="name"><li class="tag">${s.label} ×${s.count}</li></for>
+          </ul>
+        </if>
+        <if=r.verdict>
+          <p class="mod-verdict text-sm mt-3"><strong class=(r.verdict.abusive ? "text-destructive" : "text-foreground")>${r.verdict.abusive ? "AI: abusive" : "AI: not abusive"}</strong><if=r.verdict.reason>. ${r.verdict.reason}</if><if=r.verdict.model> <span class="text-muted-foreground">(${r.verdict.model})</span></if></p>
+        </if>
+        <else><p class="mod-verdict text-sm mt-3 text-muted-foreground">No AI verdict</p></else>
+        <if=r.acted><p class="mod-acted byline text-muted-foreground mt-2">${r.status === "DISMISSED" ? "Dismissed" : "Acted on"} by ${r.acted}</p></if>
+      </header>
+
+      <p class="mod-no-bans text-sm text-muted-foreground mb-6 border-l-2 border-amber/40 pl-3">The bot doesn't ban anyone. Hiding takes lines out of the public log; bans stay with each channel's operators.</p>
+
+      <nav class="mod-links flex flex-wrap gap-x-4 gap-y-2 mb-6 text-sm" aria-label="This report's logs">
+        <if=input.senderLines><a class="pagelink" href=input.senderLines>${r.sender}'s lines in ${r.channel}</a></if>
+        <for|d| of=(input.days || []) by="day">
+          <a class="pagelink mod-day-admin" href=d.admin>${d.day}, with hidden lines</a>
+          <a class="pagelink mod-day-public" href=d.public>${d.day} in the public log</a>
+        </for>
+      </nav>
+
+      <h3 class="section-label text-muted-foreground mb-3">The lines, with their context</h3>
+      <if=((input.lines || []).length === 0)>
+        <p class="py-6 text-muted-foreground font-mono text-sm">No lines are left to show.</p>
+      </if>
+      <else>
+        <form class="mod-lines-form" method="post" action=`/admin/moderation/${r.id}/hide`>
+          <input type="hidden" name="csrf" value=input.csrf>
+          <moderation-lines lines=(input.lines || []) selectable=true days=((input.days || []).length > 1) checked=input.checked/>
+          <div class="mt-4">
+            <label class="byline form-label" for="mod-note">Note, for the record (optional)</label>
+            <input class="form-field text-sm p-2" id="mod-note" name="note" maxlength="1000" value=(input.note || "")>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 mt-4">
+            <button type="submit" class="auth-button">Hide selected</button>
+            <button type="submit" class="auth-button secondary" formaction=`/admin/moderation/${r.id}/unhide`>Unhide selected</button>
+            <button type="submit" class="section-label profile-action danger" formaction=`/admin/moderation/${r.id}/purge`>Purge selected…</button>
+          </div>
+        </form>
+      </else>
+      <if=input.purged><p class="mod-purged text-sm text-muted-foreground mt-3">${input.purged} line${input.purged === 1 ? " was" : "s were"} purged for good.</p></if>
+
+      <if=input.open>
+        <form class="mod-dismiss mt-8 pt-6 border-t border-border/30 flex flex-wrap items-end gap-3" method="post" action=`/admin/moderation/${r.id}/dismiss`>
+          <input type="hidden" name="csrf" value=input.csrf>
+          <div class="grow">
+            <label class="byline form-label" for="dismiss-note">Nothing to do? Say why (optional)</label>
+            <input class="form-field text-sm p-2" id="dismiss-note" name="note" maxlength="1000">
+          </div>
+          <button type="submit" class="auth-button">Dismiss report</button>
+        </form>
+      </if>
+
+      <section class="mod-history mt-8 pt-6 border-t border-border/30" aria-labelledby="mod-history-title">
+        <h3 class="section-label text-muted-foreground mb-3" id="mod-history-title">History</h3>
+        <if=((input.actions || []).length === 0)><p class="text-sm text-muted-foreground">Nothing has been done yet.</p></if>
+        <else>
+          <ol class="list-none p-0 space-y-2">
+            <for|a| of=(input.actions || []) by="id">
+              <li class="mod-action text-sm">
+                <span class="text-foreground">${a.what}</span>
+                <span class="text-muted-foreground"> by <span class="as-typed">${a.actor}</span>, <time datetime=a.at>${a.when}</time></span>
+                <if=a.note><span class="text-muted-foreground block">“${a.note}”</span></if>
+              </li>
+            </for>
+          </ol>
+        </else>
+      </section>
+    </article>
+  </else>
+</admin-shell>

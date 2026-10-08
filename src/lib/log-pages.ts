@@ -10,6 +10,7 @@ import { current, isAdmin } from "#auth/readers.ts";
 import { formatDate } from "#lib/format.ts";
 import { askLogs, channels as listChannels, logHref, readLogs, searchHref, type Channel } from "#lib/log-channels.ts";
 import { lines, segments, shiftDay, speaker, today } from "#lib/logs.ts";
+import { dayHref } from "#lib/moderation.ts";
 import { notFound } from "#lib/post-page.ts";
 import { view } from "#lib/view.ts";
 
@@ -86,6 +87,8 @@ export async function logPage(chosenUri: string | null, day: string | null, all:
     next: chosen && next <= today() ? logHref(chosen, next, all) : null,
     // An admin's way to every protocol's channels (and back).
     allToggle: admin ? { href: `/logs?${new URLSearchParams({ day: shown, ...(all ? {} : { all: "1" }) })}`, all } : null,
+    // An admin's way to this day with its hidden lines, to hide or unhide them (streampack#150).
+    moderate: admin && chosen ? dayHref(chosen.uri, shown) : null,
     meta: {
       title: chosen ? `${chosen.name}, ${formatDate(`${shown}T00:00:00Z`)}` : "Chat Logs",
       path: chosen?.path ? `/logs/${chosen.path}${day ? `/${day}` : ""}` : "/logs",
