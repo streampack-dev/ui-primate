@@ -1553,20 +1553,20 @@ textarea.form-field {
 .atlas-layout { display: grid; grid-template-columns: minmax(0, 1fr) 22rem; gap: 1.5rem; }
 .atlas {
   position: relative; display: flex; flex-direction: column; min-width: 0;
-  height: max(32rem, calc(100vh - 15rem)); border: 1px solid var(--border); background: var(--background); overflow: hidden;
+  height: max(32rem, calc(100vh - 18rem)); border: 1px solid var(--border); background: var(--background); overflow: hidden;
 }
-.atlas-side { height: max(32rem, calc(100vh - 15rem)); overflow-y: auto; padding-right: 0.25rem; }
+.atlas-side { height: max(32rem, calc(100vh - 18rem)); overflow-y: auto; padding-right: 0.25rem; }
 @media (max-width: 1023px) {
   .atlas-layout { grid-template-columns: minmax(0, 1fr); }
   .atlas { height: max(22rem, 68vh); }
   .atlas-side { height: auto; overflow: visible; }
 }
+/* The key and the zoom above the map, never over it. */
 .atlas-hud {
-  position: absolute; top: 0.5rem; left: 0.5rem; right: 0.5rem; z-index: 1;
-  display: flex; flex-wrap: wrap; gap: 0.5rem 0.75rem; align-items: flex-start; pointer-events: none;
+  display: flex; flex-wrap: wrap; gap: 0.5rem 0.75rem; align-items: flex-start; padding: 0.5rem;
+  border-bottom: 1px solid var(--border);
 }
-.atlas-hud > * { pointer-events: auto; }
-.atlas-key-box { display: flex; align-items: flex-start; gap: 0.5rem; max-width: 100%; }
+.atlas-key-box { display: flex; align-items: flex-start; gap: 0.5rem; flex: 1 1 0; min-width: 0; }
 .atlas-key-button, .atlas-zoom-button {
   display: inline-flex; align-items: center; justify-content: center; min-height: 2rem; min-width: 2rem; padding: 0.15rem 0.6rem;
   font-size: 0.8rem; cursor: pointer; color: var(--foreground);
@@ -1649,8 +1649,10 @@ textarea.form-field {
 /* What's new: a dot for a place holding something new, with a slow glow; a small ring and a quiet
    dashed glow for one holding only changes. The dot and the ring say it, and the place's name says
    "2 new, 1 changed"; the glow is only a third cue. They keep their size on screen at any zoom. */
-.atlas-map .glow { fill: none; pointer-events: none; r: max(calc(var(--gr, 10) * 1px), calc(11 * var(--u, 1px))); }
-.atlas-map .fresh-new .glow { stroke: var(--foreground); stroke-width: calc(3 * var(--u, 1px)); animation: atlas-glow 3.2s ease-in-out infinite; }
+.atlas-map .glow { fill: none; pointer-events: none; r: max(calc(var(--gr, 10) * 1px), calc(8 * var(--u, 1px))); }
+.atlas-map .fresh-new .glow { stroke: var(--foreground); stroke-width: calc(2 * var(--u, 1px)); animation: atlas-glow 3.2s ease-in-out infinite; }
+/* So far out (a phone's whole map) the glows would bury the places: the dots and rings say it. */
+.atlas-map[data-tiny] .glow { display: none; }
 .atlas-map .fresh-changed .glow {
   stroke: var(--muted-foreground); stroke-width: calc(1.5 * var(--u, 1px)); opacity: 0.6;
   stroke-dasharray: calc(3 * var(--u, 1px)) calc(3 * var(--u, 1px));
@@ -1700,7 +1702,6 @@ textarea.form-field {
 .dark .atlas-kind-factoids { border-color: #4fc1b2; }
 .dark .atlas-kind-shared { background: #b89cf2; }
 @media (max-width: 640px) {
-  .atlas-hud { top: auto; bottom: 0.5rem; }
   .atlas-legend { font-size: 0.7rem; }
   .atlas-find .form-field { width: 100%; }
   .atlas-find { width: 100%; }
