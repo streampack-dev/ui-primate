@@ -32,11 +32,13 @@ async function postsSince(since: number): Promise<CatalogPost[]> {
   return all;
 }
 
-/** Every factoid (the API lists them by name, not by time). */
-async function allFactoids(): Promise<CatalogFactoid[]> {
+/** The factoids set or changed since [since], newest first (GET /factoids?since=, streampack#179):
+   a visit keeps its baseline, so its views ask the same question and the cache answers. */
+async function factoidsSince(since: number): Promise<CatalogFactoid[]> {
   const all: CatalogFactoid[] = [];
+  const at = new Date(since).toISOString();
   for (let page = 0; page < 10; page++) {
-    const list = await cachedGet<FactoidList>("/factoids", { page, size: 100 });
+    const list = await cachedGet<FactoidList>("/factoids", { since: at, page, size: 100 });
     all.push(...(list?.factoids || []));
     if (page + 1 >= (list?.totalPages ?? 0)) break;
   }
@@ -61,7 +63,7 @@ export default route({
     let fresh: ReturnType<typeof whatsNew> | null = null;
     if (atlas) {
       try {
-        const [posts, factoids] = await Promise.all([postsSince(since), allFactoids()]);
+        const [posts, factoids] = await Promise.all([postsSince(since), factoidsSince(since)]);
         fresh = whatsNew(posts, factoids, since, atlas);
       } catch (e) {
         if (!(e instanceof ApiUnavailable)) throw e;

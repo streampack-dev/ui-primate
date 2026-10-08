@@ -165,6 +165,17 @@ describe("What's new on the Atlas", () => {
     expect(cookies[1]).toContain("Max-Age=31536000");
   });
 
+  it("asks for the factoids set or changed since the visit, never every factoid", async () => {
+    const reader = new Visitor();
+    const last = seconds(ago(7 * DAY));
+    reader.cookies.set("bcn-atlas-seen", last);
+    await reader.get("/atlas");
+    const asked = (await requests()).filter((r) => r.path === "/factoids");
+
+    expect(asked.length).toBeGreaterThan(0);
+    for (const r of asked) expect(r.query.since).toBe(new Date(Number(last) * 1000).toISOString());
+  });
+
   it("lists new posts, then new factoids, then changes, since the last visit, with the places they're at", async () => {
     const reader = new Visitor();
     reader.cookies.set("bcn-atlas-seen", seconds(ago(7 * DAY)));
