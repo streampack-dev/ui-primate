@@ -10,9 +10,9 @@ export function useBrowser() {
 }
 
 /** A page at [path], in [theme], with its script errors collected; [cookies] (a Visitor's, say)
-   carry a session into the browser. */
-export async function open(path: string, theme: "light" | "dark" = "light", cookies: Map<string, string> = new Map()): Promise<{ page: Page; errors: string[] }> {
-  const context = await browser.newContext({ colorScheme: theme });
+   carry a session into the browser; a [viewport] (a phone's, say) and reduced motion may be asked for. */
+export async function open(path: string, theme: "light" | "dark" = "light", cookies: Map<string, string> = new Map(), { viewport, reducedMotion }: { viewport?: { width: number; height: number }; reducedMotion?: "reduce" } = {}): Promise<{ page: Page; errors: string[] }> {
+  const context = await browser.newContext({ colorScheme: theme, ...(viewport ? { viewport } : {}), ...(reducedMotion ? { reducedMotion } : {}) });
   await context.addCookies([...cookies].map(([name, value]) => ({ name, value, url: inject("appUrl") })));
   // Seeded once: a reader's own choice, made on the page, stands across reloads.
   await context.addInitScript((t) => { try { if (!localStorage.getItem("theme")) localStorage.setItem("theme", t); } catch {} }, theme);
