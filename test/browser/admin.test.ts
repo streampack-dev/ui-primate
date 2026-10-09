@@ -1,4 +1,4 @@
-import { beforeEach, describe, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { expectAccessible, open, useBrowser } from "../support/browser.ts";
 import { ADMIN, signedIn } from "../support/readers.ts";
 import { post, resetStubs, stub, stubSite } from "../support/stub.ts";
@@ -17,6 +17,26 @@ beforeEach(async () => {
   await stub("/admin/users", [user("mallory")], { query: { status: "SUSPENDED" } });
   await stub("/categories", [{ id: "019f0000-0000-7000-8000-0000000c0001", name: "Guides", parentName: null }, { id: "019f0000-0000-7000-8000-0000000c0003", name: "JVM", parentName: "Guides" }]);
   await stub("/taxonomy", { tags: { jvm: 12, kotlin: 30 }, categories: { guides: 7, jvm: 3 } });
+});
+
+describe("the header, signed in as an admin, on a phone", () => {
+  it("fits the screen, Sign out included, and stays accessible", async () => {
+    const v = await signedIn(ADMIN);
+    for (const theme of ["light", "dark"] as const) {
+      for (const path of ["/", "/admin"]) {
+        const { page } = await open(path, theme, v.cookies, { viewport: { width: 390, height: 844 } });
+        const fit = await page.evaluate(() => {
+          const header = document.querySelector("header")!;
+          const out = [...document.querySelectorAll("header form[action='/logout'] button")].map((b) => b.getBoundingClientRect().right);
+          return { header: header.scrollWidth, page: document.documentElement.scrollWidth, signOutRight: Math.max(...out) };
+        });
+        expect(fit.header, `${path} header width`).toBeLessThanOrEqual(390);
+        expect(fit.page, `${path} page width`).toBeLessThanOrEqual(390);
+        expect(fit.signOutRight, `${path} Sign out's right edge`).toBeLessThanOrEqual(390);
+        await expectAccessible(page);
+      }
+    }
+  });
 });
 
 describe("the admin pages, in a browser", () => {
