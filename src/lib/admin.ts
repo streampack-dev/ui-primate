@@ -12,7 +12,14 @@ export const SECTIONS = [
   { href: "/admin/users", label: "Users" },
   { href: "/admin/categories", label: "Categories" },
   { href: "/admin/moderation", label: "Moderation" },
+  { href: "/admin/tags", label: "Tags" },
 ];
+
+/** How a section's count is said to a screen reader. */
+const COUNTED: Record<string, (n: number) => string> = {
+  "/admin/moderation": (n) => `${n} open`,
+  "/admin/tags": (n) => `${n} to decide`,
+};
 
 /** How many moderation reports are open, for the nav; null when it can't be said. */
 async function openReports(): Promise<number | null> {
@@ -25,16 +32,31 @@ async function openReports(): Promise<number | null> {
   }
 }
 
+/** Open tag review entries and waiting feed tags, for the nav; null when neither can be said. */
+async function tagsWaiting(): Promise<number | null> {
+  try {
+    const { attention, counts } = await import("#lib/tags-admin.ts");
+    return attention(await counts());
+  } catch {
+    return null;
+  }
+}
+
 /** Whether the reader is an admin. */
 export const admin = () => isAdmin(current());
 
 /**
  * [name] with [props], in the admin shell, [here] marked in its nav, with the open moderation
- * reports counted there ([open] when the page knows it already). Never kept by a cache.
+ * reports counted there ([open] when the page knows it already), and the tags waiting for a
+ * decision ([tags], likewise). Never kept by a cache.
  */
-export async function adminPage(name: string, props: Record<string, unknown>, title: string, here: string, status = 200, open?: number | null) {
-  const count = open === undefined ? await openReports() : open;
-  const sections = SECTIONS.map((s) => ({ ...s, current: s.href === here, count: s.href === "/admin/moderation" && count ? count : null }));
+export async function adminPage(name: string, props: Record<string, unknown>, title: string, here: string, status = 200, open?: number | null, tags?: number | null) {
+  const [reports, waiting] = await Promise.all([open === undefined ? openReports() : open, tags === undefined ? tagsWaiting() : tags]);
+  const counts: Record<string, number | null> = { "/admin/moderation": reports, "/admin/tags": waiting };
+  const sections = SECTIONS.map((s) => {
+    const count = counts[s.href] || null;
+    return { ...s, current: s.href === here, count, countLabel: count ? COUNTED[s.href](count) : null };
+  });
   return view(name, { ...props, csrf: csrf(), sections, meta: { title, robots: "noindex, nofollow" } }, {
     status,
     headers: { "Cache-Control": "private, no-store" },

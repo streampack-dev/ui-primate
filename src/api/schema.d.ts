@@ -470,6 +470,193 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/tags/stoplist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The tag stoplist */
+        get: operations["listTagStops"];
+        put?: never;
+        /**
+         * Stoplist a term
+         * @description The term is dropped, silently, from every tag list written from now on. Tags already stored are left alone.
+         */
+        post: operations["createTagStop"];
+        /** Take a term off the stoplist */
+        delete: operations["deleteTagStop"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/tags/review/{id}/split": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Split a queued tag into its parts
+         * @description For a missing comma: every post and factoid carrying the queued tag carries the parts instead, in one transaction, and the queued tag's row goes. The parts default to the entry's hint tags. The entry is marked SPLIT. With `dryRun=true` nothing changes: the answer is what the split would do.
+         */
+        post: operations["splitTagReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/tags/review/{id}/keep": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Keep a queued tag as a real tag
+         * @description The tag stays as it is; the entry is marked KEPT.
+         */
+        post: operations["keepTagReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/tags/review/{id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dismiss a queued tag
+         * @description The tag stays as it is; the entry is marked DISMISSED.
+         */
+        post: operations["dismissTagReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/tags/review/{id}/alias": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Alias a queued tag to an existing one
+         * @description Every post and factoid carrying the queued tag is re-pointed to `tag`, in one transaction; the queued tag's own row goes, and it becomes an alias of `tag`. The entry is marked ALIASED. With `dryRun=true` nothing changes: the answer is what the alias would do, the posts and factoids it would re-point.
+         */
+        post: operations["aliasTagReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/tags/aliases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every tag alias */
+        get: operations["listTagAliases"];
+        put?: never;
+        /**
+         * Make a tag an alias of another
+         * @description `alias` becomes an alias of the existing tag `tag`. Any posts and factoids carrying `alias` are re-pointed to `tag` in one transaction, its row goes, and its own aliases move to `tag`. Writing or looking up `alias` then finds `tag`. With `dryRun=true` nothing changes: the answer is what the alias would do.
+         */
+        post: operations["createTagAlias"];
+        /**
+         * Remove a tag alias
+         * @description Nothing is re-pointed back: what was merged stays merged, and the name is free to be a tag of its own again.
+         */
+        delete: operations["deleteTagAlias"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rss/tags/map": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Map a feed tag to an existing tag
+         * @description `name` becomes an alias of the existing tag `tag` (as `POST /admin/tags/aliases` makes one, taken off the stoplist first if it was there), so feed entries carrying it carry `tag`, and so does anything written with it. Marked MAPPED.
+         */
+        post: operations["mapFeedTag"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rss/tags/ignore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ignore a feed tag
+         * @description `name` is stoplisted (its alias removed first if it had one): dropped from feed entries' tags, and from every tag list written from now on. Marked IGNORED.
+         */
+        post: operations["ignoreFeedTag"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rss/tags/create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a feed tag as a tag now
+         * @description `name` is created as a tag without waiting for the threshold, through the vocabulary's create rule: a doubtful one goes to the review queue, and the AI near-miss checks it, as for any new tag. Marked CREATED.
+         */
+        post: operations["createFeedTag"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/rss/opml/import": {
         parameters: {
             query?: never;
@@ -1148,7 +1335,7 @@ export interface paths {
         };
         /**
          * One place on the Atlas, with every article and factoid found there
-         * @description The tag is matched ignoring case. 404 when it isn't on the map.
+         * @description The tag is matched ignoring case, and an alias finds the place of the tag it means. 404 when it isn't on the map.
          */
         get: operations["getPlace"];
         put?: never;
@@ -1185,6 +1372,86 @@ export interface paths {
         };
         /** Export a user's data for admin review */
         get: operations["exportUserData_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/tags/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The tag review queue
+         * @description Doubtful new tags: a trailing-s pair with an existing tag (PLURAL), several words that are each a tag (MISSING_COMMA), or a near-duplicate only the AI found (AI). Open entries by default, the AI's most confident first, then newest. `openCount` is how many are open in all, for a launcher badge; `totalCount` and `totalPages` are for the status asked for, so any view can show page N of M.
+         */
+        get: operations["listTagReviews"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/tags/review/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One entry in the tag review queue
+         * @description The entry, open or decided, as the queue lists it.
+         */
+        get: operations["getTagReview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/tags/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recent changes to the tag vocabulary
+         * @description Aliases, splits, keeps, dismissals and stoplist changes: who and when.
+         */
+        get: operations["listTagActions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rss/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Feed tags the tag vocabulary didn't know
+         * @description Waiting feed tags by default, the most carried first: counted, and created as tags once on `promoteEntries` entries across `promoteFeeds` feeds. `status=all` includes the decided ones (PROMOTED, CREATED, MAPPED, IGNORED). Feed tags that are tags, aliases or stoplisted already never wait, and aren't listed. `waitingCount` is how many wait in all, for a launcher badge; `totalCount` and `totalPages` are for the status asked for, so any view can show page N of M.
+         */
+        get: operations["listFeedTags"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1665,6 +1932,102 @@ export interface components {
             address?: string | null;
             server?: string | null;
         };
+        /** @description A term for the stoplist */
+        TagStopRequest: {
+            term?: string;
+        };
+        /** @description A stoplisted term */
+        TagStopEntry: {
+            term: string;
+            createdBy: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @description Split a tag into its parts */
+        TagSplitRequest: {
+            /** @description The parts; the entry's hint tags when left out */
+            parts?: string[] | null;
+        };
+        /** @description What an alias, split, keep or dismiss did, or, for a dry run, what an alias or split would do */
+        TagChangeResult: {
+            /** @description The tag acted on */
+            tag: string;
+            /** @description What it now stands for: the alias target, or the split's parts */
+            now: string[];
+            /**
+             * Format: int32
+             * @description Posts re-pointed
+             */
+            posts: number;
+            /**
+             * Format: int32
+             * @description Factoids whose tag lists were rewritten
+             */
+            factoids: number;
+        };
+        /** @description Alias a queued tag to an existing one */
+        TagReviewAliasRequest: {
+            /** @description The existing tag the queued tag means */
+            tag: string;
+        };
+        /** @description Make a tag an alias of another */
+        TagAliasRequest: {
+            /** @description The name to alias */
+            alias: string;
+            /** @description The existing tag it means */
+            tag: string;
+        };
+        /** @description Map a feed tag to an existing tag */
+        FeedTagMapRequest: {
+            /** @description The feed tag */
+            name?: string;
+            /** @description The existing tag it means */
+            tag?: string;
+        };
+        /** @description A feed tag the tag vocabulary didn't know, and what became of it */
+        FeedTagEntry: {
+            /** @description The feed tag, normalized */
+            name: string;
+            /** @description How feeds wrote it, a few of the forms */
+            written: string[];
+            /** @enum {string} */
+            status: "WAITING" | "PROMOTED" | "CREATED" | "MAPPED" | "IGNORED";
+            /**
+             * Format: int32
+             * @description Feed entries carrying it
+             */
+            entries: number;
+            /**
+             * Format: int32
+             * @description Distinct feeds carrying it
+             */
+            feeds: number;
+            /** Format: date-time */
+            firstSeen: string;
+            /** Format: date-time */
+            lastSeen: string;
+            /** @description The tag it became or maps to; absent while waiting or ignored */
+            tag?: string | null;
+            /** @description Who decided: an admin, rss (promoted), or vocabulary */
+            decidedBy?: string | null;
+            /** Format: date-time */
+            decidedAt?: string | null;
+            /** @description A few of the entries carrying it, newest first */
+            examples: components["schemas"]["FeedTagExample"][];
+        };
+        /** @description A feed entry carrying a feed tag, as an example */
+        FeedTagExample: {
+            /** Format: uuid */
+            entryId: string;
+            title: string;
+            link: string;
+            feedTitle: string;
+        };
+        /** @description A feed tag to ignore or create */
+        FeedTagRequest: {
+            /** @description The feed tag */
+            name?: string;
+        };
         DeriveTagsHttpRequest: {
             title?: string | null;
             markdownSource?: string | null;
@@ -1883,6 +2246,10 @@ export interface components {
             publishedAt?: string | null;
             /** Format: date-time */
             receivedAt: string;
+            /** @description The feed's own tags for the item (RSS category, Atom category term), as written; empty when it gave none or the item was stored before tags were kept */
+            categories: string[];
+            /** @description The BCN tags the item's feed tags map to: a tag of the same name, or an alias's tag. Stoplisted and waiting feed tags map to nothing. Feed items don't count toward tag counts or the taxonomy. */
+            tags: string[];
         };
         RssAggregatedItemsResponse: {
             items: components["schemas"]["RssAggregatedItemResponse"][];
@@ -2114,6 +2481,115 @@ export interface components {
             articles: components["schemas"]["AtlasArticle"][];
             /** @description Every factoid carrying the tag, by selector. */
             factoids: components["schemas"]["AtlasFactoid"][];
+        };
+        /** @description A doubtful new tag in the admin review queue */
+        TagReviewEntry: {
+            /** Format: uuid */
+            id: string;
+            /** @description The tag as it was written and created */
+            tag: string;
+            /**
+             * Format: date-time
+             * @description When it was first written
+             */
+            firstSeen: string;
+            /** @description What first wrote it: post, factoid, or rss (a feed tag promoted or created as a tag) */
+            source: string;
+            /**
+             * @description PLURAL (a trailing-s pair with hintTags[0]), MISSING_COMMA (hintTags are the existing tags it's made of) or AI (only the AI near-miss found something)
+             * @enum {string}
+             */
+            hintKind: "PLURAL" | "MISSING_COMMA" | "AI";
+            /** @description The existing tags the hint names */
+            hintTags: string[];
+            /** @description The existing tag the AI thinks this duplicates */
+            aiCandidate?: string | null;
+            /**
+             * Format: double
+             * @description The AI's confidence, 0 to 1
+             */
+            aiConfidence?: number | null;
+            /** @description Why the AI thinks so */
+            aiReason?: string | null;
+            /** @description The model that answered */
+            aiModel?: string | null;
+            /** @enum {string} */
+            status: "OPEN" | "ALIASED" | "SPLIT" | "KEPT" | "DISMISSED";
+            /** @description Who decided, once decided */
+            actedBy?: string | null;
+            /**
+             * Format: date-time
+             * @description When it was decided
+             */
+            actedAt?: string | null;
+        };
+        /** @description The review queue, a page of it */
+        TagReviewListResponse: {
+            entries: components["schemas"]["TagReviewEntry"][];
+            /**
+             * Format: int64
+             * @description Open entries in all, for a launcher badge
+             */
+            openCount: number;
+            /**
+             * Format: int64
+             * @description Entries in all for the status asked for, across every page
+             */
+            totalCount?: number | null;
+            /**
+             * Format: int32
+             * @description Pages in all for the status and size asked for; 0 when none
+             */
+            totalPages?: number | null;
+        };
+        /** @description An alias and the tag it means */
+        TagAliasEntry: {
+            alias: string;
+            tag: string;
+            createdBy: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @description One change to the tag vocabulary */
+        TagActionEntry: {
+            /** @enum {string} */
+            action: "ALIAS" | "UNALIAS" | "SPLIT" | "KEEP" | "DISMISS" | "STOP" | "UNSTOP" | "REMOVE";
+            /** @description The tag or term acted on */
+            subject: string;
+            /** @description What it became, or other detail */
+            detail?: string | null;
+            actor: string;
+            /** Format: date-time */
+            actedAt: string;
+        };
+        /** @description Feed tags, a page of them */
+        FeedTagListResponse: {
+            tags: components["schemas"]["FeedTagEntry"][];
+            /**
+             * Format: int64
+             * @description Waiting feed tags in all, for a launcher badge
+             */
+            waitingCount: number;
+            /**
+             * Format: int32
+             * @description Entries across feeds a waiting tag needs to become a tag
+             */
+            promoteEntries: number;
+            /**
+             * Format: int32
+             * @description Distinct feeds a waiting tag needs to become a tag
+             */
+            promoteFeeds: number;
+            /**
+             * Format: int64
+             * @description Feed tags in all for the status asked for, across every page
+             */
+            totalCount?: number | null;
+            /**
+             * Format: int32
+             * @description Pages in all for the status and size asked for; 0 when none
+             */
+            totalPages?: number | null;
         };
         ReportListResponse: {
             /** Format: int32 */
@@ -3530,6 +4006,711 @@ export interface operations {
             };
         };
     };
+    listTagStops: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The stoplisted terms, alphabetically */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagStopEntry"][];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createTagStop: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TagStopRequest"];
+            };
+        };
+        responses: {
+            /** @description The term as stoplisted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagStopEntry"];
+                };
+            };
+            /** @description No term, a system tag, or an alias */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteTagStop: {
+        parameters: {
+            query: {
+                term: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The term removed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagStopEntry"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The term isn't stoplisted */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    splitTagReview: {
+        parameters: {
+            query?: {
+                /** @description true to preview: the answer is what the action would do, and nothing is changed */
+                dryRun?: boolean;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TagSplitRequest"];
+            };
+        };
+        responses: {
+            /** @description What changed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagChangeResult"];
+                };
+            };
+            /** @description Fewer than two parts, or no parts and no hint to take them from */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such entry */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    keepTagReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The tag kept */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagChangeResult"];
+                };
+            };
+            /** @description The entry was already decided */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such entry */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    dismissTagReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The tag dismissed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagChangeResult"];
+                };
+            };
+            /** @description The entry was already decided */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such entry */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    aliasTagReview: {
+        parameters: {
+            query?: {
+                /** @description true to preview: the answer is what the action would do, and nothing is changed */
+                dryRun?: boolean;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TagReviewAliasRequest"];
+            };
+        };
+        responses: {
+            /** @description What changed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagChangeResult"];
+                };
+            };
+            /** @description The target isn't an existing tag, or is the same tag */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such entry */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listTagAliases: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The aliases, by alias */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagAliasEntry"][];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createTagAlias: {
+        parameters: {
+            query?: {
+                /** @description true to preview: the answer is what the action would do, and nothing is changed */
+                dryRun?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TagAliasRequest"];
+            };
+        };
+        responses: {
+            /** @description What changed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagChangeResult"];
+                };
+            };
+            /** @description No alias, a target that isn't a tag, a system tag, or the same tag */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deleteTagAlias: {
+        parameters: {
+            query: {
+                alias: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The alias removed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagAliasEntry"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such alias */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    mapFeedTag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedTagMapRequest"];
+            };
+        };
+        responses: {
+            /** @description The feed tag as decided */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedTagEntry"];
+                };
+            };
+            /** @description The target isn't an existing tag, or is the feed tag itself */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No feed has carried that tag */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    ignoreFeedTag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedTagRequest"];
+            };
+        };
+        responses: {
+            /** @description The feed tag as decided */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedTagEntry"];
+                };
+            };
+            /** @description No name given */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No feed has carried that tag */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    createFeedTag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedTagRequest"];
+            };
+        };
+        responses: {
+            /** @description The feed tag as decided */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedTagEntry"];
+                };
+            };
+            /** @description No name given */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No feed has carried that tag */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     importOpml: {
         parameters: {
             query?: never;
@@ -4904,6 +6085,197 @@ export interface operations {
                 };
                 content: {
                     "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    listTagReviews: {
+        parameters: {
+            query?: {
+                status?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of the queue */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagReviewListResponse"];
+                };
+            };
+            /** @description A bad status, page or size */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getTagReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The entry */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagReviewEntry"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such entry */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listTagActions: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The latest changes, newest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagActionEntry"][];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listFeedTags: {
+        parameters: {
+            query?: {
+                status?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of feed tags */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedTagListResponse"];
+                };
+            };
+            /** @description A bad status, page or size */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
         };

@@ -1723,3 +1723,26 @@ textarea.form-field {
   .atlas-find .form-field { width: 100%; }
   .atlas-find { width: 100%; }
 }
+
+/* The tag vocabulary (streampack#140, #139): its status filters, the current one underlined as
+   well as coloured, and a question's preview. */
+.tag-filter {
+  @apply text-muted-foreground hover:text-foreground transition-colors;
+}
+
+.tag-filter.is-current {
+  @apply text-amber underline underline-offset-4;
+}
+
+.tag-preview {
+  @apply text-sm border-l-2 pl-3 py-1;
+  border-color: var(--amber);
+}
+
+.tag-preview.is-refused {
+  border-color: var(--destructive);
+}
+
+.tag-preview:empty {
+  display: none;
+}

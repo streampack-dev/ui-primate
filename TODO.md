@@ -66,6 +66,18 @@ Since (2026-10-03):
 - [x] Every Set-Cookie of an answer is sent: Primate's Node server sent only the last
       (primate-bugs/14, primate task #183), which the Atlas's two cookies found. Fixed upstream in
       @rcompat/http 0.32.4 (primate 0.42.2); ui-primate's setHeader patch is gone (2026-10-08)
+- [x] The tag vocabulary's admin side (streampack#140, #139; as ui-pudl#212): /admin/tags (the
+      review queue), /admin/tags/feed, /aliases, /stoplist and /history, in the admin nav as "Tags"
+      with open review entries plus waiting feed tags counted. Review and feed tags filter by status
+      and say "Page 2 of 3 (41 kept entries)" from the API's totals. Alias, split and a new alias are
+      asked on a page of their own, previewed by the API's dry run ("This re-points 3 posts and 1
+      factoid to “compilers”."); Confirm is offered only when the preview says it can be done, and a
+      refusal says "Not possible: " and the API's detail. With script (client/tag-ask.ts) the preview
+      follows the typing. Removing an alias is asked first (no preview: the API has no dry run for
+      it). Keep, dismiss, the feed tags' map, create and ignore, and the stoplist act at once; the
+      list then says what was done by a fixed code, the names and counts the API answered (2026-10-09)
+- [ ] The site header, signed in as an admin, is wider than a phone (390px) on every page: its
+      sign-out form runs past the edge
 - [ ] The Atlas's page carries its map twice, as SVG and as Primate's hydration props (about 250 KB
       each for 248 places, before the proxy's gzip). A view whose props aren't hydrated would halve
       it
