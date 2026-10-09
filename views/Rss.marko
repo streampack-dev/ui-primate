@@ -46,6 +46,7 @@ export interface Input {
     <div class="flex items-center justify-between gap-4 border-b border-border/40 pb-3 mb-6">
       <p class="dateline text-muted-foreground"><span class="rss-count">${input.count}</span><if=input.newest> · <span class="rss-newest">${input.newest}</span></if></p>
       <span class="flex gap-4">
+        <a class="rss-all-feeds section-label form-helper" href="/rss/feeds">All Feeds</a>
         <if=input.filtered><a class="rss-clear section-label form-helper" href="/rss">Clear Filters</a></if>
         <a class="rss-refresh section-label form-helper" href=input.refresh>Refresh</a>
       </span>
