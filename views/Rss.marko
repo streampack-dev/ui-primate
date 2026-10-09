@@ -3,13 +3,20 @@ export interface Input {
   feed: string;
   title: string;
   feeds: { value: string; label: string }[];
+  rates: boolean;
+  csrf: string;
+  back: string;
+  rating: string;
+  ratingNote: string;
+  ratings: { value: string; label: string }[];
+  filters: { value: string; label: string }[];
   listing: boolean;
   list: { title: string; feedUrl: string; siteUrl: string }[];
   count: string;
   filtered: boolean;
   refresh: string;
   newest: string;
-  items: { id: string; title: string; link: string; published: string; date: string; summary: string }[];
+  items: { id: string; title: string; link: string; published: string; date: string; summary: string; anchor?: string; rating?: string; said?: string }[];
   prev: string | null;
   next: string | null;
 }
@@ -28,7 +35,7 @@ export interface Input {
       </div>
     </header>
 
-    <form class="rss-filter grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end mb-8" action="/rss" method="get">
+    <form class=(input.rates ? "rss-filter grid grid-cols-1 md:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end mb-8" : "rss-filter grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end mb-8") action="/rss" method="get">
       <label class="section-label form-label-text">
         Feed title or URL
         <select class="form-field text-sm p-2 mt-2" name="feed">
@@ -42,6 +49,16 @@ export interface Input {
         Entry title contains
         <input class="form-field text-sm p-2 mt-2" name="title" type="search" placeholder="spring" value=input.title>
       </label>
+      <if=input.rates>
+        <label class="section-label form-label-text">
+          Rating
+          <select class="rss-rating-filter form-field text-sm p-2 mt-2" name="rating">
+            <for|f| of=input.filters by="value">
+              <option value=f.value selected=(f.value === input.rating)>${f.label}</option>
+            </for>
+          </select>
+        </label>
+      </if>
       <button class="section-label rss-filter-button" type="submit">Filter</button>
     </form>
 
@@ -55,6 +72,7 @@ export interface Input {
       </span>
     </div>
 
+    <if=input.ratingNote><p class="rss-rating-note form-error mb-6" role="status">${input.ratingNote}</p></if>
     <if=input.listing>
       <section class="rss-feeds" aria-labelledby="rss-feeds-heading">
         <h2 id="rss-feeds-heading" class="section-label text-muted-foreground mb-4">Feed List</h2>
@@ -83,7 +101,7 @@ export interface Input {
     <else>
       <div class="divide-y divide-border/30">
         <for|i| of=input.items by="id">
-          <article class="rss-item group py-5">
+          <article class="rss-item group py-5" id=(i.anchor || false)>
             <a class="rss-item-title headline-brief text-foreground group-hover:text-amber transition-colors"
               href=i.link target="_blank" rel="noopener noreferrer" data-rss-access=(i.id || false)>${i.title}</a>
             <div class="rss-item-meta mt-3 flex flex-wrap gap-x-4 gap-y-1">
@@ -93,6 +111,21 @@ export interface Input {
               <else><span>${i.date}</span></else>
             </div>
             <if=i.summary><p class="rss-summary">${i.summary}</p></if>
+            <if=input.rates>
+              <div class="rss-rating mt-3 flex flex-wrap items-center gap-2" role="group" aria-label=`Rate “${i.title}”` data-rss-rating=i.id>
+                <for|r| of=input.ratings by="value">
+                  <form class="rss-rate" method="post" action=`/admin/rss/items/${i.id}/rating`>
+                    <input type="hidden" name="csrf" value=input.csrf>
+                    <input type="hidden" name="back" value=input.back>
+                    <button class="rss-rate-button section-label" type="submit" name="rating" value=(i.rating === r.value ? "NONE" : r.value)
+                      aria-pressed=(i.rating === r.value ? "true" : "false") data-rating=r.value>
+                      <span class="rss-rate-glyph" aria-hidden="true">${i.rating === r.value ? "✓" : "○"}</span> ${r.label}
+                    </button>
+                  </form>
+                </for>
+                <span class="rss-rating-now dateline text-muted-foreground" aria-live="polite">${i.said}</span>
+              </div>
+            </if>
           </article>
         </for>
       </div>

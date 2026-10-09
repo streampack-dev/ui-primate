@@ -1310,6 +1310,29 @@ textarea.form-field {
   color: color-mix(in srgb, var(--muted-foreground) 90%, transparent);
 }
 
+/* An admin's rating buttons (#27): the pressed one says so by its check, its heavier border and
+   lettering and the words beside the buttons, never by colour alone. */
+.rss-rate-button {
+  @apply inline-flex items-center gap-1.5 border border-border px-3 py-1 text-muted-foreground hover:border-amber hover:text-amber transition-colors cursor-pointer;
+}
+
+.rss-rate-button[aria-pressed="true"] {
+  @apply text-foreground font-semibold;
+  border: 2px solid var(--foreground);
+}
+
+.rss-rate-button:disabled {
+  @apply cursor-wait opacity-70;
+}
+
+.rss-rating-now.is-refused {
+  color: #bf3d31;
+}
+
+.dark .rss-rating-now.is-refused {
+  color: var(--destructive);
+}
+
 /* The fields sit inside their section-label labels; they shouldn't take the label's lettering. */
 .rss-filter .form-field,
 .log-search .form-field {

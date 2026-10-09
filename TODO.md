@@ -84,6 +84,14 @@ Since (2026-10-03):
       when it has one), by title, twenty to a page as the items are. A small "Feed List" link beside
       Refresh leads there, not shown on a phone; "Back to Items" (/rss) and the filter form lead
       back. For finding a feed's address to subscribe a channel; no address changed (2026-10-09)
+- [x] Admins rate RSS items (#27, streampack#187/#188, as ui-pudl#214): signed in as an admin, the
+      reader lists /admin/rss/items, and each item has Rates, Might and Dull buttons; one click sets
+      (PUT), pressing the current one clears (DELETE). The current one shows a check, aria-pressed and
+      "Rated Might by ed" beside the buttons, never colour alone. Each is a small form posting to
+      /admin/rss/items/<id>/rating (form token, `back`), returning to the same page at #item-<id>;
+      with script, client/rate.ts rates in place. A Rating select in the filter form gives
+      ?rating=unrated|rates|might|dull. The model's guess is never shown. Anyone else's reader is
+      unchanged: the public items, no buttons, ?rating ignored, and the rating posts a 404 (2026-10-09)
 - [ ] The Atlas's page carries its map twice, as SVG and as Primate's hydration props (about 250 KB
       each for 248 places, before the proxy's gzip). A view whose props aren't hydrated would halve
       it
