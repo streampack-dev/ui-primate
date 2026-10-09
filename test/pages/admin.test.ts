@@ -34,7 +34,7 @@ describe("the admin pages", () => {
     const nav = doc.querySelector("nav.admin-nav")!;
 
     expect(text(doc.querySelector("main h1"))).toBe("Site Management");
-    expect(nav.querySelectorAll("a").map((a) => a.getAttribute("href"))).toEqual(["/admin", "/admin/pending", "/admin/users", "/admin/categories", "/admin/moderation"]);
+    expect(nav.querySelectorAll("a").map((a) => a.getAttribute("href"))).toEqual(["/admin", "/admin/pending", "/admin/users", "/admin/categories", "/admin/moderation", "/admin/tags"]);
     expect(nav.querySelector("a[aria-current=page]")?.getAttribute("href")).toBe("/admin/users");
     const response = await fetch(`${inject("appUrl")}/admin`, { headers: { Cookie: `session_id=${v.cookies.get("session_id")}` } });
     expect(response.headers.get("cache-control")).toContain("no-store");

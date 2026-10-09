@@ -1,0 +1,58 @@
+export interface Input {
+  meta?: import("#lib/meta.ts").Head;
+  title: string;
+  body: string;
+  /** Where the fields are checked: this page again, by GET. */
+  check: string;
+  /** The same check as JSON, for client/tag-ask.ts. */
+  previewUrl: string;
+  action: string;
+  button: string;
+  back: string;
+  fields: { name: string; label: string; value: string; help: string; suggest?: boolean }[];
+  /** Fields carried as they are by both forms (where to come back to, say). */
+  hidden: Record<string, string>;
+  preview: { ok: boolean; text: string } | null;
+  error?: string;
+  vocabulary: string[];
+  csrf: string;
+}
+
+<page-meta meta=input.meta/>
+<section class="py-8 md:py-12">
+  <!-- Without script, Preview checks the fields here and says what they would do, and Confirm,
+       below, carries what was checked. With script (client/tag-ask.ts), the preview follows the
+       fields as they're typed, and Confirm waits for one that says it can be done. -->
+  <div class="tag-ask max-w-3xl mx-auto px-6 md:px-8">
+    <div class="border-t-2 border-amber mb-6"/>
+    <p class="section-label text-amber mb-3"><a class="hover:underline" href=input.back>Tags</a></p>
+    <h1 class="confirm-title font-display text-2xl mb-3">${input.title}</h1>
+    <p class="confirm-body text-muted-foreground mb-6">${input.body}</p>
+    <if=input.vocabulary.length>
+      <datalist id="tag-vocabulary"><for|v| of=input.vocabulary><option value=v/></for></datalist>
+    </if>
+    <form class="tag-ask-check grid gap-4 mb-6" method="get" action=input.check data-preview-url=input.previewUrl>
+      <for|name, value| in=input.hidden><input type="hidden" name=name value=value></for>
+      <for|f| of=input.fields by="name">
+        <div>
+          <label class="byline form-label" for=`ask-${f.name}`>${f.label}</label>
+          <input class="form-field text-sm p-2" id=`ask-${f.name}` name=f.name value=f.value autocomplete="off"
+            aria-describedby=`ask-${f.name}-help` list=(f.suggest && input.vocabulary.length ? "tag-vocabulary" : false)>
+          <p class="form-helper text-xs mt-1" id=`ask-${f.name}-help`>${f.help}</p>
+        </div>
+      </for>
+      <div><button type="submit" class="section-label profile-action tag-ask-preview">Preview</button></div>
+    </form>
+    <p class=["tag-preview mb-6", input.preview && !input.preview.ok && "is-refused"] id="tag-preview" role="status">${input.preview?.text ?? ""}</p>
+    <if=input.error><p class="form-error mb-6" role="alert">${input.error}</p></if>
+    <div class="flex flex-wrap items-end gap-4">
+      <form class="tag-ask-confirm" method="post" action=input.action hidden=!(input.preview?.ok)>
+        <input type="hidden" name="csrf" value=input.csrf>
+        <for|name, value| in=input.hidden><input type="hidden" name=name value=value></for>
+        <for|f| of=input.fields by="name"><input type="hidden" name=f.name value=f.value data-field=f.name></for>
+        <button type="submit" class="auth-button" disabled=!(input.preview?.ok) aria-describedby="tag-preview">${input.button}</button>
+      </form>
+      <a class="confirm-cancel pagelink" href=input.back>Cancel</a>
+    </div>
+  </div>
+</section>

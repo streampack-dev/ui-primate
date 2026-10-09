@@ -1,5 +1,5 @@
 export interface Input {
-  sections: { href: string; label: string; current: boolean; count?: number | null }[];
+  sections: { href: string; label: string; current: boolean; count?: number | null; countLabel?: string | null }[];
   content: any;
 }
 <section class="py-8 md:py-12">
@@ -12,7 +12,7 @@ export interface Input {
       </div>
       <nav class="admin-nav flex flex-wrap gap-0 border-b border-border/40" aria-label="Administration">
         <for|s| of=input.sections by="href">
-          <a href=s.href aria-current=(s.current ? "page" : false) class=["admin-nav-link section-label", s.current && "is-current"]>${s.label}<if=s.count> <span class="admin-nav-count" aria-label=`${s.count} open`>${s.count}</span></if></a>
+          <a href=s.href aria-current=(s.current ? "page" : false) class=["admin-nav-link section-label", s.current && "is-current"]>${s.label}<if=s.count> <span class="admin-nav-count" aria-label=(s.countLabel || `${s.count} open`)>${s.count}</span></if></a>
         </for>
       </nav>
     </header>
