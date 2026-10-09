@@ -44,10 +44,37 @@ describe("the RSS reader, in a browser", () => {
     expect(errors).toEqual([]);
   });
 
+  it("swaps the items for the feed list in place, and back (#28)", async () => {
+    const { page, errors } = await open("/rss");
+    const documents: string[] = [];
+    page.on("request", (r) => { if (r.resourceType() === "document") documents.push(r.url()); });
+
+    await page.click("a.rss-feed-list-link");
+    await page.getByRole("heading", { name: "Feed List" }).waitFor();
+    expect(new URL(page.url()).search).toBe("?view=feeds");
+    expect((await page.locator("li.rss-feed-row").allTextContents()).map((t) => t.replace(/\s+/g, " ").trim())).toEqual(["Inside Java - https://inside.java/feed.xml"]);
+    expect(await page.locator("article.rss-item").count()).toBe(0);
+
+    await page.click("a.rss-items-link");
+    await page.getByText("JDK 26 is here").waitFor();
+    expect(new URL(page.url()).pathname + new URL(page.url()).search).toBe("/rss");
+    expect(documents).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  it("doesn't offer the feed list on a phone", async () => {
+    const { page } = await open("/rss", "light", new Map(), { viewport: { width: 390, height: 844 } });
+    await page.getByText("JDK 26 is here").waitFor();
+    expect(await page.locator("a.rss-feed-list-link").isVisible()).toBe(false);
+    expect(await page.locator("a.rss-refresh").isVisible()).toBe(true);
+  });
+
   it("is accessible, light and dark", async () => {
     for (const theme of ["light", "dark"] as const) {
-      const { page } = await open("/rss", theme);
-      await expectAccessible(page);
+      for (const path of ["/rss", "/rss?view=feeds"]) {
+        const { page } = await open(path, theme);
+        await expectAccessible(page);
+      }
     }
   });
 });
