@@ -3,6 +3,8 @@ export interface Input {
   feed: string;
   title: string;
   feeds: { value: string; label: string }[];
+  listing: boolean;
+  list: { title: string; feedUrl: string; siteUrl: string }[];
   count: string;
   filtered: boolean;
   refresh: string;
@@ -46,15 +48,38 @@ export interface Input {
     <div class="flex items-center justify-between gap-4 border-b border-border/40 pb-3 mb-6">
       <p class="dateline text-muted-foreground"><span class="rss-count">${input.count}</span><if=input.newest> · <span class="rss-newest">${input.newest}</span></if></p>
       <span class="flex gap-4">
-        <a class="rss-all-feeds section-label form-helper" href="/rss/feeds">All Feeds</a>
+        <if=input.listing><a class="rss-items-link section-label form-helper" href="/rss">Back to Items</a></if>
+        <else><a class="rss-feed-list-link section-label form-helper hidden md:inline" href="/rss?view=feeds">Feed List</a></else>
         <if=input.filtered><a class="rss-clear section-label form-helper" href="/rss">Clear Filters</a></if>
         <a class="rss-refresh section-label form-helper" href=input.refresh>Refresh</a>
       </span>
     </div>
 
-    <if=(input.items.length === 0)>
-      <p class="py-12 text-center text-muted-foreground font-mono text-sm">No RSS items matched these filters.</p>
+    <if=input.listing>
+      <section class="rss-feeds" aria-labelledby="rss-feeds-heading">
+        <h2 id="rss-feeds-heading" class="section-label text-muted-foreground mb-4">Feed List</h2>
+        <if=(input.list.length === 0)>
+          <p class="py-12 text-center text-muted-foreground font-mono text-sm">No feeds on this page.</p>
+        </if>
+        <else>
+          <ul class="rss-feed-list divide-y divide-border/30">
+            <for|f| of=input.list by="feedUrl">
+              <li class="rss-feed-row py-3 text-sm">
+                <if=f.title>
+                  <if=f.siteUrl><a class="rss-feed-title text-foreground hover:text-amber transition-colors" href=f.siteUrl rel="noopener noreferrer">${f.title}</a></if>
+                  <else><span class="rss-feed-title text-foreground">${f.title}</span></else>
+                  ${" - "}
+                </if>
+                <span class="rss-feed-url font-mono break-all">${f.feedUrl}</span>
+              </li>
+            </for>
+          </ul>
+        </else>
+      </section>
     </if>
+    <else if=(input.items.length === 0)>
+      <p class="py-12 text-center text-muted-foreground font-mono text-sm">No RSS items matched these filters.</p>
+    </else>
     <else>
       <div class="divide-y divide-border/30">
         <for|i| of=input.items by="id">

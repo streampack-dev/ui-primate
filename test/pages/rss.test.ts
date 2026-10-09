@@ -161,3 +161,101 @@ describe("opening an RSS item", () => {
     expect((await requests()).some((r) => r.method === "POST")).toBe(false);
   });
 });
+
+describe("the feed list, in the reader (#28)", () => {
+  // 25 feeds, out of order and in mixed case; one untitled, one without a site.
+  const many = () => [
+    { title: "zeta weekly", feedUrl: "https://zeta.example/rss", siteUrl: "https://zeta.example", itemCount: 3, latestItemTimestamp: null },
+    { title: "", feedUrl: "https://example.org/rss", siteUrl: null, itemCount: 1, latestItemTimestamp: null },
+    { title: "Baeldung", feedUrl: "https://feeds.feedblitz.com/baeldung", siteUrl: null, itemCount: 0, latestItemTimestamp: null },
+    { title: "inside java", feedUrl: "https://inside.java/feed.xml", siteUrl: "https://inside.java", itemCount: 12, latestItemTimestamp: null },
+    ...Array.from({ length: 21 }, (_, n) => ({ title: `Feed ${String(n).padStart(2, "0")}`, feedUrl: `https://f${n}.example/rss`, siteUrl: null, itemCount: 1, latestItemTimestamp: null })),
+  ];
+  const rows = (doc: Awaited<ReturnType<typeof page>>["doc"]) => doc.querySelectorAll("li.rss-feed-row").map((r) => text(r));
+
+  it("is offered by a Feed List link on the reader, hidden on a phone", async () => {
+    const { doc } = await page("/rss");
+    const link = doc.querySelector("a.rss-feed-list-link")!;
+
+    expect(text(link)).toBe("Feed List");
+    expect(link.getAttribute("href")).toBe("/rss?view=feeds");
+    expect(link.classList.contains("hidden")).toBe(true);
+    expect(link.classList.contains("md:inline")).toBe(true);
+    expect(doc.querySelector("ul.rss-feed-list")).toBeNull();
+  });
+
+  it("takes the items' place, as IRC's feed list gives it: title - address, by title", async () => {
+    await stub("/rss/feeds", { feeds: many().slice(0, 4) });
+    const { status, doc } = await page("/rss?view=feeds");
+
+    expect(status).toBe(200);
+    expect(doc.querySelectorAll("article.rss-item").length).toBe(0);
+    expect(text(doc.querySelector("#rss-feeds-heading"))).toBe("Feed List");
+    expect(doc.querySelector("section.rss-feeds")?.getAttribute("aria-labelledby")).toBe("rss-feeds-heading");
+    expect(rows(doc)).toEqual([
+      "Baeldung - https://feeds.feedblitz.com/baeldung",
+      "https://example.org/rss",
+      "inside java - https://inside.java/feed.xml",
+      "zeta weekly - https://zeta.example/rss",
+    ]);
+    expect(text(doc.querySelector(".rss-count"))).toBe("4 feeds");
+    // Nothing asked of the items.
+    expect((await requests()).some((r) => r.path === "/rss/items")).toBe(false);
+  });
+
+  it("links a title to its site when there is one; the address is plain text", async () => {
+    await stub("/rss/feeds", { feeds: many().slice(0, 4) });
+    const list = (await page("/rss?view=feeds")).doc.querySelectorAll("li.rss-feed-row");
+
+    expect(list[0].querySelector("a")).toBeNull();
+    expect(list[2].querySelector("a.rss-feed-title")?.getAttribute("href")).toBe("https://inside.java");
+    expect(list[2].querySelector(".rss-feed-url")?.tagName).toBe("SPAN");
+    expect(list[3].querySelector("a.rss-feed-title")?.getAttribute("href")).toBe("https://zeta.example");
+  });
+
+  it("pages as the items do, twenty to a page", async () => {
+    await stub("/rss/feeds", { feeds: many() });
+    const first = (await page("/rss?view=feeds")).doc;
+
+    expect(rows(first).length).toBe(20);
+    expect(rows(first)[0]).toBe("Baeldung - https://feeds.feedblitz.com/baeldung");
+    expect(first.querySelector("a.pagelink[rel=prev]")).toBeNull();
+    expect(first.querySelector("a.pagelink[rel=next]")?.getAttribute("href")).toBe("/rss?view=feeds&page=1");
+    expect(text(first.querySelector(".rss-count"))).toBe("25 feeds");
+
+    const second = (await page("/rss?view=feeds&page=1")).doc;
+    expect(rows(second)).toEqual([
+      "Feed 19 - https://f19.example/rss",
+      "Feed 20 - https://f20.example/rss",
+      "https://example.org/rss",
+      "inside java - https://inside.java/feed.xml",
+      "zeta weekly - https://zeta.example/rss",
+    ]);
+    expect(second.querySelector("a.pagelink[rel=prev]")?.getAttribute("href")).toBe("/rss?view=feeds");
+    expect(second.querySelector("a.pagelink[rel=next]")).toBeNull();
+  });
+
+  it("leads back to the items, by a link and by the filter form", async () => {
+    const { doc } = await page("/rss?view=feeds");
+
+    expect(text(doc.querySelector("a.rss-items-link"))).toBe("Back to Items");
+    expect(doc.querySelector("a.rss-items-link")?.getAttribute("href")).toBe("/rss");
+    expect(doc.querySelector("a.rss-feed-list-link")).toBeNull();
+    const form = doc.querySelector("form.rss-filter")!;
+    expect(form.getAttribute("action")).toBe("/rss");
+    expect(form.querySelector("input[name=view]")).toBeNull();
+  });
+
+  it("refreshes as the items do, back to the same page of the list", async () => {
+    const { doc } = await page("/rss?view=feeds&page=1");
+    expect(doc.querySelector("a.rss-refresh")?.getAttribute("href")).toBe("/rss?view=feeds&page=1&refresh");
+
+    const response = await fetch(`${inject("appUrl")}/rss?view=feeds&page=1&refresh`, { redirect: "manual" });
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("/rss?view=feeds&page=1");
+  });
+
+  it("is titled for browsers and link previews", async () => {
+    expect(text((await page("/rss?view=feeds")).doc.querySelector("title"))).toBe("RSS Feed List | ByteCode.News");
+  });
+});

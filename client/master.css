@@ -1310,32 +1310,6 @@ textarea.form-field {
   color: color-mix(in srgb, var(--muted-foreground) 90%, transparent);
 }
 
-/* The feed list (views/RssFeeds.marko): each feed's address and IRC command, selected whole with
-   one click, and wrapped anywhere so a long address never widens a phone's page. */
-.feed-fields {
-  @apply grid gap-x-4 gap-y-2 items-baseline;
-  grid-template-columns: minmax(0, 1fr);
-}
-
-/* Wide enough, each label beside its value; on a phone, above it. */
-@media (min-width: 768px) {
-  .feed-fields { grid-template-columns: max-content minmax(0, 1fr); }
-}
-
-.feed-url,
-.feed-command {
-  @apply font-mono text-sm text-foreground break-all;
-  user-select: all;
-}
-
-.feed-command-row {
-  @apply flex flex-wrap items-baseline gap-x-3 gap-y-1;
-}
-
-.feed-command-row .feed-command {
-  @apply border border-border/60 px-2 py-0.5;
-}
-
 /* The fields sit inside their section-label labels; they shouldn't take the label's lettering. */
 .rss-filter .form-field,
 .log-search .form-field {

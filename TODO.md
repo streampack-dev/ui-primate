@@ -79,12 +79,11 @@ Since (2026-10-03):
 - [x] The site header, signed in as an admin, was wider than a phone (390px) on every page, its
       sign-out form past the edge: a signed-in reader's account links now take their own row on a
       phone (ui-primate#25, 2026-10-09)
-- [x] Every feed the site follows (#28): /rss/feeds, linked by "All Feeds" on the RSS reader's
-      landing page and nowhere else, for anyone after a feed's address to subscribe a channel. Sorted
-      by title; each feed's site link, address, item count, latest item's day, and the IRC command
-      (`feed subscribe <url>`) as selectable text, with a Copy button that says "Copied"
-      (client/feeds.ts; without script the button stays hidden). Filtered over title and address by a
-      GET form, ?q= (2026-10-09)
+- [x] The feed list (#28), in the RSS reader: /rss?view=feeds swaps the items for every feed the
+      site follows, as IRC's `feed list` gives it ("Title - address", the title linking to the site
+      when it has one), by title, twenty to a page as the items are. A small "Feed List" link beside
+      Refresh leads there, not shown on a phone; "Back to Items" (/rss) and the filter form lead
+      back. For finding a feed's address to subscribe a channel; no address changed (2026-10-09)
 - [ ] The Atlas's page carries its map twice, as SVG and as Primate's hydration props (about 250 KB
       each for 248 places, before the proxy's gzip). A view whose props aren't hydrated would halve
       it
