@@ -76,8 +76,9 @@ Since (2026-10-03):
       follows the typing. Removing an alias is asked first (no preview: the API has no dry run for
       it). Keep, dismiss, the feed tags' map, create and ignore, and the stoplist act at once; the
       list then says what was done by a fixed code, the names and counts the API answered (2026-10-09)
-- [ ] The site header, signed in as an admin, is wider than a phone (390px) on every page: its
-      sign-out form runs past the edge
+- [x] The site header, signed in as an admin, was wider than a phone (390px) on every page, its
+      sign-out form past the edge: a signed-in reader's account links now take their own row on a
+      phone (ui-primate#25, 2026-10-09)
 - [ ] The Atlas's page carries its map twice, as SVG and as Primate's hydration props (about 250 KB
       each for 248 places, before the proxy's gzip). A view whose props aren't hydrated would halve
       it
