@@ -155,6 +155,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/rss/items/{id}/rating": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Rate a feed item
+         * @description `RATES` (worth writing about), `MIGHT` or `DULL`. Replaces any rating the item had; every change is kept in the rating history. The same rating again changes nothing.
+         */
+        put: operations["rateRssItem"];
+        post?: never;
+        /**
+         * Clear a feed item's rating
+         * @description Kept in the rating history. An item with no rating is left as it is.
+         */
+        delete: operations["clearRssItemRating"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/posts/{id}": {
         parameters: {
             query?: never;
@@ -651,6 +675,26 @@ export interface paths {
          * @description `name` is created as a tag without waiting for the threshold, through the vocabulary's create rule: a doubtful one goes to the review queue, and the AI near-miss checks it, as for any new tag. Marked CREATED.
          */
         post: operations["createFeedTag"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rss/rating-guesses/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run a guess pass now
+         * @description Guesses the items received in the lookback that have no guess yet, as the daily pass does, and answers what it did. Only while the guess is on (`RSS_RATING_MODEL_GUESS`).
+         */
+        post: operations["runRssRatingGuesses"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1460,6 +1504,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/rss/ratings.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export ratings and guesses as CSV
+         * @description Every item with a rating or a guess: item_id, feed, title, link, published, rating, rated_by, rated_at, guess, guess_confidence, guess_reason, guess_model, guess_source, guessed_at. Empty where there's no rating or no guess.
+         */
+        get: operations["exportRssRatings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rss/rating-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * How the model's guess agrees with the ratings
+         * @description Counts per rating; agreement overall and per rating, and the confusion matrix, over the items with both a rating and a guess; and the items guessed RATES but rated DULL, and rated RATES but guessed DULL.
+         */
+        get: operations["rssRatingStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/rss/opml": {
         parameters: {
             query?: never;
@@ -1469,6 +1553,26 @@ export interface paths {
         };
         /** Export active RSS feeds as OPML */
         get: operations["export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rss/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Feed items with their ratings
+         * @description Stored items as `/rss/items` lists them (active feeds, newest first, `feed` and `title` filters alike), each with its `rating`, `ratedBy` and `ratedAt` (null when unrated). `rating` is `all` (default), `rates`, `might`, `dull` or `unrated`; `size` is 1 to 100. `totalCount` and `totalPages` are for the filter asked for. Never carries the model's guess.
+         */
+        get: operations["listRatedRssItems"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1797,6 +1901,19 @@ export interface components {
             /** @enum {string} */
             newRole: "GUEST" | "USER" | "ADMIN" | "SUPER_ADMIN";
         };
+        RssItemRatingRequest: {
+            /** @enum {string} */
+            rating: "RATES" | "MIGHT" | "DULL";
+        };
+        RssItemRatingResponse: {
+            /** Format: uuid */
+            itemId: string;
+            /** @enum {string} */
+            rating: "RATES" | "MIGHT" | "DULL";
+            ratedBy: string;
+            /** Format: date-time */
+            ratedAt: string;
+        };
         ApproveContentHttpRequest: {
             /** Format: date-time */
             publishedAt: string;
@@ -2027,6 +2144,28 @@ export interface components {
         FeedTagRequest: {
             /** @description The feed tag */
             name?: string;
+        };
+        RssRatingGuessRunResponse: {
+            /**
+             * Format: int32
+             * @description Items received in the lookback with no guess, sent to the model
+             */
+            candidates: number;
+            /**
+             * Format: int32
+             * @description Calls made to the model, one per chunk
+             */
+            calls: number;
+            /**
+             * Format: int32
+             * @description Guesses stored
+             */
+            stored: number;
+            /**
+             * Format: int32
+             * @description Items left without a guess: a bad, partial or missing answer
+             */
+            skipped: number;
         };
         DeriveTagsHttpRequest: {
             title?: string | null;
@@ -2590,6 +2729,110 @@ export interface components {
              * @description Pages in all for the status and size asked for; 0 when none
              */
             totalPages?: number | null;
+        };
+        RssRatingClassAgreement: {
+            /** @enum {string} */
+            rating: "RATES" | "MIGHT" | "DULL";
+            /** Format: int64 */
+            rated: number;
+            /** Format: int64 */
+            guessed: number;
+            /** Format: int64 */
+            agreed: number;
+            /** Format: double */
+            recall?: number | null;
+            /** Format: double */
+            precision?: number | null;
+        };
+        RssRatingConfusionCell: {
+            /** @enum {string} */
+            rated: "RATES" | "MIGHT" | "DULL";
+            /** @enum {string} */
+            guessed: "RATES" | "MIGHT" | "DULL";
+            /** Format: int64 */
+            count: number;
+        };
+        RssRatingCounts: {
+            /** Format: int64 */
+            rates: number;
+            /** Format: int64 */
+            might: number;
+            /** Format: int64 */
+            dull: number;
+            /**
+             * Format: int64
+             * @description Items with any rating
+             */
+            rated: number;
+            /**
+             * Format: int64
+             * @description Items with a guess from the model
+             */
+            guessed: number;
+            /**
+             * Format: int64
+             * @description Items with both a rating and a guess
+             */
+            compared: number;
+        };
+        RssRatingStatsItem: {
+            /** Format: uuid */
+            itemId: string;
+            title: string;
+            feedTitle: string;
+        };
+        RssRatingStatsResponse: {
+            counts: components["schemas"]["RssRatingCounts"];
+            /**
+             * Format: double
+             * @description The share of compared items whose guess matches the rating; null when none are compared
+             */
+            agreement?: number | null;
+            perClass: components["schemas"]["RssRatingClassAgreement"][];
+            /** @description All nine cells, rated by guessed, zeros included */
+            confusion: components["schemas"]["RssRatingConfusionCell"][];
+            /** @description Guessed RATES, rated DULL */
+            guessedRatesRatedDull: components["schemas"]["RssRatingStatsItem"][];
+            /** @description Rated RATES, guessed DULL */
+            ratedRatesGuessedDull: components["schemas"]["RssRatingStatsItem"][];
+        };
+        AdminRssItemResponse: {
+            /** Format: uuid */
+            id: string;
+            feedTitle: string;
+            feedUrl: string;
+            siteUrl?: string | null;
+            guid: string;
+            link: string;
+            title: string;
+            summary?: string | null;
+            /** Format: date-time */
+            publishedAt?: string | null;
+            /** Format: date-time */
+            receivedAt: string;
+            categories: string[];
+            tags: string[];
+            /**
+             * @description The item's rating; null when it has none
+             * @enum {string|null}
+             */
+            rating?: "RATES" | "MIGHT" | "DULL" | null;
+            /** @description The admin who rated it; null when it has no rating */
+            ratedBy?: string | null;
+            /**
+             * Format: date-time
+             * @description When it was rated; null when it has no rating
+             */
+            ratedAt?: string | null;
+        };
+        AdminRssItemsResponse: {
+            items: components["schemas"]["AdminRssItemResponse"][];
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            totalPages: number;
+            /** Format: int64 */
+            totalCount: number;
         };
         ReportListResponse: {
             /** Format: int32 */
@@ -3231,6 +3474,117 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    rateRssItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RssItemRatingRequest"];
+            };
+        };
+        responses: {
+            /** @description The item's rating */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RssItemRatingResponse"];
+                };
+            };
+            /** @description No rating, or not RATES, MIGHT or DULL */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such item */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    clearRssItemRating: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The item has no rating */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": Record<string, never>;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such item */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProblemDetail"];
                 };
             };
         };
@@ -4702,6 +5056,53 @@ export interface operations {
             };
             /** @description No feed has carried that tag */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    runRssRatingGuesses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description What the pass did */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RssRatingGuessRunResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The guess is off, or a pass is running already */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6280,6 +6681,82 @@ export interface operations {
             };
         };
     };
+    exportRssRatings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The CSV */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    rssRatingStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The stats */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RssRatingStatsResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     export: {
         parameters: {
             query?: never;
@@ -6314,6 +6791,59 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listRatedRssItems: {
+        parameters: {
+            query?: {
+                rating?: string;
+                page?: number;
+                size?: number;
+                feed?: string;
+                title?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of items */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRssItemsResponse"];
+                };
+            };
+            /** @description A bad rating filter, page or size */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
         };
