@@ -8,6 +8,7 @@ export interface Input {
   updated: string;
   tags: string[];
   html: string;
+  audio: { url: string; mediaType: string; format: string; size: string; words: string | null; iso: string | null; note: string | null } | null;
   commentsAllowed: boolean;
   commentsAvailable: boolean;
   commentCount: number;
@@ -46,6 +47,7 @@ export interface Input {
       </div>
     </if>
     <div class="border-t border-border/40 mt-6 mb-6"/>
+    <if=input.audio><post-audio audio=input.audio/></if>
     <div class="post-body">$!{input.html}</div>
 
     <if=input.commentsAllowed>

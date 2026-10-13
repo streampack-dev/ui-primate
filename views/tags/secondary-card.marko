@@ -1,9 +1,10 @@
-export interface Input { post: { title: string; slug: string; excerpt: string; author: string; published: string; date: string; comments: number } }
+export interface Input { post: { title: string; slug: string; excerpt: string; author: string; published: string; date: string; comments: number; audio?: boolean } }
 <const/post=(input.post)>
 <article class="group">
   <div class="byline text-muted-foreground/70 mb-2.5 flex items-center gap-2">
     <time datetime=post.published>${post.date}</time>
     <byline-comments count=post.comments/>
+    <if=post.audio><audio-mark/></if>
   </div>
   <h3 class="headline-secondary text-foreground group-hover:text-amber transition-colors duration-200">
     <a href=`/posts/${post.slug}`>${post.title}</a>

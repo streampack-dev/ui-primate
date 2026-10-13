@@ -1,11 +1,14 @@
 /* Posts as a list shows them (search, a tag's page, a category's): title, excerpt, byline, date,
-   comments and tags, as ui-nextjs's ArticleRow has them. */
+   comments, tags and whether it has a recording, as ui-nextjs's ArticleRow has them. */
 import type { ContentList } from "#api/types.ts";
+import { listed } from "#lib/audio.ts";
 import { formatDate } from "#lib/format.ts";
 
 export type PostRow = {
   id: string; title: string; href: string; excerpt: string; author: string; published: string;
   date: string; comments: string; tags: string[];
+  /** Whether it has a recording (#33). */
+  audio: boolean;
 };
 
 export function postRows(posts: ContentList["posts"] = []): PostRow[] {
@@ -19,6 +22,7 @@ export function postRows(posts: ContentList["posts"] = []): PostRow[] {
     date: formatDate(p.publishedAt),
     comments: p.commentCount ? `${p.commentCount} comment${p.commentCount === 1 ? "" : "s"}` : "",
     tags: p.tags || [],
+    audio: listed(p.versionKinds),
   }));
 }
 

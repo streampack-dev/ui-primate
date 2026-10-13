@@ -6,6 +6,7 @@ import { ApiUnavailable, cachedGet, send } from "#api/client.ts";
 import type { CommentNode, CommentThread, ContentDetail } from "#api/types.ts";
 import { csrf, current, isAdmin } from "#auth/readers.ts";
 import { asReader, bearer } from "#auth/signed-in.ts";
+import { audioOf } from "#lib/audio.ts";
 import { formatDate, formatUpdatedTime } from "#lib/format.ts";
 import { view } from "#lib/view.ts";
 
@@ -82,6 +83,8 @@ export async function postPage(path: string, form?: CommentForm, status = 200) {
     updated: formatUpdatedTime(post.updatedAt),
     tags: post.tags || [],
     html: post.renderedHtml || "",
+    // Its recording, if it has one (#33).
+    audio: audioOf(post.versions),
     // An admin's way to the editor.
     editHref: isAdmin(reader) && post.id ? `/edit/${post.id}` : null,
     commentsAllowed,

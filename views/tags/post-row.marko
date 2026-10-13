@@ -1,5 +1,5 @@
 export interface Input {
-  row: { id: string; title: string; href: string; excerpt: string; author: string; published: string; date: string; comments: string; tags: string[] };
+  row: { id: string; title: string; href: string; excerpt: string; author: string; published: string; date: string; comments: string; tags: string[]; audio?: boolean };
   first: boolean;
   class?: string;
 }
@@ -10,6 +10,7 @@ export interface Input {
   <div class="byline text-muted-foreground flex items-center gap-1.5 flex-wrap">
     <span>By ${p.author}</span> <span aria-hidden="true">|</span> <time datetime=p.published>${p.date}</time>
     <if=p.comments> <span aria-hidden="true">|</span> <span>${p.comments}</span></if>
+    <if=p.audio> <audio-mark rule=""/></if>
   </div>
   <if=p.tags.length><div class="tags mt-3"><for|t| of=p.tags><a class="tag" href=`/tags/${encodeURIComponent(t)}`>${t}</a></for></div></if>
 </article>

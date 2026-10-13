@@ -13,6 +13,10 @@ export interface Input {
   errors: { title?: string; markdownSource?: string; slug?: string; publishedAt?: string; sortOrder?: string };
   helper?: "tags" | "summary";
   said?: { text: string; ok: boolean };
+  recording: { url: string; mediaType: string; format: string; size: string; words: string | null; iso: string | null; note: string | null;
+    maker: string | null; current: boolean; created: { iso: string; label: string }; replaced: { iso: string; label: string } | null } | null;
+  recordingSaid: { status?: string; notice?: string };
+  maxBytes: number;
 }
 
 <page-meta meta=input.meta/>
@@ -36,6 +40,7 @@ export interface Input {
     <if=input.notice><div class="mb-6 px-4 py-3 border border-destructive/30 bg-destructive/5"><p class="form-error mt-0" role="alert">${input.notice}</p></div></if>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div class="min-w-0">
       <form id="editor" method="post" action=`/edit/${input.id}`>
         <!-- Helper buttons are named "helper", never "action" (see Submit.marko). -->
         <!-- Enter in a field saves: the first button in a form is the one it presses. -->
@@ -128,6 +133,62 @@ export interface Input {
           <a class="section-label profile-action danger ml-auto" data-confirm href=`/edit/${input.id}/delete`>Delete…</a>
         </div>
       </form>
+
+      <!-- The post's recording (#33): what's attached, an upload that attaches or replaces it, and
+           Remove, asked first. Its own form, since a file goes as multipart; uploading saves nothing
+           else typed above. Its token comes first, the file last: the upload is checked as it
+           arrives and passed on to the API as it's read (routes/edit/[id]/audio.ts). Whether the
+           recording was made from the post as it is now is said in words, never by colour alone. -->
+      <const/rec=input.recording>
+      <section class="editor-audio mt-10 border-t border-border/40 pt-6" id="recording" aria-labelledby="recording-heading">
+        <h2 class="section-label text-amber mb-4" id="recording-heading">Recording</h2>
+        <if=input.recordingSaid.status><p class="form-status mb-4" role="status">${input.recordingSaid.status}</p></if>
+        <if=input.recordingSaid.notice><p class="form-error mt-0 mb-4" role="alert">${input.recordingSaid.notice}</p></if>
+        <if=rec>
+          <dl class="editor-audio-facts text-sm mb-4">
+            <dt>File</dt>
+            <dd>${rec.format} (${rec.mediaType}), ${rec.size}</dd>
+            <dt>Length</dt>
+            <dd><if=rec.words><time datetime=rec.iso>${rec.words}</time></if><else>Not known</else></dd>
+            <if=rec.note>
+              <dt>Note</dt>
+              <dd>${rec.note}</dd>
+            </if>
+            <dt>Uploaded</dt>
+            <dd><if=rec.maker>By ${rec.maker}, </if><time datetime=rec.created.iso>${rec.created.label}</time><if=rec.replaced>; replaced <time datetime=rec.replaced.iso>${rec.replaced.label}</time></if></dd>
+            <dt>Made from</dt>
+            <dd class="editor-audio-current"><if=rec.current>The post as it is now.</if><else><strong>An earlier draft.</strong> The post has been edited since it was recorded.</else></dd>
+          </dl>
+          <audio class="post-audio-player mb-4" controls preload="none" src=rec.url/>
+        </if>
+        <else>
+          <p class="form-hint mb-4">No recording yet. Upload one to put a player on the post and the post in the podcast feed.</p>
+        </else>
+        <form class="editor-audio-form" method="post" action=`/edit/${input.id}/audio` enctype="multipart/form-data">
+          <input type="hidden" name="csrf" value=input.csrf>
+          <div class="mb-4">
+            <label class="byline form-label" for="audio-note">Note <span class="form-hint">(optional)</span></label>
+            <input class="form-field text-sm p-2" id="audio-note" name="note" maxlength="500" placeholder="read by the author">
+          </div>
+          <div class="mb-4">
+            <label class="byline form-label" for="audio-duration">Length <span class="form-hint">(optional)</span></label>
+            <input class="form-field text-sm p-2" id="audio-duration" name="duration" inputmode="numeric" pattern="[0-9]+(:[0-9]{1,2}){0,2}" aria-describedby="audio-duration-hint">
+            <p class="form-hint" id="audio-duration-hint">Seconds, or minutes:seconds. Left empty, it's read from the file.</p>
+          </div>
+          <div class="mb-4">
+            <label class="byline form-label" for="audio-file">${rec ? "Replace it with" : "Recording"}</label>
+            <input class="form-field text-sm p-2" type="file" id="audio-file" name="file" required
+              accept="audio/mpeg,audio/mp4,audio/ogg,audio/opus,.mp3,.m4a,.mp4,.ogg,.oga,.opus"
+              data-max-bytes=String(input.maxBytes) aria-describedby="audio-file-hint">
+            <p class="form-hint" id="audio-file-hint">MP3, M4A, Ogg Vorbis or Ogg Opus, up to 100 MB. Uploading doesn't save the post's other changes.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <button type="submit" class="auth-button">${rec ? "Replace recording" : "Upload recording"}</button>
+            <if=rec><a class="section-label profile-action danger ml-auto" data-confirm href=`/edit/${input.id}/audio/remove`>Remove recording…</a></if>
+          </div>
+        </form>
+      </section>
+      </div>
 
       <aside aria-labelledby="preview-heading">
         <h2 class="section-label text-amber mb-3" id="preview-heading">Preview</h2>

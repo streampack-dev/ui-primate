@@ -7,6 +7,7 @@ import type { components } from "#api/schema.d.ts";
 import type { ContentDetail, Features } from "#api/types.ts";
 import { csrf, current, isAdmin } from "#auth/readers.ts";
 import { asReader, bearer } from "#auth/signed-in.ts";
+import { audioOf, MAX_BYTES } from "#lib/audio.ts";
 import { view } from "#lib/view.ts";
 import { notFound } from "#lib/post-page.ts";
 import { preview } from "#lib/preview.ts";
@@ -28,6 +29,15 @@ export type EditView = {
   errors?: Partial<Record<"title" | "markdownSource" | "slug" | "publishedAt" | "sortOrder", string>>;
   helper?: "tags" | "summary";
   said?: { text: string; ok: boolean };
+  /** What the recording's form did, or why it didn't (#33), said beside it. */
+  audio?: { status?: string; notice?: string };
+};
+
+/** What the recording's form did, by the code its redirect carries (?audio=). */
+export const AUDIO_DONE: Record<string, string> = {
+  attached: "Recording uploaded. The post now has a player, and is in the podcast feed.",
+  replaced: "Recording replaced.",
+  removed: "Recording removed.",
 };
 
 /** The post's id, for an admin; null for anyone else, or an address that isn't a post. */
@@ -87,6 +97,9 @@ export async function editorPage(id: string, post: ContentDetail, shown: EditVie
     categories: await categories(),
     preview: preview(shown.form.markdownSource),
     draft: post.status === "DRAFT",
+    recording: audioOf(post.versions),
+    recordingSaid: shown.audio || {},
+    maxBytes: MAX_BYTES,
     postHref: post.status === "APPROVED" && post.slug ? `/posts/${post.slug}` : null,
     ai: !!features?.ai,
     csrf: csrf(),

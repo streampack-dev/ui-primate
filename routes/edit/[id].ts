@@ -5,7 +5,7 @@ import { refusal } from "#auth/forms.ts";
 import { csrfOk } from "#auth/readers.ts";
 import { asReader, bearer, SignInRequired } from "#auth/signed-in.ts";
 import { helper, tagList } from "#lib/drafting.ts";
-import { admitted, categories, editorPage, formData, formOf, fromLocal, load, notFound, type EditForm, type EditView } from "#lib/editor.ts";
+import { admitted, AUDIO_DONE, categories, editorPage, formData, formOf, fromLocal, load, notFound, type EditForm, type EditView } from "#lib/editor.ts";
 
 const SIGN_IN = (id: string) => `/login?return=${encodeURIComponent(`/edit/${id}`)}`;
 
@@ -23,7 +23,9 @@ export default route({
     if (!post) return notFound();
     const status = request.query.try("approved") !== undefined ? "Approved and published."
       : request.query.try("saved") !== undefined ? "Saved." : undefined;
-    return editorPage(id, post, { form: formOf(post, await categories()), status });
+    // What the recording's form did (#33), said beside it.
+    const done = AUDIO_DONE[request.query.try("audio") || ""];
+    return editorPage(id, post, { form: formOf(post, await categories()), status, audio: done ? { status: done } : undefined });
   },
 
   async post(request) {

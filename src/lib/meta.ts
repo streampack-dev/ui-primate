@@ -72,6 +72,8 @@ export function headTags(head: Head): string {
     `<meta property="og:type" content="${head.type}">`,
     `<meta name="twitter:card" content="summary_large_image">`,
     `<link rel="alternate" type="application/rss+xml" title="${SITE}" href="/feed.xml">`,
+    // The posts with recordings, for podcast players (#33).
+    `<link rel="alternate" type="application/rss+xml" title="${SITE} podcast" href="/podcast.xml">`,
   ];
   if (head.robots) tags.push(`<meta name="robots" content="${escape(head.robots)}">`);
   if (head.url) {

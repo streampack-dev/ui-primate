@@ -1769,3 +1769,16 @@ textarea.form-field {
 .tag-preview:empty {
   display: none;
 }
+
+/* A post's recording (#33): the player as wide as the article, a phone's too; lists mark the posts
+   that have one with a glyph and the word; the editor lists what's attached. Nothing here is colour
+   alone. */
+.post-audio { margin: 0 0 1.5rem; }
+.post-audio-caption { display: flex; align-items: center; gap: 0.4rem; margin: 0 0 0.5rem; }
+.post-audio-player { display: block; width: 100%; max-width: 100%; }
+.post-audio-download { margin: 0.5rem 0 0; }
+.audio-mark { display: inline-flex; align-items: center; gap: 0.25rem; white-space: nowrap; }
+.audio-icon { flex: none; }
+.editor-audio-facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0.25rem 1rem; }
+.editor-audio-facts dt { font-weight: 600; }
+.editor-audio-facts dd { margin: 0; overflow-wrap: anywhere; }

@@ -16,6 +16,7 @@
     "@primate/tailwind": "^0.10.0",
     "@resvg/resvg-js": "^2.6.2",
     "@streampack-dev/masthead": "^0.5.3",
+    "busboy": "^1.6.0",
     "highlight.js": "^11.12.0",
     "markdown-it": "^15.0.2",
     "markdown-it-footnote": "^4.0.0",
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@testcontainers/postgresql": "^12.2.0",
+    "@types/busboy": "^1.5.5",
     "@types/markdown-it": "^14.2.0",
     "@types/node": "^26.6.4",
     "@types/sanitize-html": "^2.16.2",

@@ -24,7 +24,13 @@ export function startStubApi(port = 0): Promise<{ url: string; close: () => Prom
 
     const query = Object.fromEntries(url.searchParams);
     let incoming = "";
-    for await (const chunk of req) incoming += chunk;
+    try {
+      for await (const chunk of req) incoming += chunk;
+    } catch {
+      // The app gave up sending (an upload it cut off): seen as it got, answered to no one.
+      seen.push({ method: req.method || "GET", path: url.pathname, query, headers: req.headers as Record<string, string>, body: "(aborted)" });
+      return;
+    }
     let received: unknown = incoming || undefined;
     try { received = incoming ? JSON.parse(incoming) : undefined; } catch { /* kept as text */ }
     seen.push({ method: req.method || "GET", path: url.pathname, query, headers: req.headers as Record<string, string>, body: received });
