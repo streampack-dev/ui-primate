@@ -45,6 +45,14 @@ behind `origin/main`, and changes nothing when it does.
 | `GA_MEASUREMENT_ID` | none: no analytics, and nothing of Google's on the page. A Google Analytics measurement id (`G-…`) puts gtag on every page, as ui-nextjs and ui-pudl do; anything not shaped like an id is ignored, with a warning. |
 | `PORT` | `3000` |
 
+## Recordings
+
+A post's recording (up to 100 MB) is uploaded through the editor to `POST /edit/{id}/audio`, and
+passed on to the API as it arrives. A proxy in front has to let that through: on nginx, a location
+for it with `client_max_body_size 101m`, `proxy_request_buffering off` and a long
+`proxy_read_timeout` (10 minutes, as the app waits for the API). The rest of the site needs none of
+that. The recordings themselves are played and downloaded from the API's own address, not this app.
+
 ## Sessions
 
 Readers' sessions are kept in Postgres, in a database of ui-primate's own. Primate's Postgres driver

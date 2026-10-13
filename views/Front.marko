@@ -94,6 +94,7 @@ export interface Input {
                     <span>${post.author}</span>
                     <span class="text-border/50">|</span>
                     <time datetime=post.published>${post.date}</time>
+                    <if=post.audio><audio-mark rule="text-border/50"/></if>
                   </div>
                 </article>
               </for>

@@ -721,6 +721,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/posts/{id}/versions/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Attach or replace a post's version
+         * @description Uploads a post's recording (`kind` `audio`, the only kind accepted) as multipart/form-data: `file`, and optionally `duration` (whole seconds; read from the file when left out) and `note` (up to 500 characters, such as "read by the author"). The file must be MP3 (`audio/mpeg`), MP4/M4A (`audio/mp4`), Ogg Vorbis (`audio/ogg`) or Ogg Opus (`audio/ogg`, `audio/opus`); its first bytes are checked, and a declared type that disagrees is refused. A version the post had is replaced at the same address. Answers the version as the post API shows it.
+         */
+        post: operations["putPostVersion"];
+        /**
+         * Remove a post's version
+         * @description Removes the post's version of this kind and its file.
+         */
+        delete: operations["deletePostVersion"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/posts/{id}/derive-tags": {
         parameters: {
             query?: never;
@@ -1090,6 +1114,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/podcast.xml": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["podcast"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/pages/{slug}": {
         parameters: {
             query?: never;
@@ -1102,6 +1142,46 @@ export interface paths {
          * @description Returns a page from the _pages or _sidebar category (About, Policies, and the like) as the same ContentDetail a post has, at its undated address.
          */
         get: operations["getPage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/posts/{postId}/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fetch a post version's media
+         * @description The bytes of a post's version, such as its recording (`kind` `audio`). Supports `Range` requests (206 Partial Content; 416 when the range is past the end) and `If-None-Match`. The address stays the same when the version is replaced; the ETag changes. Public for published posts.
+         */
+        get: operations["getPostMedia"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/posts/{postId}/{kind}/{variant}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fetch a post version's media, by variant
+         * @description As `/media/posts/{postId}/{kind}`, for a kind with several variants.
+         */
+        get: operations["getPostMediaVariant"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1513,7 +1593,7 @@ export interface paths {
         };
         /**
          * Export ratings and guesses as CSV
-         * @description Every item with a rating or a guess: item_id, feed, title, link, published, rating, rated_by, rated_at, guess, guess_confidence, guess_reason, guess_model, guess_source, guessed_at. Empty where there's no rating or no guess.
+         * @description Every item with a rating or a guess: item_id, feed, title, link, published, rating, rated_by, rated_at, guess, guess_confidence, guess_reason, guess_model, guess_source, guessed_at, guess_rubric. Empty where there's no rating or no guess; guess_rubric is empty for guesses made before the rubric was recorded.
          */
         get: operations["exportRssRatings"];
         put?: never;
@@ -1536,6 +1616,26 @@ export interface paths {
          * @description Counts per rating; agreement overall and per rating, and the confusion matrix, over the items with both a rating and a guess; and the items guessed RATES but rated DULL, and rated RATES but guessed DULL.
          */
         get: operations["rssRatingStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/rss/rating-guesses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The model's guesses
+         * @description The model's guesses, the newest first, each with its item, the rubric it was made with (a short hash), and the editor's `rating` and whether the guess `agrees` with it (both null when the item is unrated). Unrated items are listed too; the item list (`/admin/rss/items`) never carries a guess. `label` is `all` (default), `rates`, `might` or `dull`; `rated` is `all` (default), `yes` or `no`; `feed` matches a feed's title or address and `title` a part of the item's title, as on `/rss/items`; `size` is 1 to 100. `totalCount` and `totalPages` are for the filter asked for.
+         */
+        get: operations["listRssRatingGuesses"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1824,6 +1924,53 @@ export interface components {
             tags?: string[];
             categories?: string[];
             markdownSource?: string | null;
+            versions?: components["schemas"]["PostVersionView"][];
+        };
+        /** @description A version of a post: the post in another form, such as a recording of it */
+        PostVersionView: {
+            /**
+             * @description What it is; `audio` is the only kind so far
+             * @example audio
+             */
+            kind: string;
+            /** @description Which one of its kind, when a kind has several; null for audio */
+            variant?: string | null;
+            /**
+             * @description Its media type
+             * @example audio/mpeg
+             */
+            mediaType: string;
+            /**
+             * Format: int64
+             * @description Its size in bytes
+             */
+            size: number;
+            /**
+             * Format: int32
+             * @description Its length in whole seconds, when known
+             */
+            duration?: number | null;
+            /**
+             * @description Where to fetch it: an absolute address on the API's own origin, stable while the version is replaced. Supports Range requests. Front ends must not rewrite it.
+             * @example https://api.bytecode.news/media/posts/0190a1b2-0000-7000-8000-000000000000/audio
+             */
+            url: string;
+            /** @description A note about it, such as "read by the author" */
+            note?: string | null;
+            /** @description Who made it: the uploader's display name, when known */
+            maker?: string | null;
+            /** @description Whether it was made from the post as it is now: false once the post's markdown has been edited since it was attached */
+            current: boolean;
+            /**
+             * Format: date-time
+             * @description When it was first attached
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description When its content was last replaced; null if never
+             */
+            replacedAt?: string | null;
         };
         ProblemDetail: {
             /** Format: uri */
@@ -2435,6 +2582,13 @@ export interface components {
             commentCount?: number;
             tags?: string[];
             categories?: string[];
+            /**
+             * @description The kinds of version the post has, sorted, such as `audio` for a recording of it; empty when it has none or media is off. The versions themselves are in the post's details.
+             * @example [
+             *       "audio"
+             *     ]
+             */
+            versionKinds?: string[];
         };
         CommentNode: {
             /** Format: uuid */
@@ -2795,6 +2949,52 @@ export interface components {
             guessedRatesRatedDull: components["schemas"]["RssRatingStatsItem"][];
             /** @description Rated RATES, guessed DULL */
             ratedRatesGuessedDull: components["schemas"]["RssRatingStatsItem"][];
+        };
+        RssRatingGuessResponse: {
+            /** Format: uuid */
+            itemId: string;
+            title: string;
+            link: string;
+            feedTitle: string;
+            /**
+             * @description The guess: RATES, MIGHT or DULL
+             * @enum {string}
+             */
+            label: "RATES" | "MIGHT" | "DULL";
+            /**
+             * Format: double
+             * @description The model's confidence in the guess, from 0 to 1
+             */
+            confidence: number;
+            /** @description The model's reason, one short sentence */
+            reason: string;
+            /**
+             * @description What the model judged the item on: CONTENT (the feed's full text), PAGE (the article page), SUMMARY or TITLE
+             * @enum {string}
+             */
+            textSource: "CONTENT" | "PAGE" | "SUMMARY" | "TITLE" | "NONE";
+            /** @description The model that guessed; null when it wasn't recorded */
+            model?: string | null;
+            /** @description The first 12 hex characters of the SHA-256 of the rubric the guess was made with; null for guesses made before the rubric was recorded */
+            rubric?: string | null;
+            /** Format: date-time */
+            guessedAt: string;
+            /**
+             * @description The editor's rating; null when the item is unrated
+             * @enum {string|null}
+             */
+            rating?: "RATES" | "MIGHT" | "DULL" | null;
+            /** @description Whether the guess matches the editor's rating; null when the item is unrated */
+            agrees?: boolean | null;
+        };
+        RssRatingGuessesResponse: {
+            items: components["schemas"]["RssRatingGuessResponse"][];
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            totalPages: number;
+            /** Format: int64 */
+            totalCount: number;
         };
         AdminRssItemResponse: {
             /** Format: uuid */
@@ -5160,6 +5360,182 @@ export interface operations {
             };
         };
     };
+    putPostVersion: {
+        parameters: {
+            query?: {
+                /** @description Length in whole seconds; read from the file when left out */
+                duration?: number;
+                /** @description A note, such as "read by the author" */
+                note?: string;
+            };
+            header?: never;
+            path: {
+                /** @description Post UUIDv7 */
+                id: string;
+                /**
+                 * @description The version's kind
+                 * @example audio
+                 */
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Replaced */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostVersionView"];
+                };
+            };
+            /** @description Attached */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostVersionView"];
+                };
+            };
+            /** @description A kind other than audio, an empty file, or a bad duration or note */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such post, or it's deleted; or, to delete, it has no such version */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Another upload of the same version was being stored */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description The file is larger than the limit */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not audio of an accepted type, or not the type it was sent as */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Media storage isn't configured */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    deletePostVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Post UUIDv7 */
+                id: string;
+                /**
+                 * @description The version's kind
+                 * @example audio
+                 */
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": Record<string, never>;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description No such post, or it's deleted; or, to delete, it has no such version */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     deriveTags: {
         parameters: {
             query?: never;
@@ -5989,6 +6365,26 @@ export interface operations {
             };
         };
     };
+    podcast: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/xml": string;
+                };
+            };
+        };
+    };
     getPage: {
         parameters: {
             query?: never;
@@ -6020,6 +6416,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    getPostMedia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Post UUIDv7 */
+                postId: string;
+                /**
+                 * @description The version's kind
+                 * @example audio
+                 */
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The whole file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "audio/*": string;
+                };
+            };
+            /** @description The range asked for */
+            206: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+            /** @description Not modified */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+            /** @description No such media, or it isn't public */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+            /** @description The range is past the end of the file */
+            416: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+        };
+    };
+    getPostMediaVariant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Post UUIDv7 */
+                postId: string;
+                /** @description The version's kind */
+                kind: string;
+                /** @description The version's variant */
+                variant: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The whole file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "audio/*": string;
+                };
+            };
+            /** @description No such media, or it isn't public */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
                 };
             };
         };
@@ -6735,6 +7231,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RssRatingStatsResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listRssRatingGuesses: {
+        parameters: {
+            query?: {
+                label?: string;
+                rated?: string;
+                page?: number;
+                size?: number;
+                feed?: string;
+                title?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of guesses */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RssRatingGuessesResponse"];
+                };
+            };
+            /** @description A bad label or rated filter, page or size */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
                 };
             };
             /** @description Not authenticated */

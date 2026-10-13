@@ -92,6 +92,21 @@ Since (2026-10-03):
       with script, client/rate.ts rates in place. A Rating select in the filter form gives
       ?rating=unrated|rates|might|dull. The model's guess is never shown. Anyone else's reader is
       unchanged: the public items, no buttons, ?rating ignored, and the rating posts a 404 (2026-10-09)
+- [x] Post audio (#33, streampack#196/#200, as ui-pudl#225): a post with a recording has a player
+      (preload none, the API's own address as given, never rewritten), its length and a download
+      link; the lists (front page, rows) mark such posts with headphones and the word "Audio";
+      /podcast.xml is the API's, forwarded as /feed.xml is, named in every head and linked as
+      "Podcast" beside RSS. The editor's Recording section, its own multipart form, says what's
+      attached (made from the post as it is now, or "An earlier draft", in words), uploads or
+      replaces it, and removes it, asked first. The upload is passed on to the API as it arrives
+      (src/lib/recording.ts, busboy): never held whole, the token checked before any of it is sent,
+      the file sent as octet-stream for the API to type, the note and length (seconds or m:ss) in the
+      query. Over 100 MB, said or found, it's refused with a message, and the rest of it read and
+      dropped so the browser sees it; with script, a file that big is refused as it's chosen
+      (2026-10-12)
+- [ ] An upload slower than five minutes is cut off (408) by Node's requestTimeout, which Primate
+      doesn't let the app set (only the idle timeout): 100 MB needs about 2.7 Mbit/s up. A Primate
+      issue to draft (primate-bugs/) if it bites
 - [ ] The Atlas's page carries its map twice, as SVG and as Primate's hydration props (about 250 KB
       each for 248 places, before the proxy's gzip). A view whose props aren't hydrated would halve
       it

@@ -1,0 +1,5 @@
+export interface Input { rule?: string }
+<!-- A post in a list that has a recording (#33): the glyph and the word, so it never rests on an icon
+     alone; the title says what the word means. Set in a byline, after a rule. -->
+<span class=((input.rule ?? "text-border") || false) aria-hidden="true">|</span>
+<span class="audio-mark" title="This post has a recording"><audio-icon/><span>Audio</span></span>

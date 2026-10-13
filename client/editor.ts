@@ -27,3 +27,13 @@ eachPage(() => {
     }, 300);
   });
 });
+
+/* A post's recording (#33): a file over the most the site takes is refused as it's chosen, rather
+   than after minutes of uploading. Without script, the server refuses it. */
+document.addEventListener("change", (e) => {
+  const field = e.target as HTMLInputElement | null;
+  if (!field?.matches?.("input[type=file][data-max-bytes]")) return;
+  const file = field.files?.[0];
+  field.setCustomValidity(file && file.size > Number(field.dataset.maxBytes) ? "The recording is over 100 MB, the most the site takes." : "");
+  field.reportValidity();
+});

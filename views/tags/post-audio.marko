@@ -1,0 +1,9 @@
+export interface Input { audio: { url: string; mediaType: string; format: string; size: string; words: string | null; iso: string | null; note: string | null } }
+<!-- A post's recording (#33): a player that fetches nothing until it's played, its length, and a
+     download link. The address is the API's own, as given: never proxied or rewritten. -->
+<const/a=input.audio>
+<figure class="post-audio">
+  <figcaption class="post-audio-caption byline text-muted-foreground"><audio-icon/> Listen to this post<if=a.words> (<time datetime=a.iso>${a.words}</time>)</if><if=a.note>, ${a.note}</if></figcaption>
+  <audio class="post-audio-player" controls preload="none" src=a.url><a href=a.url>Download the recording</a></audio>
+  <p class="post-audio-download text-sm text-muted-foreground"><a class="pagelink" href=a.url type=a.mediaType download>Download the recording</a> (${a.format}, ${a.size})</p>
+</figure>

@@ -116,3 +116,18 @@ export async function send(method: string, path: string, body?: unknown, headers
     signal: AbortSignal.timeout(timeoutMs),
   });
 }
+
+/** A request whose body is [body], a stream sent as it's read: an upload too big to hold (#33). It
+   waits [timeoutMs] for the whole of it to be sent and answered, or until [signal] aborts it. Never
+   asked again by anything: a stream can be read once. */
+export function sendStream(method: string, path: string, body: ReadableStream<Uint8Array>, contentType: string, headers: Record<string, string>, { timeoutMs, signal }: { timeoutMs: number; signal: AbortSignal }): Promise<Response> {
+  for (const answer of kept.values()) answer.checked = 0;
+  return fetch(`${base}${path}`, {
+    method,
+    headers: { "Accept-Version": acceptVersion, Accept: "application/json", "Content-Type": contentType, ...headers },
+    body,
+    // Node's fetch sends a stream only half-duplex: the whole request, then the answer.
+    duplex: "half",
+    signal: AbortSignal.any([AbortSignal.timeout(timeoutMs), signal]),
+  } as RequestInit);
+}
