@@ -7,7 +7,7 @@ import type { components } from "#api/schema.d.ts";
 import type { ContentDetail, Features } from "#api/types.ts";
 import { csrf, current, isAdmin } from "#auth/readers.ts";
 import { asReader, bearer } from "#auth/signed-in.ts";
-import { audioOf, MAX_BYTES } from "#lib/audio.ts";
+import { audioOf, MAX_BYTES, MAX_LABEL } from "#lib/audio.ts";
 import { view } from "#lib/view.ts";
 import { notFound } from "#lib/post-page.ts";
 import { preview } from "#lib/preview.ts";
@@ -100,6 +100,7 @@ export async function editorPage(id: string, post: ContentDetail, shown: EditVie
     recording: audioOf(post.versions),
     recordingSaid: shown.audio || {},
     maxBytes: MAX_BYTES,
+    maxLabel: MAX_LABEL,
     postHref: post.status === "APPROVED" && post.slug ? `/posts/${post.slug}` : null,
     ai: !!features?.ai,
     csrf: csrf(),

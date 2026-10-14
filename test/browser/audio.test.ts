@@ -1,6 +1,3 @@
-import { mkdtempSync, rmSync, truncateSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { beforeEach, describe, expect, it } from "vitest";
 import { ADMIN, signedIn } from "../support/readers.ts";
 import { expectAccessible, open, useBrowser } from "../support/browser.ts";
@@ -66,21 +63,13 @@ describe("a post's recording, in a browser", () => {
     expect(await page.evaluate(width)).toBeLessThanOrEqual(PHONE.width);
   });
 
-  it("refuses a file over 100 MB as it's chosen, before any of it is sent", async () => {
+  it("refuses a file over the limit as it's chosen, before any of it is sent", async () => {
     const admin = await signedIn(ADMIN);
     const { page } = await open(`/edit/${ID}`, "light", admin.cookies);
     const field = page.locator("#audio-file");
-    // Too big to hand Playwright as bytes, so a file of that size, sparse, on disk.
-    const dir = mkdtempSync(join(tmpdir(), "bcn-audio-"));
-    const big = join(dir, "big.mp3");
-    writeFileSync(big, "");
-    truncateSync(big, 100 * 1024 * 1024 + 1);
-    try {
-      await field.setInputFiles(big);
-      expect(await field.evaluate((f: HTMLInputElement) => f.validationMessage)).toBe("The recording is over 100 MB, the most the site takes.");
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
+    // One byte over the test app's 100 KB limit (test/support/app.ts).
+    await field.setInputFiles({ name: "big.mp3", mimeType: "audio/mpeg", buffer: Buffer.alloc(100 * 1024 + 1) });
+    expect(await field.evaluate((f: HTMLInputElement) => f.validationMessage)).toBe("The recording is over 100 KB, the most the site takes.");
     await field.setInputFiles({ name: "small.mp3", mimeType: "audio/mpeg", buffer: Buffer.from("ID3") });
     expect(await field.evaluate((f: HTMLInputElement) => f.validity.valid)).toBe(true);
   });
