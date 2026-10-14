@@ -16,7 +16,10 @@ just run               # the production build: server-rendered, as it ships
 ```
 
 `just test` runs the tests against a production build, a stub API and a Postgres of their own
-(Testcontainers), so Docker must be running. `just` lists the rest.
+(Testcontainers), so Docker must be running. `just coverage` runs them and reports line and
+branch coverage, with the report in `coverage/`; the target is 70% of lines. The served app's
+coverage is mapped back to the sources through the build's source map. The browser scripts in
+`client/` run in the browser, and aren't counted. `just` lists the rest.
 
 ## Releasing
 
