@@ -126,9 +126,10 @@ Since (2026-10-03):
       Next are the zone's. Days' addresses are the API's; lines' anchors stay their UTC second, so
       links to lines keep working. A server that doesn't name a zone is UTC's, labelled "(UTC)"
       (2026-10-14)
-- [ ] An upload slower than five minutes is cut off (408) by Node's requestTimeout, which Primate
-      doesn't let the app set (only the idle timeout): 100 MB needs about 2.7 Mbit/s up. A Primate
-      issue to draft (primate-bugs/) if it bites
+- [x] An upload has half an hour to arrive, where Node's requestTimeout gives five minutes (408):
+      Primate doesn't let the app set it, so #lib/request-timeout.ts (a module) raises it on the
+      server each request came in on (#47, 2026-10-14). When Primate takes the setting
+      (primate-bugs/16), set it in config/app.ts instead
 - [x] The Atlas's props carry the API's layout, not its drawing: the view draws the map from it
       (#lib/atlas-map.ts, safe in the browser), so the props are about half what they were (245 KB
       to 123 KB for 248 places). Primate has no way to leave one view's props out of hydration

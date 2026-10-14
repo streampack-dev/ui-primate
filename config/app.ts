@@ -2,11 +2,15 @@ import marko from "@primate/marko";
 import tailwind from "@primate/tailwind";
 import config from "primate/config";
 import assetCache from "../src/lib/asset-cache.ts";
+import requestTimeout from "../src/lib/request-timeout.ts";
 
 export default config({
   modules: [
     // First, so it's around everything: how long browsers keep Primate's own files.
     assetCache as never,
+    // Half an hour for a request to arrive whole, where Node gives five minutes: a recording's
+    // upload on a slow connection (#47).
+    requestTimeout as never,
     // Pages are rendered on the server, and the client runtime takes over from there: following a
     // link, or going back, fetches the next page's data and redraws the body in place, without
     // loading a new document. The page's interactive parts are small scripts in client/, which set
