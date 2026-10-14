@@ -143,3 +143,29 @@ describe("the log filter, in a browser (ui-pudl#202)", () => {
     });
   }
 });
+
+describe("the logs in the instance's log zone, in a browser (#36)", () => {
+  // 03:00 UTC on the 1st of October is 23:00 on the 30th of September in New York.
+  beforeEach(async () => {
+    await stubSite({ logs: { zone: "America/New_York" } });
+    await stub("/logs", { provenanceUri: JAVA, day: DAY, entries: [{ timestamp: "2026-10-01T03:00:00Z", sender: "ada", content: "late one", direction: "INBOUND" }] },
+      { query: { provenance: JAVA, day: DAY } });
+  });
+
+  it("writes each line's tooltip on the reader's clock on a first visit", async () => {
+    const { page, errors } = await open(`/logs?${new URLSearchParams({ provenance: JAVA, day: DAY })}`, "light", new Map(), { timezoneId: "Asia/Kolkata" });
+    const time = page.locator("li.log-line time");
+
+    expect(await time.textContent()).toBe("23:00:00");
+    await expect.poll(() => time.getAttribute("title")).toBe("Your time: 2026-10-01 08:30:00 GMT+5:30");
+    expect(errors).toEqual([]);
+  });
+
+  for (const theme of ["light", "dark"] as const) {
+    it(`passes axe in the ${theme} theme`, async () => {
+      const { page } = await open(`/logs?${new URLSearchParams({ provenance: JAVA, day: DAY })}`, theme, new Map(), { timezoneId: "America/New_York" });
+      await page.locator("li.log-line time[data-local-zone]").waitFor();
+      await expectAccessible(page);
+    });
+  }
+});

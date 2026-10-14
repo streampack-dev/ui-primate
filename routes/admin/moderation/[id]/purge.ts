@@ -2,6 +2,7 @@ import route from "primate/route";
 import { csrf, csrfOk } from "#auth/readers.ts";
 import { getAsReader } from "#auth/signed-in.ts";
 import { admin, notFound } from "#lib/admin.ts";
+import { logZone } from "#lib/log-channels.ts";
 import { channelFor, ID, moderate, readForm, shownLines, type ReportDetail } from "#lib/moderation.ts";
 import { view } from "#lib/view.ts";
 import { reportPage } from "../[id].ts";
@@ -24,7 +25,7 @@ export default route({
         const detail = await getAsReader<ReportDetail>(`/admin/moderation/reports/${id}`);
         if (detail) {
           const channel = await channelFor(detail.report.provenanceUri);
-          lines = shownLines(detail.lines.filter((l) => lineIds.includes(l.id)), channel);
+          lines = shownLines(detail.lines.filter((l) => lineIds.includes(l.id)), channel, await logZone());
         }
       } catch {
         // Asked all the same, by the count.

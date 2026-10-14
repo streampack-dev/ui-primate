@@ -1199,7 +1199,7 @@ export interface paths {
         };
         /**
          * Get one day of logs for a provenance
-         * @description Every line of one UTC day, oldest first, each with its `kind`: `MESSAGE`, `JOIN`, `PART`, `QUIT`, `NICK` or `TOPIC`. `events=none` leaves out channel events (joins, parts, quits, nick changes and topics); `kinds` picks the kinds to include. Without either, every line is returned.
+         * @description Every line of one log day (in the zone `/features` gives as `logs.zone`), oldest first, each with its `kind`: `MESSAGE`, `JOIN`, `PART`, `QUIT`, `NICK` or `TOPIC`. `events=none` leaves out channel events (joins, parts, quits, nick changes and topics); `kinds` picks the kinds to include. Without either, every line is returned.
          */
         get: operations["getDayLogs"];
         put?: never;
@@ -1767,7 +1767,7 @@ export interface paths {
         };
         /**
          * A day of a channel's log, hidden lines included
-         * @description One UTC day of a channel's log as an admin reviews it: every line with its id, hidden ones included and marked `hidden`, oldest first, at most 5000. Direct conversations are never returned. `day` defaults to today.
+         * @description One log day (in the zone `/features` gives as `logs.zone`) of a channel's log as an admin reviews it: every line with its id, hidden ones included and marked `hidden`, oldest first, at most 5000. Direct conversations are never returned. `day` defaults to today.
          */
         get: operations["getModerationLogDay"];
         put?: never;
@@ -2722,6 +2722,10 @@ export interface components {
             adapters: string[];
             ai: boolean;
             anonymousSubmission: boolean;
+            logs: components["schemas"]["LogsFeature"];
+        };
+        LogsFeature: {
+            zone: string;
         };
         OidcFeatures: {
             google: boolean;

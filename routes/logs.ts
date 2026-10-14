@@ -1,6 +1,6 @@
 import response from "primate/response";
 import route from "primate/route";
-import { conversationOnly, logHref } from "#lib/log-channels.ts";
+import { conversationOnly, logHref, logZone } from "#lib/log-channels.ts";
 import { browsable, everyProtocol, logPage } from "#lib/log-pages.ts";
 import { today, validDay } from "#lib/logs.ts";
 import { notFound } from "#lib/post-page.ts";
@@ -12,7 +12,7 @@ export default route({
   async get(request) {
     const asked = request.query.try("day");
     const day = asked === undefined ? null : validDay(asked);
-    if (asked !== undefined && (!day || day > today())) return notFound();
+    if (asked !== undefined && (!day || day > today(await logZone()))) return notFound();
     const all = everyProtocol(request.query.try("all"));
     const provenance = request.query.try("provenance") || null;
     // Only what was said (`?events=none`, ui-pudl#202), kept on the way to the readable address.

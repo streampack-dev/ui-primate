@@ -8,7 +8,8 @@ import { bearer } from "#auth/signed-in.ts";
 import { act } from "#lib/admin.ts";
 import { formatStamp } from "#lib/format.ts";
 import { channels as listChannels, filterParams, logHref, searchHref, type Channel } from "#lib/log-channels.ts";
-import { channelName, segments, speaker, type Segment } from "#lib/logs.ts";
+import { anchorOf, channelName, segments, speaker, type Segment } from "#lib/logs.ts";
+import { clockIn, readerClock } from "#lib/zone.ts";
 
 export type Report = components["schemas"]["ReportSummary"];
 export type ReportList = components["schemas"]["ReportListResponse"];
@@ -85,11 +86,8 @@ export function conversationLines(lines: ModerationLine[], said: { timestamp?: s
 /** A detector signal in words, as the pages show it: AIMED_HOSTILITY is "aimed hostility". */
 export const signalLabel = (name: string) => name.toLowerCase().replaceAll("_", " ");
 
-/** A line's anchor on its public day's page (#lib/logs.ts): its second. */
-const anchor = (iso: string) => `l-${new Date(iso).toISOString().slice(11, 19).replaceAll(":", "")}`;
-
 export type ShownLine = {
-  id: string; time: string; iso: string; day: string; sender: string | null; segments: Segment[];
+  id: string; time: string; iso: string; local: string; day: string; sender: string | null; segments: Segment[];
   outbound: boolean; hidden: boolean; flagged: boolean; cited: boolean; publicHref: string;
   /** Why a flagged line was flagged, in words; empty for other lines and older reports. */
   signals: string[];
@@ -98,14 +96,19 @@ export type ShownLine = {
   strong: boolean;
 };
 
-/** [lines] as they're shown, each with its way to the public log. */
-export function shownLines(lines: ModerationLine[], channel: Channel): ShownLine[] {
+/**
+ * [lines] as they're shown, each at its time in [zone] (the log's, as its day is, #36) with the
+ * reader's beside it, and its way to the public log: its day there, at its anchor (#lib/logs.ts).
+ */
+export function shownLines(lines: ModerationLine[], channel: Channel, zone = "UTC"): ShownLine[] {
   return lines.map((l) => {
-    const valid = !Number.isNaN(new Date(l.timestamp).getTime());
+    const at = new Date(l.timestamp);
+    const valid = !Number.isNaN(at.getTime());
     return {
       id: l.id,
-      time: valid ? new Date(l.timestamp).toISOString().slice(11, 19) : "",
+      time: valid ? clockIn(at, zone).time : "",
       iso: l.timestamp,
+      local: readerClock(l.timestamp),
       day: l.day,
       sender: speaker(l.sender, l.content),
       segments: segments(l.content || ""),
@@ -115,7 +118,7 @@ export function shownLines(lines: ModerationLine[], channel: Channel): ShownLine
       cited: l.cited,
       signals: l.flagged ? (l.signals || []).map(signalLabel) : [],
       strong: l.flagged && l.strong === true,
-      publicHref: `${logHref(channel, l.day)}${valid ? `#${anchor(l.timestamp)}` : ""}`,
+      publicHref: `${logHref(channel, l.day)}${valid ? `#${anchorOf(at)}` : ""}`,
     };
   });
 }

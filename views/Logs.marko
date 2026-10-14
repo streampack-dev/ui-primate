@@ -1,6 +1,7 @@
 export interface Input {
   meta?: import("#lib/meta.ts").Head;
   day: string;
+  /** The day in words, its zone (the log's) beside it. */
   dayLabel: string;
   channels: { uri: string; name: string; latest: string | null; href: string; current: boolean }[];
   chosen: { uri: string; name: string; href: string; path?: string | null } | null;
@@ -9,7 +10,7 @@ export interface Input {
   conversation?: boolean;
   /** The filter's two choices, this day's address with and without `events=none`. */
   filters?: { label: string; href: string; current: boolean }[];
-  lines: { id: string; time: string; iso: string; sender: string | null; segments: { text: string; href?: string }[]; outbound: boolean; event?: boolean }[];
+  lines: { id: string; time: string; iso: string; local: string; sender: string | null; segments: { text: string; href?: string }[]; outbound: boolean; event?: boolean }[];
   failed: boolean;
   prev: string | null;
   next: string | null;
@@ -76,7 +77,7 @@ export interface Input {
           <ol class="log-lines">
             <for|line| of=input.lines by="id">
               <li id=line.id class=["log-line", !line.sender && "log-system", line.outbound && "log-outbound", line.event && "log-event"]>
-                <a class="log-time" href=`${input.chosen.href}#${line.id}`><time datetime=line.iso>${line.time}</time></a>
+                <a class="log-time" href=`${input.chosen.href}#${line.id}`><time datetime=line.iso title=(line.local || false) data-local-title>${line.time}</time></a>
                 <if=line.sender><span class="log-sender">${line.sender}</span></if>
                 <span class="log-content"><for|s| of=line.segments><if=s.href><a href=s.href rel="nofollow ugc noopener">${s.text}</a></if><else>${s.text}</else></for></span>
               </li>

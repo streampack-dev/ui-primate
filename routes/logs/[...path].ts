@@ -2,7 +2,7 @@ import response from "primate/response";
 import route from "primate/route";
 import type { components } from "#api/schema.d.ts";
 import { current } from "#auth/readers.ts";
-import { conversationOnly, readLogs } from "#lib/log-channels.ts";
+import { conversationOnly, logZone, readLogs } from "#lib/log-channels.ts";
 import { browsable, everyProtocol, logPage, searchPage } from "#lib/log-pages.ts";
 import { today, validDay } from "#lib/logs.ts";
 import { notFound } from "#lib/post-page.ts";
@@ -32,7 +32,7 @@ export default route({
     const [protocol, service, name, last] = segments;
     const search = last === "search";
     const day = last && !search ? validDay(last) : null;
-    if (last && !search && (!day || day > today())) return notFound();
+    if (last && !search && (!day || day > today(await logZone()))) return notFound();
     const all = everyProtocol(request.query.try("all"));
     // Only what was said (`?events=none`, ui-pudl#202); anything else is the whole day, as without it.
     const conversation = conversationOnly(request.query.try("events"));

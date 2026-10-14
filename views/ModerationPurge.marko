@@ -5,7 +5,7 @@ export interface Input {
   back: string;
   lineIds: string;
   lines: {
-    id: string; time: string; iso: string; day: string; sender: string | null; segments: { text: string; href?: string }[];
+    id: string; time: string; iso: string; local: string; day: string; sender: string | null; segments: { text: string; href?: string }[];
     outbound: boolean; hidden: boolean; flagged: boolean; cited: boolean; publicHref: string;
     signals: string[]; strong: boolean;
   }[];

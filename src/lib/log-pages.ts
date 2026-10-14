@@ -8,15 +8,17 @@ import type { components } from "#api/schema.d.ts";
 import { refusal } from "#auth/forms.ts";
 import { current, isAdmin } from "#auth/readers.ts";
 import { formatDate } from "#lib/format.ts";
-import { askLogs, channels as listChannels, filterParams, logHref, readLogs, searchHref, type Channel } from "#lib/log-channels.ts";
-import { isEvent, lines, segments, shiftDay, speaker, today } from "#lib/logs.ts";
+import { askLogs, channels as listChannels, filterParams, logHref, logZone, readLogs, searchHref, type Channel } from "#lib/log-channels.ts";
+import { anchorOf, isEvent, lines, segments, shiftDay, speaker, today } from "#lib/logs.ts";
 import { dayHref } from "#lib/moderation.ts";
 import { notFound } from "#lib/post-page.ts";
 import { view } from "#lib/view.ts";
+import { clockIn, readerClock } from "#lib/zone.ts";
 
 type Day = components["schemas"]["LogDayResponse"];
 type Found = components["schemas"]["LogSearchResponse"];
 
+/* A day as the address gives it (yyyy-MM-dd), in words; which zone's day it is is said beside it. */
 const DAY_LABEL = (day: string) => new Date(`${day}T00:00:00Z`).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
 const SHORT_DAY = (day: string) => new Date(`${day}T00:00:00Z`).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
 
@@ -50,7 +52,8 @@ export async function browsable(): Promise<Channel[] | null> {
  * [conversation] only what was said, without joins, parts and the like (`events=none`, ui-pudl#202).
  */
 export async function logPage(chosenUri: string | null, day: string | null, all: boolean, conversation = false) {
-  const shown = day ?? today();
+  const zone = await logZone();
+  const shown = day ?? today(zone);
   const admin = isAdmin(current());
   let channels: Channel[];
   try {
@@ -68,7 +71,7 @@ export async function logPage(chosenUri: string | null, day: string | null, all:
   let failed = false;
   if (chosen) {
     try {
-      entries = lines((await readLogs<Day>("/logs", { provenance: chosen.uri, day: shown, ...filterParams(conversation) }))?.entries || []);
+      entries = lines((await readLogs<Day>("/logs", { provenance: chosen.uri, day: shown, ...filterParams(conversation) }))?.entries || [], zone);
     } catch {
       failed = true;
     }
@@ -81,7 +84,8 @@ export async function logPage(chosenUri: string | null, day: string | null, all:
 
   return view("Logs.marko", {
     day: shown,
-    dayLabel: DAY_LABEL(shown),
+    // The day's zone said, the log's (#36): "(UTC)" from a server that doesn't name one.
+    dayLabel: `${DAY_LABEL(shown)} (${zone})`,
     channels: channels.map((c) => ({ ...c, href: logHref(c, shown, all, conversation), current: c.uri === chosen?.uri })),
     chosen: chosen && href ? { uri: chosen.uri, name: chosen.name, href, path: chosen.path } : null,
     all,
@@ -90,7 +94,7 @@ export async function logPage(chosenUri: string | null, day: string | null, all:
     lines: entries,
     failed,
     prev: chosen ? logHref(chosen, shiftDay(shown, -1), all, conversation) : null,
-    next: chosen && next <= today() ? logHref(chosen, next, all, conversation) : null,
+    next: chosen && next <= today(zone) ? logHref(chosen, next, all, conversation) : null,
     // An admin's way to every protocol's channels (and back).
     allToggle: admin ? { href: `/logs?${new URLSearchParams({ day: shown, ...(all ? {} : { all: "1" }), ...filterParams(conversation) })}`, all } : null,
     // An admin's way to this day with its hidden lines, to hide or unhide them (streampack#150).
@@ -113,7 +117,9 @@ export async function searchPage(channel: Channel, q: string, from: string, page
   if (!q && !from) return response.redirect(logHref(channel, null, all, conversation), 303);
 
   const href = (n: number) => searchHref(channel, { ...(q ? { q } : {}), ...(from ? { from } : {}), ...filterParams(conversation), ...(n > 1 ? { page: String(n) } : {}) }, all);
+  const zone = await logZone();
   const shown = {
+    zone,
     channel: { name: channel.name, uri: channel.uri, href: logHref(channel, null, all, conversation), path: channel.path },
     all, conversation, q, from,
     heading: [q && `“${q}”`, from && `from ${from}`, `in ${channel.name}`, conversation && "(conversation only)"].filter(Boolean).join(" "),
@@ -137,16 +143,18 @@ export async function searchPage(channel: Channel, q: string, from: string, page
   }
   const found = await answer.json() as Found;
   const total = Number(found.totalCount ?? 0);
-  const hits = (found.hits || []).filter((h) => h.timestamp).map((h, i) => {
+  const hits = (found.hits || []).filter((h) => h.timestamp && !Number.isNaN(new Date(h.timestamp).getTime())).map((h, i) => {
     const at = new Date(h.timestamp!);
-    const day = h.day || at.toISOString().slice(0, 10);
-    // A line's anchor on its day's page is its second (#lib/logs.ts); of several in one second, the first.
-    const anchor = `l-${at.toISOString().slice(11, 19).replaceAll(":", "")}`;
+    // The day as the API gives it, in the log's zone (#36), as is the time shown.
+    const clock = clockIn(at, zone);
+    const day = h.day || clock.day;
     return {
       key: `${h.timestamp}-${i}`,
-      href: `${logHref(channel, day, all, conversation)}#${anchor}`,
+      // A line's anchor on its day's page is its second (#lib/logs.ts); of several in one second, the first.
+      href: `${logHref(channel, day, all, conversation)}#${anchorOf(at)}`,
       iso: h.timestamp!,
-      when: `${SHORT_DAY(day)}, ${at.toISOString().slice(11, 16)}`,
+      local: readerClock(h.timestamp),
+      when: `${SHORT_DAY(day)}, ${clock.time.slice(0, 5)}`,
       sender: speaker(h.sender, h.content),
       segments: segments(h.content || ""),
       outbound: h.direction === "OUTBOUND",

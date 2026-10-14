@@ -1,5 +1,7 @@
 /* Channel logs, as ui-pudl's Logs.kt has them: a channel's name from its address, a day's lines
-   with an anchor each, and a line's text as text and links, never markup. */
+   with an anchor each, and a line's text as text and links, never markup. A log's days and times
+   are its zone's (#36, #lib/log-channels.ts), each line's time on the reader's clock beside it. */
+import { clockIn, readerClock } from "#lib/zone.ts";
 
 /** A channel's name, as ui-nextjs gives it: its address decoded, from the last `#` (`#java`), or after the last `/`. */
 export function channelName(uri: string): string {
@@ -48,26 +50,34 @@ export function speaker(sender: string | null | undefined, content: string | nul
   return (content || "").startsWith(`* ${sender} `) ? null : sender;
 }
 
-export type LogLine = { id: string; time: string; iso: string; sender: string | null; segments: Segment[]; outbound: boolean; event: boolean };
+export type LogLine = { id: string; time: string; iso: string; local: string; sender: string | null; segments: Segment[]; outbound: boolean; event: boolean };
 
 /** Whether a line of [kind] is a channel event (a join, part, quit, nick change or topic): a line without a kind is something said, as the field is optional. */
 export function isEvent(kind: string | null | undefined): boolean {
   return !!kind && kind !== "MESSAGE";
 }
 
-/** A day's lines, each anchored by its UTC time (`l-030405`); lines in the same second take -2, -3 and so on. */
-export function lines(entries: { timestamp?: string; sender?: string; content?: string; direction?: string; kind?: string }[]): LogLine[] {
+/** A line's anchor on its day's page: its UTC second (`l-030405`), whatever zone the times are shown in, so links to lines keep working. */
+export const anchorOf = (when: Date) => `l-${when.toISOString().slice(11, 19).replaceAll(":", "")}`;
+
+/**
+ * A day's lines, each shown at its time in [zone] (the log's), and anchored by its UTC second
+ * (anchorOf); lines in the same second take -2, -3 and so on.
+ */
+export function lines(entries: { timestamp?: string; sender?: string; content?: string; direction?: string; kind?: string }[], zone = "UTC"): LogLine[] {
   const seen = new Map<string, number>();
   return entries.map((e, i) => {
     const when = e.timestamp ? new Date(e.timestamp) : null;
-    const time = when && !Number.isNaN(when.getTime()) ? when.toISOString().slice(11, 19) : "";
-    const base = time ? `l-${time.replaceAll(":", "")}` : `l-n${i}`;
+    const valid = !!when && !Number.isNaN(when.getTime());
+    const time = valid ? clockIn(when, zone).time : "";
+    const base = valid ? anchorOf(when) : `l-n${i}`;
     const n = (seen.get(base) ?? 0) + 1;
     seen.set(base, n);
     return {
       id: n === 1 ? base : `${base}-${n}`,
       time,
       iso: e.timestamp || "",
+      local: readerClock(e.timestamp),
       sender: speaker(e.sender, e.content),
       segments: segments(e.content || ""),
       outbound: e.direction === "OUTBOUND",
@@ -76,9 +86,9 @@ export function lines(entries: { timestamp?: string; sender?: string; content?: 
   });
 }
 
-/** Today, in UTC: the logs' days are UTC's. */
-export function today(): string {
-  return new Date().toISOString().slice(0, 10);
+/** Today in [zone], the log's: its days are that zone's (UTC from a server that doesn't say). */
+export function today(zone = "UTC"): string {
+  return clockIn(new Date(), zone).day;
 }
 
 /** [day] as yyyy-MM-dd, if it is one; null otherwise. */

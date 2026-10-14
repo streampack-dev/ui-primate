@@ -83,3 +83,22 @@ export function zoneName(instant: Date, zone: string): string {
   return new Intl.DateTimeFormat("en-US", { timeZone: zone, timeZoneName: "short" }).formatToParts(instant)
     .find((p) => p.type === "timeZoneName")?.value ?? zone;
 }
+
+/** [instant]'s day and time in [zone], to the second: { day: "2026-10-12", time: "23:00:00" }. */
+export function clockIn(instant: Date, zone: string): { day: string; time: string } {
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
+    timeZone: zone, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit",
+  }).formatToParts(instant).map((x) => [x.type, x.value]));
+  return { day: `${p.year}-${p.month}-${p.day}`, time: `${p.hour}:${p.minute}:${p.second}` };
+}
+
+/**
+ * A log line's time on the reader's clock, for its tooltip (#36): "Your time: 2026-10-12 23:00:00
+ * EDT". client/zone.ts writes it again in the browser's zone until the server has that.
+ */
+export function readerClock(iso: string | null | undefined, zone: string = readerZone()): string {
+  const at = iso ? new Date(iso) : null;
+  if (!at || Number.isNaN(at.getTime())) return "";
+  const { day, time } = clockIn(at, zone);
+  return `Your time: ${day} ${time} ${zoneName(at, zone)}`;
+}

@@ -115,8 +115,17 @@ Since (2026-10-03):
       a post's "Updated", and the moderation and tag-review stamps. The editor's publish date and
       approval's are on the reader's clock, the zone beside them and sent with them, so what's saved
       is what was seen; a time that never happens (clocks forward) moves on by the gap, one that
-      happens twice is the first. Still UTC, on purpose: the channel logs' days, times and anchors
-      (they're the addresses), and the OG cards' dates (2026-10-14)
+      happens twice is the first. Still UTC, on purpose: the OG cards' dates; the channel logs
+      follow their own zone (#36, below) (2026-10-14)
+- [x] Logs in the instance's log zone (#36, streampack#212): /features names it (`logs.zone`,
+      STREAMPACK_LOG_ZONE) and the API splits days at its midnight, so a day reads 00:00 to 23:59.
+      The day is labelled with it ("Monday, October 5, 2026 (America/New_York)"), and its lines, the
+      search's hits ("Search (America/New_York)"), a report's lines and the admin day are at their
+      times there, each `<time>` with the reader's own in its tooltip ("Your time: 2026-10-06
+      08:30:00 GMT+5:30", client/zone.ts writing it on a first visit). Today and the last day with a
+      Next are the zone's. Days' addresses are the API's; lines' anchors stay their UTC second, so
+      links to lines keep working. A server that doesn't name a zone is UTC's, labelled "(UTC)"
+      (2026-10-14)
 - [ ] An upload slower than five minutes is cut off (408) by Node's requestTimeout, which Primate
       doesn't let the app set (only the idle timeout): 100 MB needs about 2.7 Mbit/s up. A Primate
       issue to draft (primate-bugs/) if it bites

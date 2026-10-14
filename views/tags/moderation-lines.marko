@@ -1,6 +1,6 @@
 export interface Input {
   lines: {
-    id: string; time: string; iso: string; day: string; sender: string | null; segments: { text: string; href?: string }[];
+    id: string; time: string; iso: string; local: string; day: string; sender: string | null; segments: { text: string; href?: string }[];
     outbound: boolean; hidden: boolean; flagged: boolean; cited: boolean; publicHref: string;
     signals: string[]; strong: boolean;
   }[];
@@ -19,7 +19,7 @@ export interface Input {
       <if=input.selectable>
         <input type="checkbox" name="line" value=line.id id=`pick-${line.id}` checked=(input.checked ? input.checked.includes(line.id) : line.strong) aria-label=`Select the line at ${line.time}${line.sender ? ` from ${line.sender}` : ""}`>
       </if>
-      <a class="log-time" href=line.publicHref title="This line in the public log"><time datetime=line.iso>${input.days ? `${line.day} ` : ""}${line.time}</time></a>
+      <a class="log-time" href=line.publicHref title="This line in the public log"><time datetime=line.iso title=(line.local || false) data-local-title>${input.days ? `${line.day} ` : ""}${line.time}</time></a>
       <if=line.sender><span class="log-sender">${line.sender}</span></if>
       <span class="log-content"><for|s| of=line.segments><if=s.href><a href=s.href rel="nofollow ugc noopener">${s.text}</a></if><else>${s.text}</else></for></span>
       <if=line.flagged><span class="mod-mark flagged">flagged</span><if=line.signals.length><span class="mod-why">${line.signals.join(", ")}</span></if></if>
