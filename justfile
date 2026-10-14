@@ -31,6 +31,14 @@ node_major := `sed -n 's/^FROM node:\([0-9]*\)-alpine.*/\1/p' Dockerfile | head 
 test:
     UI_TEST_NODE="$(npx -y node@{{node_major}} -p process.execPath | tail -1)" npm test
 
+# Run every test and report coverage (#43): the target is 70% of lines, reported, not enforced. The
+# served app's coverage is mapped back to the sources through the build's source map; the browser
+# scripts in client/ run in the browser and aren't counted. The report is in coverage/.
+coverage:
+    rm -rf coverage coverage-raw
+    UI_TEST_NODE="$(npx -y node@{{node_major}} -p process.execPath | tail -1)" NODE_V8_COVERAGE="$PWD/coverage-raw" npm test
+    node tools/coverage-report.mjs
+
 # Create ui-primate's own database for development, on streampack's local Postgres
 # (streampack's `docker compose up -d db`), as BCN_DB_URL in .env.default names it.
 create-db:
