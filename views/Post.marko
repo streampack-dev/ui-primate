@@ -6,6 +6,8 @@ export interface Input {
   published: string;
   date: string;
   updated: string;
+  /** When it was last changed, as the API gives it (UTC), for client/zone.ts. */
+  updatedAt?: string;
   tags: string[];
   html: string;
   audio: { url: string; mediaType: string; format: string; size: string; words: string | null; iso: string | null; note: string | null } | null;
@@ -33,7 +35,7 @@ export interface Input {
         <time datetime=input.published>${input.date}</time>
         <if=input.updated>
           <span class="text-border/60 mx-1">|</span>
-          <span>${input.updated}</span>
+          <time datetime=input.updatedAt data-local="updated">${input.updated}</time>
         </if>
         <if=input.editHref>
           <span class="text-border/60 mx-1">|</span>

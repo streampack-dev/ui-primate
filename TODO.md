@@ -106,8 +106,17 @@ Since (2026-10-03):
       (2026-10-12)
 - [x] Scheduled posts (#35, streampack#207): /admin/scheduled, in the admin nav after Pending and
       counted on the dashboard, lists the posts approved to go out later, soonest first, twenty to
-      a page: each title links to its editor, with when it goes out (to the minute, UTC, as the
-      editor's publish date), its author, and the Audio mark (2026-10-14)
+      a page: each title links to its editor, with when it goes out (to the minute, on the reader's
+      clock), its author, and the Audio mark (2026-10-14)
+- [x] Times in the reader's zone (#35): the API keeps UTC; readers see and type their own zone's
+      time. client/zone.ts keeps the browser's zone in a cookie (bcn-tz), checked on each request
+      (routes/+hook.ts, src/lib/zone.ts); without it, times are UTC, saying so, and the script writes
+      each `<time data-local>` in the browser's zone. Shown in it: the scheduled posts' "Goes out",
+      a post's "Updated", and the moderation and tag-review stamps. The editor's publish date and
+      approval's are on the reader's clock, the zone beside them and sent with them, so what's saved
+      is what was seen; a time that never happens (clocks forward) moves on by the gap, one that
+      happens twice is the first. Still UTC, on purpose: the channel logs' days, times and anchors
+      (they're the addresses), and the OG cards' dates (2026-10-14)
 - [ ] An upload slower than five minutes is cut off (408) by Node's requestTimeout, which Primate
       doesn't let the app set (only the idle timeout): 100 MB needs about 2.7 Mbit/s up. A Primate
       issue to draft (primate-bugs/) if it bites

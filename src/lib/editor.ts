@@ -11,15 +11,19 @@ import { audioOf, MAX_BYTES } from "#lib/audio.ts";
 import { view } from "#lib/view.ts";
 import { notFound } from "#lib/post-page.ts";
 import { preview } from "#lib/preview.ts";
+import { fromZoned, readerZone, toZoned, validZone } from "#lib/zone.ts";
 
 type Category = components["schemas"]["CategorySummary"];
 
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** The editor's fields, as posted and as shown again. Dates are UTC, minutes, as the field says. */
+/**
+ * The editor's fields, as posted and as shown again. The publish date is to the minute on
+ * [publishedZone]'s clock, the reader's (src/lib/zone.ts); the API is given it in UTC.
+ */
 export type EditForm = {
   title: string; slug: string; markdownSource: string; summary: string; tags: string;
-  categoryIds: string[]; publishedAt: string; sortOrder: string; helper: string;
+  categoryIds: string[]; publishedAt: string; publishedZone: string; sortOrder: string; helper: string;
 };
 
 export type EditView = {
@@ -62,16 +66,19 @@ export async function categories(): Promise<{ id: string; name: string }[]> {
   }
 }
 
-const LOCAL = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+/** A datetime-local field's value, on [zone]'s clock, as a date; null for one that isn't. */
+export const fromLocal = (value: string, zone: string): Date | null => fromZoned(value, zone);
 
-/** A datetime-local field's value, UTC, as a date; null for one that isn't. */
-export function fromLocal(value: string): Date | null {
-  if (!LOCAL.test(value)) return null;
-  const date = new Date(`${value}:00Z`);
-  return Number.isNaN(date.getTime()) ? null : date;
+/** [iso] as a datetime-local field's value on [zone]'s clock. */
+export const toLocal = (iso: string | null | undefined, zone: string) => toZoned(iso, zone);
+
+/** The zone a posted date field was read in: the one it says, if it's a zone, else the reader's. */
+export const postedZone = (said: string) => validZone(said) ?? readerZone();
+
+/** A date field's props for the view: its value, the zone it's in, and the instant it names. */
+export function dateField(value: string, zone: string) {
+  return { value, zone, instant: fromZoned(value.trim(), zone)?.toISOString() ?? "" };
 }
-
-export const toLocal = (iso: string | null | undefined) => (iso ? new Date(iso).toISOString().slice(0, 16) : "");
 
 export function formOf(post: ContentDetail, all: { id: string; name: string }[]): EditForm {
   return {
@@ -81,7 +88,8 @@ export function formOf(post: ContentDetail, all: { id: string; name: string }[])
     summary: post.excerpt || "",
     tags: (post.tags || []).join(", "),
     categoryIds: (post.categories || []).map((name) => all.find((c) => c.name === name)?.id).filter((id): id is string => !!id),
-    publishedAt: toLocal(post.publishedAt),
+    publishedAt: toLocal(post.publishedAt, readerZone()),
+    publishedZone: readerZone(),
     sortOrder: post.sortOrder === undefined || post.sortOrder === null ? "" : String(post.sortOrder),
     helper: "",
   };
@@ -96,6 +104,7 @@ export async function editorPage(id: string, post: ContentDetail, shown: EditVie
     errors: shown.errors || {},
     categories: await categories(),
     preview: preview(shown.form.markdownSource),
+    published: dateField(shown.form.publishedAt, shown.form.publishedZone),
     draft: post.status === "DRAFT",
     recording: audioOf(post.versions),
     recordingSaid: shown.audio || {},

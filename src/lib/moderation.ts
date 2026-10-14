@@ -6,6 +6,7 @@ import { send } from "#api/client.ts";
 import type { components } from "#api/schema.d.ts";
 import { bearer } from "#auth/signed-in.ts";
 import { act } from "#lib/admin.ts";
+import { formatStamp } from "#lib/format.ts";
 import { channels as listChannels, filterParams, logHref, searchHref, type Channel } from "#lib/log-channels.ts";
 import { channelName, segments, speaker, type Segment } from "#lib/logs.ts";
 
@@ -27,11 +28,8 @@ export type Status = (typeof STATUSES)[number];
 const MAX_LINES = 500;
 const MAX_NOTE = 1000;
 
-const WHEN = (iso: string | null | undefined) => {
-  if (!iso) return "";
-  const at = new Date(iso);
-  return Number.isNaN(at.getTime()) ? "" : `${at.toISOString().slice(0, 10)} ${at.toISOString().slice(11, 16)} UTC`;
-};
+/** When something was done, on the reader's clock (src/lib/zone.ts). */
+const WHEN = (iso: string | null | undefined) => formatStamp(iso);
 
 /** From [start] to [end], the day said once when they share it. */
 function span(start: string, end: string): string {

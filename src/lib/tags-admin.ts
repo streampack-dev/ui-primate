@@ -7,6 +7,7 @@ import { cachedGet, send } from "#api/client.ts";
 import type { components } from "#api/schema.d.ts";
 import { refusal } from "#auth/forms.ts";
 import { asReader, bearer, getAsReader, SignInRequired } from "#auth/signed-in.ts";
+import { formatStamp } from "#lib/format.ts";
 
 export type ReviewEntry = components["schemas"]["TagReviewEntry"];
 export type ReviewList = components["schemas"]["TagReviewListResponse"];
@@ -63,11 +64,8 @@ export function backTo(section: Section, back: string | undefined): At {
 /** [where]'s query, for a form's `back` field. */
 export const backField = (where: At) => href(where).split("?")[1] ?? "";
 
-const WHEN = (iso: string | null | undefined) => {
-  if (!iso) return "";
-  const t = new Date(iso);
-  return Number.isNaN(t.getTime()) ? "" : `${t.toISOString().slice(0, 10)} ${t.toISOString().slice(11, 16)} UTC`;
-};
+/** When something was done, on the reader's clock (src/lib/zone.ts). */
+const WHEN = (iso: string | null | undefined) => formatStamp(iso);
 
 export const q = (s: string) => `“${s}”`;
 

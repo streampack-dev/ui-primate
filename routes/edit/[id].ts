@@ -5,7 +5,7 @@ import { refusal } from "#auth/forms.ts";
 import { csrfOk } from "#auth/readers.ts";
 import { asReader, bearer, SignInRequired } from "#auth/signed-in.ts";
 import { helper, tagList } from "#lib/drafting.ts";
-import { admitted, AUDIO_DONE, categories, editorPage, formData, formOf, fromLocal, load, notFound, type EditForm, type EditView } from "#lib/editor.ts";
+import { admitted, AUDIO_DONE, categories, editorPage, formData, formOf, fromLocal, load, notFound, postedZone, type EditForm, type EditView } from "#lib/editor.ts";
 
 const SIGN_IN = (id: string) => `/login?return=${encodeURIComponent(`/edit/${id}`)}`;
 
@@ -44,7 +44,8 @@ export default route({
     const form: EditForm = {
       title: data.one("title"), slug: data.one("slug"), markdownSource: data.one("markdownSource"),
       summary: data.one("summary"), tags: data.one("tags"), categoryIds: data.all("categoryIds"),
-      publishedAt: data.one("publishedAt"), sortOrder: data.one("sortOrder"), helper: data.one("helper"),
+      publishedAt: data.one("publishedAt"), publishedZone: postedZone(data.one("publishedZone")),
+      sortOrder: data.one("sortOrder"), helper: data.one("helper"),
     };
 
     if (form.helper === "preview") return editorPage(id, post, { form });
@@ -57,7 +58,7 @@ export default route({
 
     // Save.
     const published = form.publishedAt.trim();
-    const publishedAt = published ? fromLocal(published) : null;
+    const publishedAt = published ? fromLocal(published, form.publishedZone) : null;
     const sortOrder = form.sortOrder.trim();
     const errors: EditView["errors"] = {};
     if (!form.title.trim()) errors.title = "Give the post a title.";

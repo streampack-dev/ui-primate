@@ -22,7 +22,7 @@ export interface Input {
         <h2 class="headline-secondary text-foreground mb-2"><a href=`/edit/${p.id}`>${p.title}</a></h2>
         <if=p.excerpt><p class="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-3">${p.excerpt}</p></if>
         <div class="byline text-muted-foreground flex items-center gap-1.5 flex-wrap">
-          <span>Goes out <time datetime=p.published>${p.when}</time></span>
+          <span>Goes out <time datetime=p.published data-local>${p.when}</time></span>
           <span aria-hidden="true">|</span> <span>By ${p.author}</span>
           <if=p.audio><audio-mark rule=""/></if>
         </div>

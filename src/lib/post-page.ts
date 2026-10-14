@@ -81,6 +81,7 @@ export async function postPage(path: string, form?: CommentForm, status = 200) {
     published: post.publishedAt,
     date: formatDate(post.publishedAt),
     updated: formatUpdatedTime(post.updatedAt),
+    updatedAt: post.updatedAt,
     tags: post.tags || [],
     html: post.renderedHtml || "",
     // Its recording, if it has one (#33).
