@@ -53,7 +53,9 @@ behind `origin/main`, and changes nothing when it does.
 A post's recording (up to 100 MB) is uploaded through the editor to `POST /edit/{id}/audio`, and
 passed on to the API as it arrives. A proxy in front has to let that through: a body limit over
 100 MB, the body passed on unbuffered, and a timeout of 10 minutes, as the app waits for the API.
-The rest of the site needs none of that, and the API's own proxy needs the same limit. The
+The rest of the site needs none of that, and the API's own proxy needs the same limit. The app
+gives a request half an hour to arrive whole (Node's own limit is five minutes), so an upload on
+a slow connection isn't cut off. The
 recordings themselves are played and downloaded from the API's own address, not this app.
 
 ### nginx
