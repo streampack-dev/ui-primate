@@ -3,11 +3,26 @@
    as ui-pudl does. Shared by the logs and their search. */
 import { cachedGet, send } from "#api/client.ts";
 import type { components } from "#api/schema.d.ts";
+import type { Features } from "#api/types.ts";
 import { current } from "#auth/readers.ts";
 import { asReader, bearer, SignInRequired } from "#auth/signed-in.ts";
 import { channelName, speaker } from "#lib/logs.ts";
+import { validZone } from "#lib/zone.ts";
 
 type Channels = components["schemas"]["LogProvenanceListResponse"];
+
+/**
+ * The zone the logs' days are split in (#36, streampack#212's STREAMPACK_LOG_ZONE), as /features
+ * gives it: a day's address and its lines are that zone's midnight to midnight, and so are the
+ * times shown. UTC from a server that doesn't say (older than that), as its days are.
+ */
+export async function logZone(): Promise<string> {
+  try {
+    return validZone((await cachedGet<Features>("/features"))?.logs?.zone) ?? "UTC";
+  } catch {
+    return "UTC";
+  }
+}
 
 /** A channel: its provenance, its name, its latest line, and its readable address (`irc/libera/java`, #16) where the API gives one. */
 export type Channel = { uri: string; name: string; latest: string | null; path: string | null };

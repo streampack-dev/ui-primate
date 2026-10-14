@@ -12,6 +12,8 @@ beforeEach(async () => {
   await stubSite();
   await stub("/admin/posts/pending", { posts: [post({ title: "Midden", excerpt: "Reads heap dumps.", categories: ["Guides"] })], page: 0, totalPages: 2, totalCount: 21 }, { query: { page: 0, size: 20, deleted: "false" } });
   await stub("/admin/posts/pending", { posts: [post()], page: 0, totalPages: 1, totalCount: 4 }, { query: { page: 0, size: 1, deleted: "false" } });
+  await stub("/admin/posts/scheduled", { posts: [post({ title: "Tomorrow's post", publishedAt: "2026-10-20T09:00:00Z", versionKinds: ["audio"] })], page: 0, totalPages: 2, totalCount: 21 }, { query: { page: 0, size: 20 } });
+  await stub("/admin/posts/scheduled", { posts: [post()], page: 0, totalPages: 1, totalCount: 1 }, { query: { page: 0, size: 1 } });
   await stub("/posts", { posts: [post()], page: 0, totalPages: 9, totalCount: 120 }, { query: { page: 0, size: 1 } });
   await stub("/admin/users", [user("ada"), user("ed", "SUPER_ADMIN")], { query: { status: "ACTIVE" } });
   await stub("/admin/users", [user("mallory")], { query: { status: "SUSPENDED" } });
@@ -23,7 +25,7 @@ describe("the header, signed in as an admin, on a phone", () => {
   it("fits the screen, Sign out included, and stays accessible", async () => {
     const v = await signedIn(ADMIN);
     for (const theme of ["light", "dark"] as const) {
-      for (const path of ["/", "/admin"]) {
+      for (const path of ["/", "/admin", "/admin/scheduled"]) {
         const { page } = await open(path, theme, v.cookies, { viewport: { width: 390, height: 844 } });
         const fit = await page.evaluate(() => {
           const header = document.querySelector("header")!;
@@ -43,7 +45,7 @@ describe("the admin pages, in a browser", () => {
   it("are accessible, light and dark", async () => {
     const v = await signedIn(ADMIN);
     for (const theme of ["light", "dark"] as const) {
-      for (const path of ["/admin", "/admin/pending", "/admin/users", "/admin/users?status=SUSPENDED&done=unsuspended&who=mallory", "/admin/categories", "/admin/users/ada/suspend"]) {
+      for (const path of ["/admin", "/admin/pending", "/admin/scheduled", "/admin/users", "/admin/users?status=SUSPENDED&done=unsuspended&who=mallory", "/admin/categories", "/admin/users/ada/suspend"]) {
         const { page } = await open(path, theme, v.cookies);
         await expectAccessible(page);
       }

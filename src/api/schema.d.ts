@@ -1199,7 +1199,7 @@ export interface paths {
         };
         /**
          * Get one day of logs for a provenance
-         * @description Every line of one UTC day, oldest first, each with its `kind`: `MESSAGE`, `JOIN`, `PART`, `QUIT`, `NICK` or `TOPIC`. `events=none` leaves out channel events (joins, parts, quits, nick changes and topics); `kinds` picks the kinds to include. Without either, every line is returned.
+         * @description Every line of one log day (in the zone `/features` gives as `logs.zone`), oldest first, each with its `kind`: `MESSAGE`, `JOIN`, `PART`, `QUIT`, `NICK` or `TOPIC`. `events=none` leaves out channel events (joins, parts, quits, nick changes and topics); `kinds` picks the kinds to include. Without either, every line is returned.
          */
         get: operations["getDayLogs"];
         put?: never;
@@ -1681,6 +1681,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/posts/scheduled": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List scheduled posts
+         * @description Approved posts whose publication date is still to come, soonest first. They're in neither the public lists nor the review queue until they go out.
+         */
+        get: operations["listScheduled"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/posts/pending": {
         parameters: {
             query?: never;
@@ -1747,7 +1767,7 @@ export interface paths {
         };
         /**
          * A day of a channel's log, hidden lines included
-         * @description One UTC day of a channel's log as an admin reviews it: every line with its id, hidden ones included and marked `hidden`, oldest first, at most 5000. Direct conversations are never returned. `day` defaults to today.
+         * @description One log day (in the zone `/features` gives as `logs.zone`) of a channel's log as an admin reviews it: every line with its id, hidden ones included and marked `hidden`, oldest first, at most 5000. Direct conversations are never returned. `day` defaults to today.
          */
         get: operations["getModerationLogDay"];
         put?: never;
@@ -2702,6 +2722,10 @@ export interface components {
             adapters: string[];
             ai: boolean;
             anonymousSubmission: boolean;
+            logs: components["schemas"]["LogsFeature"];
+        };
+        LogsFeature: {
+            zone: string;
         };
         OidcFeatures: {
             google: boolean;
@@ -7376,6 +7400,47 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listScheduled: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated list of scheduled posts */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentListResponse"];
                 };
             };
             /** @description Not authenticated */

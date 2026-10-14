@@ -5,9 +5,11 @@ export interface Input {
   failed: boolean;
   provenance: string;
   day: string;
+  /** The zone the day and its times are in, the log's (#36). */
+  zone: string;
   channel: string;
   lines: {
-    id: string; time: string; iso: string; day: string; sender: string | null; segments: { text: string; href?: string }[];
+    id: string; time: string; iso: string; local: string; day: string; sender: string | null; segments: { text: string; href?: string }[];
     outbound: boolean; hidden: boolean; flagged: boolean; cited: boolean; publicHref: string;
     signals: string[]; strong: boolean;
   }[];
@@ -39,7 +41,7 @@ export interface Input {
   </if>
   <nav class="log-days flex items-center justify-between border-b border-border/40 pb-3 mb-6" aria-label="Days">
     <a class="log-day-link" rel="prev" href=input.prev>&larr; Previous</a>
-    <span class="log-day">${input.channel} · ${input.day}</span>
+    <span class="log-day">${input.channel} · ${input.day} (${input.zone})</span>
     <if=input.next><a class="log-day-link" rel="next" href=input.next>Next &rarr;</a></if>
     <else><span class="log-day-link is-disabled" aria-hidden="true">Next &rarr;</span></else>
   </nav>

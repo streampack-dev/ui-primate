@@ -1,0 +1,36 @@
+export interface Input {
+  meta?: import("#lib/meta.ts").Head;
+  sections: { href: string; label: string; current: boolean }[];
+  failed: boolean;
+  posts: { id: string; title: string; excerpt: string; author: string; published: string; when: string; audio: boolean }[];
+  prev: string | null;
+  next: string | null;
+}
+
+<page-meta meta=input.meta/>
+<admin-shell sections=input.sections>
+  <if=input.failed><p class="form-error" role="alert">The scheduled posts can't be loaded just now. Try again shortly.</p></if>
+  <else if=(input.posts.length === 0)>
+    <div class="py-12 text-center">
+      <p class="section-label form-label-text mb-3">No scheduled posts</p>
+      <p class="text-muted-foreground text-sm">Posts approved with a publication date still to come are listed here until they go out.</p>
+    </div>
+  </else>
+  <else>
+    <for|p, i| of=input.posts by="id">
+      <article class=["admin-scheduled py-6", i > 0 && "border-t border-border/30"]>
+        <h2 class="headline-secondary text-foreground mb-2"><a href=`/edit/${p.id}`>${p.title}</a></h2>
+        <if=p.excerpt><p class="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-3">${p.excerpt}</p></if>
+        <div class="byline text-muted-foreground flex items-center gap-1.5 flex-wrap">
+          <span>Goes out <time datetime=p.published data-local>${p.when}</time></span>
+          <span aria-hidden="true">|</span> <span>By ${p.author}</span>
+          <if=p.audio><audio-mark rule=""/></if>
+        </div>
+      </article>
+    </for>
+  </else>
+  <div class="pagination mt-8">
+    <div><if=input.prev><a class="pagelink" rel="prev" href=input.prev>&larr; Previous</a></if></div>
+    <div><if=input.next><a class="pagelink" rel="next" href=input.next>Next &rarr;</a></if></div>
+  </div>
+</admin-shell>

@@ -14,8 +14,9 @@ type Taxonomy = components["schemas"]["TaxonomySnapshot"];
 /** The dashboard, with [opml] shown again (a refused import, or the API's word on one that went). */
 export async function dashboard(opml: { payload?: string; error?: string; said?: string } = {}, status = 200) {
   const settle = async <T>(p: Promise<T>) => { try { return await p; } catch { return null; } };
-  const [pending, published, active, suspended, categories, taxonomy, features] = await Promise.all([
+  const [pending, scheduled, published, active, suspended, categories, taxonomy, features] = await Promise.all([
     settle(getAsReader<ContentList>("/admin/posts/pending", { page: 0, size: 1, deleted: "false" })),
+    settle(getAsReader<ContentList>("/admin/posts/scheduled", { page: 0, size: 1 })),
     settle(cachedGet<ContentList>("/posts", { page: 0, size: 1 })),
     settle(getAsReader<User[]>("/admin/users", { status: "ACTIVE" })),
     settle(getAsReader<User[]>("/admin/users", { status: "SUSPENDED" })),
@@ -30,6 +31,7 @@ export async function dashboard(opml: { payload?: string; error?: string; said?:
   return adminPage("AdminDashboard.marko", {
     stats: [
       { label: "Pending Drafts", value: count(pending?.totalCount), href: "/admin/pending" },
+      { label: "Scheduled", value: count(scheduled?.totalCount), href: "/admin/scheduled" },
       { label: "Published", value: count(published?.totalCount), href: null },
       { label: "Active Users", value: count(active?.length), href: "/admin/users" },
       { label: "Suspended", value: count(suspended?.length), href: "/admin/users?status=SUSPENDED" },

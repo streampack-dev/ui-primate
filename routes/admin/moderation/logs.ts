@@ -2,7 +2,7 @@ import route from "primate/route";
 import type { components } from "#api/schema.d.ts";
 import { getAsReader } from "#auth/signed-in.ts";
 import { admin, adminPage, notFound } from "#lib/admin.ts";
-import { conversationOnly, filterParams, logHref, readLogs } from "#lib/log-channels.ts";
+import { conversationOnly, filterParams, logHref, logZone, readLogs } from "#lib/log-channels.ts";
 import { shiftDay, today, validDay } from "#lib/logs.ts";
 import { channelFor, conversationLines, dayHref, doneSaying, shownLines, type LogDay } from "#lib/moderation.ts";
 
@@ -16,6 +16,7 @@ type PublicDay = components["schemas"]["LogDayResponse"];
  */
 export async function dayPage(provenance: string, day: string, extra: { said?: string; error?: string; checked?: string[]; note?: string } = {}, status = 200, conversation = false) {
   const channel = await channelFor(provenance);
+  const zone = await logZone();
   let found: LogDay | null = null;
   let failed = false;
   try {
@@ -39,28 +40,29 @@ export async function dayPage(provenance: string, day: string, extra: { said?: s
     provenance,
     day,
     channel: channel.name,
-    lines: shownLines(found?.lines || [], channel),
+    lines: shownLines(found?.lines || [], channel, zone),
+    zone,
     publicHref: logHref(channel, day, false, conversation),
     conversation,
     filters: [choice(false), choice(true)],
     prev: dayHref(provenance, shiftDay(day, -1), conversation),
-    next: next <= today() ? dayHref(provenance, next, conversation) : null,
+    next: next <= today(zone) ? dayHref(provenance, next, conversation) : null,
     ...extra,
   }, `${channel.name}, ${day}`, "/admin/moderation", failed ? 503 : status);
 }
 
 /** The provenance and day asked for, if they're a channel and a day; the day is today's when not given. */
-export function asked(provenance: string | undefined, day: string | undefined, events?: string): { provenance: string; day: string; conversation: boolean } | null {
+export async function asked(provenance: string | undefined, day: string | undefined, events?: string): Promise<{ provenance: string; day: string; conversation: boolean } | null> {
   const uri = (provenance || "").trim();
   if (!uri || uri.length > 500) return null;
-  const shown = day ? validDay(day) : today();
+  const shown = day ? validDay(day) : today(await logZone());
   return shown ? { provenance: uri, day: shown, conversation: conversationOnly(events) } : null;
 }
 
 export default route({
-  get(request) {
+  async get(request) {
     if (!admin()) return notFound();
-    const at = asked(request.query.try("provenance"), request.query.try("day"), request.query.try("events"));
+    const at = await asked(request.query.try("provenance"), request.query.try("day"), request.query.try("events"));
     if (!at) return notFound();
     return dayPage(at.provenance, at.day, { said: doneSaying(request.query.try("done"), request.query.try("n")) }, 200, at.conversation);
   },

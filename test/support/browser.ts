@@ -11,8 +11,9 @@ export function useBrowser() {
 
 /** A page at [path], in [theme], with its script errors collected; [cookies] (a Visitor's, say)
    carry a session into the browser; a [viewport] (a phone's, say) and reduced motion may be asked for. */
-export async function open(path: string, theme: "light" | "dark" = "light", cookies: Map<string, string> = new Map(), { viewport, reducedMotion }: { viewport?: { width: number; height: number }; reducedMotion?: "reduce" } = {}): Promise<{ page: Page; errors: string[] }> {
-  const context = await browser.newContext({ colorScheme: theme, ...(viewport ? { viewport } : {}), ...(reducedMotion ? { reducedMotion } : {}) });
+export async function open(path: string, theme: "light" | "dark" = "light", cookies: Map<string, string> = new Map(), { viewport, reducedMotion, timezoneId }: { viewport?: { width: number; height: number }; reducedMotion?: "reduce"; timezoneId?: string } = {}): Promise<{ page: Page; errors: string[] }> {
+  // In UTC unless asked otherwise, so a page reads the same on any machine (client/zone.ts).
+  const context = await browser.newContext({ colorScheme: theme, timezoneId: timezoneId ?? "UTC", ...(viewport ? { viewport } : {}), ...(reducedMotion ? { reducedMotion } : {}) });
   await context.addCookies([...cookies].map(([name, value]) => ({ name, value, url: inject("appUrl") })));
   // Seeded once: a reader's own choice, made on the page, stands across reloads.
   await context.addInitScript((t) => { try { if (!localStorage.getItem("theme")) localStorage.setItem("theme", t); } catch {} }, theme);

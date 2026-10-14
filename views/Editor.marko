@@ -1,7 +1,9 @@
 export interface Input {
   meta?: import("#lib/meta.ts").Head;
   id: string;
-  form: { title: string; slug: string; markdownSource: string; summary: string; tags: string; categoryIds: string[]; publishedAt: string; sortOrder: string };
+  form: { title: string; slug: string; markdownSource: string; summary: string; tags: string; categoryIds: string[]; publishedAt: string; publishedZone: string; sortOrder: string };
+  /** The publish date's field: the zone it's on the clock of, and the instant it names (client/zone.ts). */
+  published: { value: string; zone: string; instant: string };
   categories: { id: string; name: string }[];
   preview: string;
   draft: boolean;
@@ -113,9 +115,11 @@ export interface Input {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
           <div>
-            <label class="byline form-label" for="edit-published">Published (UTC)</label>
+            <label class="byline form-label" for="edit-published">Published (<span data-zone-label="edit-published">${input.published.zone}</span>)</label>
             <input class="form-field text-sm p-2" id="edit-published" name="publishedAt" type="datetime-local" value=form.publishedAt
+              data-zone-field="publishedZone" data-instant=input.published.instant data-shown=form.publishedAt
               aria-invalid=(errors.publishedAt ? "true" : false) aria-describedby=(errors.publishedAt ? "edit-published-error" : false)>
+            <input type="hidden" name="publishedZone" value=input.published.zone>
             <if=errors.publishedAt><p class="form-error" id="edit-published-error">${errors.publishedAt}</p></if>
           </div>
           <div>

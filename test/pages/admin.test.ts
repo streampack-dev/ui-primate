@@ -10,6 +10,7 @@ beforeEach(async () => {
   await resetStubs();
   await stubSite();
   await stub("/admin/posts/pending", { posts: [post()], page: 0, totalPages: 4, totalCount: 4 }, { query: { page: 0, size: 1, deleted: "false" } });
+  await stub("/admin/posts/scheduled", { posts: [post()], page: 0, totalPages: 2, totalCount: 2 }, { query: { page: 0, size: 1 } });
   await stub("/posts", { posts: [post()], page: 0, totalPages: 120, totalCount: 120 }, { query: { page: 0, size: 1 } });
   await stub("/admin/users", [user("ada"), user("ed", "ADMIN"), user("grace")], { query: { status: "ACTIVE" } });
   await stub("/admin/users", [user("mallory")], { query: { status: "SUSPENDED" } });
@@ -22,7 +23,7 @@ beforeEach(async () => {
 
 describe("the admin pages", () => {
   it("are for admins: anyone else finds nothing there", async () => {
-    for (const path of ["/admin", "/admin/pending", "/admin/users", "/admin/categories"]) {
+    for (const path of ["/admin", "/admin/pending", "/admin/scheduled", "/admin/users", "/admin/categories"]) {
       expect((await new Visitor().get(path)).status, path).toBe(404);
       expect((await (await signedIn()).get(path)).status, path).toBe(404);
     }
@@ -34,7 +35,7 @@ describe("the admin pages", () => {
     const nav = doc.querySelector("nav.admin-nav")!;
 
     expect(text(doc.querySelector("main h1"))).toBe("Site Management");
-    expect(nav.querySelectorAll("a").map((a) => a.getAttribute("href"))).toEqual(["/admin", "/admin/pending", "/admin/users", "/admin/categories", "/admin/moderation", "/admin/tags"]);
+    expect(nav.querySelectorAll("a").map((a) => a.getAttribute("href"))).toEqual(["/admin", "/admin/pending", "/admin/scheduled", "/admin/users", "/admin/categories", "/admin/moderation", "/admin/tags"]);
     expect(nav.querySelector("a[aria-current=page]")?.getAttribute("href")).toBe("/admin/users");
     const response = await fetch(`${inject("appUrl")}/admin`, { headers: { Cookie: `session_id=${v.cookies.get("session_id")}` } });
     expect(response.headers.get("cache-control")).toContain("no-store");
@@ -42,13 +43,14 @@ describe("the admin pages", () => {
 });
 
 describe("the admin dashboard", () => {
-  it("counts drafts waiting, posts published, and active and suspended readers, each a way in", async () => {
+  it("counts drafts waiting, posts scheduled and published, and active and suspended readers, each a way in", async () => {
     const v = await signedIn(ADMIN);
     const { doc } = await v.get("/admin");
     const stats = Object.fromEntries(doc.querySelectorAll(".admin-stat").map((s) => [text(s.querySelector(".admin-stat-label")), text(s.querySelector(".admin-stat-value"))]));
 
-    expect(stats).toEqual({ "Pending Drafts": "4", Published: "120", "Active Users": "3", Suspended: "1" });
+    expect(stats).toEqual({ "Pending Drafts": "4", Scheduled: "2", Published: "120", "Active Users": "3", Suspended: "1" });
     expect(doc.querySelector(".admin-stat a[href='/admin/pending']")).not.toBeNull();
+    expect(doc.querySelector(".admin-stat a[href='/admin/scheduled']")).not.toBeNull();
     const pending = (await requests()).find((r) => r.path === "/admin/posts/pending")!;
     expect(pending.headers.authorization).toBe("Bearer access-1");
   });

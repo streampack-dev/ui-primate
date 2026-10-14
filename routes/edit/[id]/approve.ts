@@ -4,11 +4,12 @@ import { send } from "#api/client.ts";
 import { refusal } from "#auth/forms.ts";
 import { csrf, csrfOk } from "#auth/readers.ts";
 import { asReader, bearer, SignInRequired } from "#auth/signed-in.ts";
-import { admitted, categories, editorPage, formData, formOf, fromLocal, load, notFound, toLocal } from "#lib/editor.ts";
+import { admitted, categories, dateField, editorPage, formData, formOf, fromLocal, load, notFound, postedZone, toLocal } from "#lib/editor.ts";
+import { readerZone } from "#lib/zone.ts";
 import { view } from "#lib/view.ts";
 
-/* Approving a draft, asked first, with when to publish it (UTC, now unless changed). It's published
-   as last saved. */
+/* Approving a draft, asked first, with when to publish it (on the reader's clock, now unless
+   changed; the API is given UTC). It's published as last saved. */
 export default route({
   async get(request) {
     const id = admitted(request.path.get("id"));
@@ -22,7 +23,7 @@ export default route({
       ...(request.query.try("return") === "/admin/pending"
         ? { fields: { return: "/admin/pending" }, back: "/admin/pending" }
         : { fields: {}, back: `/edit/${id}` }),
-      field: { name: "publishedAt", label: "Publish at (UTC)", type: "datetime-local", value: toLocal(new Date().toISOString()) },
+      field: { name: "publishedAt", label: "Publish at", type: "datetime-local", ...dateField(toLocal(new Date().toISOString(), readerZone()), readerZone()), zoneName: "publishedZone" },
       tone: "go",
       meta: { title: "Approve post" },
     }, { headers: { "Cache-Control": "private, no-store" } });
@@ -33,7 +34,7 @@ export default route({
     if (!id) return notFound();
     const data = await formData(request);
     if (!csrfOk(data.one("csrf"))) return new Response("Forbidden", { status: 403 });
-    const at = fromLocal(data.one("publishedAt").trim()) ?? new Date();
+    const at = fromLocal(data.one("publishedAt").trim(), postedZone(data.one("publishedZone"))) ?? new Date();
     try {
       const answer = await asReader((a) => send("PUT", `/admin/posts/${id}/approve`, { publishedAt: at.toISOString() }, bearer(a)));
       if (answer.ok) return response.redirect(data.one("return") === "/admin/pending" ? "/admin/pending?done=approved" : `/edit/${id}?approved`, 303);

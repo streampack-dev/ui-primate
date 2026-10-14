@@ -6,9 +6,11 @@ export interface Input {
   q: string;
   from: string;
   heading: string;
+  /** The zone the hits' days and times are in, the log's. */
+  zone: string;
   notice: string;
   summary: string;
-  hits: { key: string; href: string; iso: string; when: string; sender: string | null; segments: { text: string; href?: string }[]; outbound: boolean; event?: boolean }[];
+  hits: { key: string; href: string; iso: string; local: string; when: string; sender: string | null; segments: { text: string; href?: string }[]; outbound: boolean; event?: boolean }[];
   prev: string | null;
   next: string | null;
 }
@@ -21,7 +23,7 @@ export interface Input {
       <p class="section-label text-amber mb-2">Community</p>
       <h1 class="font-display text-3xl md:text-4xl tracking-tight">Chat Logs</h1>
     </div>
-    <p class="dateline text-muted-foreground">Search</p>
+    <p class="dateline text-muted-foreground">Search (${input.zone})</p>
   </div>
 
   <div class="max-w-4xl">
@@ -42,7 +44,7 @@ export interface Input {
       <ol class="log-lines log-hits">
         <for|hit| of=input.hits by="key">
           <li class=["log-line", "log-hit", !hit.sender && "log-system", hit.outbound && "log-outbound", hit.event && "log-event"]>
-            <a class="log-time log-hit-when" href=hit.href><time datetime=hit.iso>${hit.when}</time></a>
+            <a class="log-time log-hit-when" href=hit.href><time datetime=hit.iso title=(hit.local || false) data-local-title>${hit.when}</time></a>
             <if=hit.sender><span class="log-sender">${hit.sender}</span></if>
             <span class="log-content"><for|s| of=hit.segments><if=s.href><a href=s.href rel="nofollow ugc noopener">${s.text}</a></if><else>${s.text}</else></for></span>
           </li>

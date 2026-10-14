@@ -2,8 +2,11 @@ export interface Input {
   meta?: import("#lib/meta.ts").Head;
   title: string; body: string; action: string; fields: Record<string, string>; button: string; back: string; csrf: string;
   onward?: { text: string; href: string };
-  /** A field to fill in before going ahead (approve's publish date, say). */
-  field?: { name: string; label: string; type: string; value: string };
+  /**
+   * A field to fill in before going ahead (approve's publish date, say). A date field also has the
+   * zone it's on the clock of, sent as [zoneName], and the instant it names (client/zone.ts).
+   */
+  field?: { name: string; label: string; type: string; value: string; zone?: string; zoneName?: string; instant?: string };
   /** "go" for a step forward rather than a removal. */
   tone?: "go";
 }
@@ -21,8 +24,10 @@ export interface Input {
       <for|name, value| in=input.fields><input type="hidden" name=name value=value></for>
       <if=input.field>
         <div class="basis-full">
-          <label class="byline form-label" for="confirm-field">${input.field.label}</label>
-          <input class="form-field text-sm p-2 max-w-xs" id="confirm-field" name=input.field.name type=input.field.type value=input.field.value>
+          <label class="byline form-label" for="confirm-field">${input.field.label}<if=input.field.zone> (<span data-zone-label="confirm-field">${input.field.zone}</span>)</if></label>
+          <input class="form-field text-sm p-2 max-w-xs" id="confirm-field" name=input.field.name type=input.field.type value=input.field.value
+            data-zone-field=input.field.zoneName data-instant=input.field.instant data-shown=(input.field.zone ? input.field.value : false)>
+          <if=input.field.zoneName><input type="hidden" name=input.field.zoneName value=input.field.zone></if>
         </div>
       </if>
       <button type="submit" class=["auth-button", input.tone !== "go" && "danger"]>${input.button}</button>

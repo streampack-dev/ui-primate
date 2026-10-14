@@ -11,13 +11,15 @@ export interface Input {
   } | null;
   open?: boolean;
   lines?: {
-    id: string; time: string; iso: string; day: string; sender: string | null; segments: { text: string; href?: string }[];
+    id: string; time: string; iso: string; local: string; day: string; sender: string | null; segments: { text: string; href?: string }[];
     outbound: boolean; hidden: boolean; flagged: boolean; cited: boolean; publicHref: string;
     signals: string[]; strong: boolean;
   }[];
   purged?: number;
   actions?: { id: string; what: string; actor: string; when: string; at: string; note: string }[];
   days?: { day: string; admin: string; public: string }[];
+  /** The zone the lines' days and times are in, the log's (#36). */
+  zone?: string;
   senderLines?: string;
   said?: string;
   error?: string;
@@ -67,7 +69,7 @@ export interface Input {
         </for>
       </nav>
 
-      <h3 class="section-label text-muted-foreground mb-3">The lines, with their context</h3>
+      <h3 class="section-label text-muted-foreground mb-3">The lines, with their context<if=input.zone> (${input.zone})</if></h3>
       <if=((input.lines || []).length === 0)>
         <p class="py-6 text-muted-foreground font-mono text-sm">No lines are left to show.</p>
       </if>
