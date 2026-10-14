@@ -1,53 +1,20 @@
-/* What the page's head says (its route's `meta`, resolved by #lib/view.ts), applied in the
-   browser. A client-side navigation redraws only the body, so each view hands its meta here, and
-   this puts it in the head when the view is mounted or its input changes, as Primate's own website
-   does (apps/website/components/Header.marko). The server's render has it drawn already. A view
-   drawn without meta changes nothing. */
-import type { Head } from "#lib/meta.ts";
+/* What the page's head says (its route's `meta`, resolved by #lib/view.ts), drawn with Primate's
+   <Head>: into the server's render, for a crawler or link preview that runs no script, and again
+   in the browser after a client-side navigation, whose JSON carries a view's props but not the
+   head. A view drawn without meta draws no head of its own.
+
+   The tags come as HTML from headTags, escaped there, rather than as Marko tags: Marko leaves "<"
+   and ">" in an attribute value as they are, and @primate/marko 0.13.1's server-side check of a
+   <Head> misreads them ("List<String>" in a post's title) and fails the page (primate-bugs/15).
+   Analytics isn't here: the browser would run a <Head>'s scripts again when it takes the page
+   over (#lib/view.ts draws it). */
+import { Head } from "@primate/marko/tags";
+import { headTags, type Head as Meta } from "#lib/meta.ts";
 
 export interface Input {
-  meta?: Head;
+  meta?: Meta;
 }
 
-static function setTag(selector: string, make: () => HTMLElement, attribute: string, value: string | null) {
-  let tag = document.head.querySelector<HTMLElement>(selector);
-  if (value === null) {
-    tag?.remove();
-    return;
-  }
-  if (!tag) {
-    tag = make();
-    document.head.append(tag);
-  }
-  tag.setAttribute(attribute, value);
-}
-
-static function named(attribute: "name" | "property", value: string) {
-  return () => {
-    const tag = document.createElement("meta");
-    tag.setAttribute(attribute, value);
-    return tag;
-  };
-}
-
-static function apply(head: Head | undefined) {
-  if (!head) return;
-  document.title = head.title;
-  setTag('meta[name="description"]', named("name", "description"), "content", head.description);
-  setTag('meta[property="og:title"]', named("property", "og:title"), "content", head.ogTitle);
-  setTag('meta[property="og:description"]', named("property", "og:description"), "content", head.description);
-  setTag('meta[property="og:type"]', named("property", "og:type"), "content", head.type);
-  setTag('meta[name="robots"]', named("name", "robots"), "content", head.robots);
-  setTag('link[rel="canonical"]', () => Object.assign(document.createElement("link"), { rel: "canonical" }), "href", head.url);
-  setTag('meta[property="og:url"]', named("property", "og:url"), "content", head.url);
-  setTag('meta[property="og:image"]', named("property", "og:image"), "content", head.image);
-  setTag('meta[property="og:image:alt"]', named("property", "og:image:alt"), "content", head.imageAlt);
-  setTag('meta[name="twitter:image"]', named("name", "twitter:image"), "content", head.image);
-  setTag('meta[name="twitter:image:alt"]', named("name", "twitter:image:alt"), "content", head.imageAlt);
-}
-
-<const/head=input.meta/>
-<lifecycle
-  onMount() { apply(head); }
-  onUpdate() { apply(head); }
-/>
+<if=input.meta>
+  <Head>$!{headTags(input.meta)}</Head>
+</if>

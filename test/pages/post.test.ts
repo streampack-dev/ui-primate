@@ -75,6 +75,17 @@ describe("a post", () => {
 
     expect(text(doc.querySelector("title"))).toBe(`50% faster, 20% smaller <and> "quoted" | ByteCode.News`);
     expect(text(doc.querySelector("article h1"))).toBe(`50% faster, 20% smaller <and> "quoted"`);
+    expect(doc.querySelector("meta[property='og:title']")?.getAttribute("content")).toBe(`50% faster, 20% smaller <and> "quoted"`);
+  });
+
+  it("is drawn with a type's angle brackets and an ampersand in its title and description (#50)", async () => {
+    await stubPost(detail({ title: "List<String> & Map<K, V>", excerpt: "Generics: List<String>, AT&T, &lt; as typed." }));
+    const { status, doc } = await page("/posts/2026/09/midden");
+
+    expect(status).toBe(200);
+    expect(text(doc.querySelector("title"))).toBe("List<String> & Map<K, V> | ByteCode.News");
+    expect(doc.querySelector("meta[property='og:title']")?.getAttribute("content")).toBe("List<String> & Map<K, V>");
+    expect(doc.querySelector("meta[name=description]")?.getAttribute("content")).toBe("Generics: List<String>, AT&T, &lt; as typed.");
   });
 
   it("moves a post at an old address to its own, for good", async () => {
