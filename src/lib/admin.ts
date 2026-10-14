@@ -1,6 +1,6 @@
 /* The admin pages, as ui-nextjs has them (Site Management: the dashboard, pending drafts, users,
-   categories), drawn here with plain forms. They're for admins; anyone else finds nothing there,
-   as with the editor. */
+   categories), and the scheduled posts (#35), drawn here with plain forms. They're for admins;
+   anyone else finds nothing there, as with the editor. */
 import response from "primate/response";
 import { csrf, current, isAdmin } from "#auth/readers.ts";
 import { view } from "#lib/view.ts";
@@ -9,6 +9,7 @@ import { notFound } from "#lib/post-page.ts";
 export const SECTIONS = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/pending", label: "Pending" },
+  { href: "/admin/scheduled", label: "Scheduled" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/categories", label: "Categories" },
   { href: "/admin/moderation", label: "Moderation" },

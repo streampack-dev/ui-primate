@@ -29,6 +29,21 @@ export function formatDate(value?: string): string {
   });
 }
 
+/** A date and time to the minute, in UTC as the editor's publish date is: "October 20, 2026, 9:00 AM UTC". */
+export function formatDateTime(value?: string): string {
+  if (!value) {
+    return "Unknown";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  const time = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "UTC" });
+  return `${formatDate(value)}, ${time} UTC`;
+}
+
 export function formatUpdatedTime(value?: string): string {
   if (!value) {
     return "";

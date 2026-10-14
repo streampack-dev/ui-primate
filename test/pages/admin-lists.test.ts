@@ -11,6 +11,61 @@ beforeEach(async () => {
   await stubSite();
 });
 
+describe("the scheduled posts (#35)", () => {
+  const SOON = "019f0000-0000-7000-8000-0000000a0035";
+
+  it("list what's to go out, read as the admin, soonest first, each a way to its editor with when it goes out", async () => {
+    await stub("/admin/posts/scheduled", { posts: [
+      post({ id: SOON, title: "Tomorrow", excerpt: "Out tomorrow.", authorDisplayName: "ada", publishedAt: "2026-10-20T09:00:00Z", versionKinds: ["audio"] }),
+      post({ id: "019f0000-0000-7000-8000-0000000a0036", title: "Next week", authorDisplayName: "grace", publishedAt: "2026-10-27T15:30:00Z", versionKinds: [] }),
+    ], page: 0, totalPages: 2, totalCount: 21 }, { query: { page: 0, size: 20 } });
+    const v = await signedIn(ADMIN);
+    const { status, doc } = await v.get("/admin/scheduled");
+    const [first, second] = doc.querySelectorAll("article.admin-scheduled");
+
+    expect(status).toBe(200);
+    expect(text(doc.querySelector("title"))).toContain("Scheduled posts");
+    expect(doc.querySelector("nav.admin-nav a[aria-current=page]")?.getAttribute("href")).toBe("/admin/scheduled");
+    expect(text(first.querySelector("h2"))).toBe("Tomorrow");
+    expect(first.querySelector("h2 a")?.getAttribute("href")).toBe(`/edit/${SOON}`);
+    expect(text(first)).toContain("Out tomorrow.");
+    expect(text(first)).toContain("By ada");
+    expect(text(first.querySelector("time"))).toBe("October 20, 2026, 9:00 AM UTC");
+    expect(first.querySelector("time")?.getAttribute("datetime")).toBe("2026-10-20T09:00:00Z");
+    expect(first.querySelector(".audio-mark")).not.toBeNull();
+    expect(text(second.querySelector("time"))).toBe("October 27, 2026, 3:30 PM UTC");
+    expect(second.querySelector(".audio-mark")).toBeNull();
+    expect(doc.querySelector("a.pagelink[rel=prev]")).toBeNull();
+    expect(doc.querySelector("a.pagelink[rel=next]")?.getAttribute("href")).toBe("/admin/scheduled?page=1");
+    expect((await requests()).find((r) => r.path === "/admin/posts/scheduled")!.headers.authorization).toBe("Bearer access-1");
+  });
+
+  it("page on, and back", async () => {
+    await stub("/admin/posts/scheduled", { posts: [post({ title: "Later" })], page: 1, totalPages: 2, totalCount: 21 }, { query: { page: 1, size: 20 } });
+    const { doc } = await (await signedIn(ADMIN)).get("/admin/scheduled?page=1");
+
+    expect(text(doc.querySelector("article.admin-scheduled h2"))).toBe("Later");
+    expect(doc.querySelector("a.pagelink[rel=prev]")?.getAttribute("href")).toBe("/admin/scheduled");
+    expect(doc.querySelector("a.pagelink[rel=next]")).toBeNull();
+  });
+
+  it("say so when there are none", async () => {
+    await stub("/admin/posts/scheduled", { posts: [], page: 0, totalPages: 0, totalCount: 0 }, { query: { page: 0, size: 20 } });
+    const { doc } = await (await signedIn(ADMIN)).get("/admin/scheduled");
+
+    expect(doc.querySelector("article.admin-scheduled")).toBeNull();
+    expect(text(doc.querySelector("main"))).toContain("No scheduled posts");
+  });
+
+  it("say so when the API can't", async () => {
+    await stub("/admin/posts/scheduled", { detail: "down" }, { query: { page: 0, size: 20 }, status: 503 });
+    const { status, doc } = await (await signedIn(ADMIN)).get("/admin/scheduled");
+
+    expect(status).toBe(200);
+    expect(text(doc.querySelector("[role=alert]"))).toBe("The scheduled posts can't be loaded just now. Try again shortly.");
+  });
+});
+
 describe("the pending drafts", () => {
   const DRAFT = "019f0000-0000-7000-8000-0000000a0001";
 

@@ -104,6 +104,10 @@ Since (2026-10-03):
       query. Over 100 MB, said or found, it's refused with a message, and the rest of it read and
       dropped so the browser sees it; with script, a file that big is refused as it's chosen
       (2026-10-12)
+- [x] Scheduled posts (#35, streampack#207): /admin/scheduled, in the admin nav after Pending and
+      counted on the dashboard, lists the posts approved to go out later, soonest first, twenty to
+      a page: each title links to its editor, with when it goes out (to the minute, UTC, as the
+      editor's publish date), its author, and the Audio mark (2026-10-14)
 - [ ] An upload slower than five minutes is cut off (408) by Node's requestTimeout, which Primate
       doesn't let the app set (only the idle timeout): 100 MB needs about 2.7 Mbit/s up. A Primate
       issue to draft (primate-bugs/) if it bites
