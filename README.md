@@ -48,10 +48,80 @@ behind `origin/main`, and changes nothing when it does.
 ## Recordings
 
 A post's recording (up to 100 MB) is uploaded through the editor to `POST /edit/{id}/audio`, and
-passed on to the API as it arrives. A proxy in front has to let that through: on nginx, a location
-for it with `client_max_body_size 101m`, `proxy_request_buffering off` and a long
-`proxy_read_timeout` (10 minutes, as the app waits for the API). The rest of the site needs none of
-that. The recordings themselves are played and downloaded from the API's own address, not this app.
+passed on to the API as it arrives. A proxy in front has to let that through: a body limit over
+100 MB, the body passed on unbuffered, and a timeout of 10 minutes, as the app waits for the API.
+The rest of the site needs none of that, and the API's own proxy needs the same limit. The
+recordings themselves are played and downloaded from the API's own address, not this app.
+
+### nginx
+
+nginx's default body limit is 1 MB, and a larger upload gets nginx's own 413:
+
+```nginx
+server {
+    server_name primate.example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # A post's recording: up to the API's 100 MB, passed on as it arrives.
+    location ~ ^/edit/[^/]+/audio$ {
+        client_max_body_size 101m;
+        proxy_request_buffering off;
+        proxy_read_timeout 10m;
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### Caddy
+
+Caddy sets no body limit, passes a body on as it arrives and has no read timeout by default, so a
+recording goes through as it is. A `request_body` limit on its path holds it to 100 MB at the proxy
+too:
+
+```caddyfile
+primate.example.com {
+    # Optional: a limit just over the API's 100 MB.
+    @recording path_regexp ^/edit/[^/]+/audio$
+    request_body @recording {
+        max_size 101MB
+    }
+
+    reverse_proxy 127.0.0.1:3000
+}
+```
+
+### Apache httpd
+
+With `mod_proxy` and `mod_proxy_http`, the body is passed on as it arrives. The upload needs a
+timeout of 10 minutes, where the default is a minute. The default `LimitRequestBody` (1 GB since
+2.4.54) is already over 100 MB, but setting it holds the path to the API's limit. The
+`ProxyPassMatch` must come before the catch-all `/`, since Apache takes the first that matches:
+
+```apache
+<VirtualHost *:443>
+    ServerName primate.example.com
+    ProxyPreserveHost On
+    RequestHeader set X-Forwarded-Proto "https"
+
+    # A post's recording: up to the API's 100 MB, with time for the API to take it.
+    ProxyPassMatch "^/edit/([^/]+)/audio$" "http://127.0.0.1:3000/edit/$1/audio" timeout=600
+    <LocationMatch "^/edit/[^/]+/audio$">
+        LimitRequestBody 105906176
+    </LocationMatch>
+
+    ProxyPass        / http://127.0.0.1:3000/
+    ProxyPassReverse / http://127.0.0.1:3000/
+</VirtualHost>
+```
 
 ## Sessions
 
