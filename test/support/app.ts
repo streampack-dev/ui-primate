@@ -56,7 +56,9 @@ export default async function setup(project: TestProject) {
 
   // The pages ask the API every time (BCN_CACHE_FRESH_SECONDS 0), since tests change its answers
   // between pages; how long answers are kept is the client's own test (unit/client.test.ts).
-  const env = { BCN_API_BASE: stubApi.url, BCN_DB_URL: db.getConnectionUri(), SESSION_SECRET: "a test secret, long enough to be one", BCN_CACHE_FRESH_SECONDS: "0" };
+  const env = { BCN_API_BASE: stubApi.url, BCN_DB_URL: db.getConnectionUri(), SESSION_SECRET: "a test secret, long enough to be one", BCN_CACHE_FRESH_SECONDS: "0",
+    // Recordings up to 100 KB, so a too-big upload is tried with KB rather than 100 MB of test data
+    BCN_RECORDING_MAX_BYTES: String(100 * 1024) };
   const app = await startApp(env);
   project.provide("stubApi", stubApi.url);
   project.provide("appUrl", app.url);

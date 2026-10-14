@@ -34,6 +34,6 @@ document.addEventListener("change", (e) => {
   const field = e.target as HTMLInputElement | null;
   if (!field?.matches?.("input[type=file][data-max-bytes]")) return;
   const file = field.files?.[0];
-  field.setCustomValidity(file && file.size > Number(field.dataset.maxBytes) ? "The recording is over 100 MB, the most the site takes." : "");
+  field.setCustomValidity(file && file.size > Number(field.dataset.maxBytes) ? `The recording is over ${field.dataset.maxLabel}, the most the site takes.` : "");
   field.reportValidity();
 });

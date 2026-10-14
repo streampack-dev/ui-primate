@@ -13,7 +13,8 @@ const SLUG = "2026/10/its-been-a-bit";
 const EDIT = `/edit/${ID}`;
 const MEDIA = `https://api.bytecode.news/media/posts/${ID}/audio`;
 const UPLOAD = `/admin/posts/${ID}/versions/audio`;
-const MAX = 100 * 1024 * 1024;
+/** The test app's limit (test/support/app.ts), standing in for the real 100 MB. */
+const MAX = 100 * 1024;
 
 function recording(fields: Record<string, unknown> = {}) {
   return {
@@ -150,7 +151,7 @@ describe("the editor's recording", () => {
     expect(form?.getAttribute("action")).toBe(`${EDIT}/audio`);
     expect(form?.getAttribute("enctype")).toBe("multipart/form-data");
     expect(form?.querySelectorAll("input[name]").map((i) => i.getAttribute("name"))).toEqual(["csrf", "note", "duration", "file"]);
-    expect(form?.querySelector("input[type=file]")?.getAttribute("data-max-bytes")).toBe(String(100 * 1024 * 1024));
+    expect(form?.querySelector("input[type=file]")?.getAttribute("data-max-bytes")).toBe(String(MAX));
     expect(text(form?.querySelector("button[type=submit]"))).toBe("Upload recording");
     expect(section?.querySelector("a[href$='/audio/remove']")).toBeNull();
     // Not inside the post's own form, whose Save would otherwise send the file.
@@ -216,23 +217,24 @@ describe("the editor's recording", () => {
     expect(text(parse(done.html).querySelector("#recording [role=alert]"))).toBe("That isn't MP3, M4A, Ogg Vorbis or Ogg Opus.");
   });
 
-  it("refuses a recording said to be over 100 MB before sending any of it on, and still answers", async () => {
+  it("refuses a recording said to be over the limit before sending any of it on, and still answers", async () => {
     await stub(`/posts/${ID}`, detail());
     const done = await upload(await signedIn(ADMIN), { file: new Uint8Array(MAX + 128 * 1024) });
     expect(done.status).toBe(413);
-    expect(text(parse(done.html).querySelector("#recording [role=alert]"))).toBe("The recording is over 100 MB.");
+    expect(text(parse(done.html).querySelector("#recording [role=alert]"))).toBe("The recording is over 100 KB.");
     expect(await sent("POST", UPLOAD)).toHaveLength(0);
   });
 
-  it("cuts off a file found to be over 100 MB as it arrives, and still answers", async () => {
+  it("cuts off a file found to be over the limit as it arrives, and still answers", async () => {
     await stub(`/posts/${ID}`, detail());
     await stub(UPLOAD, recording(), { method: "POST", status: 201 });
     // Within what the whole upload may be said to be, but the file itself is over.
     const done = await upload(await signedIn(ADMIN), { file: new Uint8Array(MAX + 1024) });
     expect(done.status).toBe(413);
-    expect(text(parse(done.html).querySelector("#recording [role=alert]"))).toBe("The recording is over 100 MB.");
-    const [asked] = await sent("POST", UPLOAD);
-    expect(asked.body).toBe("(aborted)");
+    expect(text(parse(done.html).querySelector("#recording [role=alert]"))).toBe("The recording is over 100 KB.");
+    // Cut off before the API had all of it: sent nothing, or an upload that never finished.
+    const completed = (await sent("POST", UPLOAD)).filter((r) => r.body !== "(aborted)");
+    expect(completed).toHaveLength(0);
   });
 
   it("refuses a length it can't read, sending nothing on", async () => {

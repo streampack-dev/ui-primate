@@ -9,8 +9,12 @@ type Version = components["schemas"]["PostVersionView"];
 /** The kind a recording is; the only kind there is so far. */
 export const KIND = "audio";
 
-/** The most the site takes, as the API does: 100 MB. */
-export const MAX_BYTES = 100 * 1024 * 1024;
+/** The most the site takes, as the API does: 100 MB. BCN_RECORDING_MAX_BYTES sets another limit,
+   so the tests can try a too-big upload with a few hundred KB rather than 100 MB. */
+export const MAX_BYTES = Number(process.env.BCN_RECORDING_MAX_BYTES) || 100 * 1024 * 1024;
+
+/** [MAX_BYTES] in words: "100 MB". */
+export const MAX_LABEL = limitLabel(MAX_BYTES);
 
 export type PostAudio = {
   url: string;
@@ -66,6 +70,14 @@ function format(mediaType: string): string {
 export function sizeLabel(bytes: number): string {
   if (bytes >= 1_000_000) return `${(bytes / 1_000_000).toFixed(1)} MB`;
   if (bytes >= 1_000) return `${Math.round(bytes / 1_000)} KB`;
+  return `${bytes} bytes`;
+}
+
+/** A size limit in words, by binary units as limits are set: 100 MiB is "100 MB", 100 KiB "100 KB". */
+export function limitLabel(bytes: number): string {
+  const MB = 1024 * 1024;
+  if (bytes >= MB && bytes % MB === 0) return `${bytes / MB} MB`;
+  if (bytes >= 1024 && bytes % 1024 === 0) return `${bytes / 1024} KB`;
   return `${bytes} bytes`;
 }
 

@@ -18,7 +18,7 @@ import { Readable } from "node:stream";
 import type { Readable as NodeReadable } from "node:stream";
 import { sendStream } from "#api/client.ts";
 import { csrfOk } from "#auth/readers.ts";
-import { KIND, MAX_BYTES, parseLength } from "#lib/audio.ts";
+import { KIND, MAX_BYTES, MAX_LABEL, parseLength } from "#lib/audio.ts";
 
 /** Room for the form's other fields and the multipart framing around the file. */
 export const OVERHEAD = 64 * 1024;
@@ -35,7 +35,7 @@ export type Relayed =
   | { kind: "forbidden" }
   | { kind: "refused"; notice: string; status: number };
 
-export const TOO_BIG = "The recording is over 100 MB.";
+export const TOO_BIG = `The recording is over ${MAX_LABEL}.`;
 const NO_FILE = "Choose a recording to upload.";
 const BAD_LENGTH = "Give the length in seconds, or as minutes:seconds, or leave it empty.";
 const BROKEN = "The upload didn't arrive whole. Try again.";

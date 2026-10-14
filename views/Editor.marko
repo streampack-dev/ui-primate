@@ -19,6 +19,7 @@ export interface Input {
     maker: string | null; current: boolean; created: { iso: string; label: string }; replaced: { iso: string; label: string } | null } | null;
   recordingSaid: { status?: string; notice?: string };
   maxBytes: number;
+  maxLabel: string;
 }
 
 <page-meta meta=input.meta/>
@@ -183,8 +184,8 @@ export interface Input {
             <label class="byline form-label" for="audio-file">${rec ? "Replace it with" : "Recording"}</label>
             <input class="form-field text-sm p-2" type="file" id="audio-file" name="file" required
               accept="audio/mpeg,audio/mp4,audio/ogg,audio/opus,.mp3,.m4a,.mp4,.ogg,.oga,.opus"
-              data-max-bytes=String(input.maxBytes) aria-describedby="audio-file-hint">
-            <p class="form-hint" id="audio-file-hint">MP3, M4A, Ogg Vorbis or Ogg Opus, up to 100 MB. Uploading doesn't save the post's other changes.</p>
+              data-max-bytes=String(input.maxBytes) data-max-label=input.maxLabel aria-describedby="audio-file-hint">
+            <p class="form-hint" id="audio-file-hint">MP3, M4A, Ogg Vorbis or Ogg Opus, up to ${input.maxLabel}. Uploading doesn't save the post's other changes.</p>
           </div>
           <div class="flex flex-wrap items-center gap-3">
             <button type="submit" class="auth-button">${rec ? "Replace recording" : "Upload recording"}</button>
