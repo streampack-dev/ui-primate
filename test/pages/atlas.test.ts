@@ -108,6 +108,22 @@ describe("the Atlas", () => {
     expect(text(missed.doc.querySelector("title"))).toBe("Atlas | ByteCode.News");
   });
 
+  it("carries the API's layout once: its props hold the places, not their drawing (#48)", async () => {
+    const { doc } = await page("/atlas");
+    const hydration = JSON.parse(doc.querySelector("script#hydration")!.textContent!);
+    const props = hydration.props.at(-1);
+
+    expect(props.regions).toBeUndefined();
+    expect(props.map.places.map((p: { tag: string }) => p.tag)).toEqual(["java", "spring", "rust", "wasm", "cobol"]);
+    const json = JSON.stringify(props.map);
+    // What the view works out (paths, label positions) isn't sent; nor are the pins' dates.
+    expect(json).not.toContain("diamond");
+    expect(json).not.toContain("badgeX");
+    expect(json).not.toContain("publishedAt");
+    // The drawing is the same: the view draws it from the layout.
+    expect(doc.querySelector("a.place[data-tag=java] .mark")!.getAttribute("d")).toBe("M0,-12.3L12.3,0L0,12.3L-12.3,0Z");
+  });
+
   it("offers every place's name to the find form", async () => {
     const { doc } = await page("/atlas");
     const form = doc.querySelector("form.atlas-find")!;

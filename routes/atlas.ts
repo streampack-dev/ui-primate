@@ -2,7 +2,7 @@ import route from "primate/route";
 import { ApiUnavailable, cachedGet } from "#api/client.ts";
 import type { ContentList } from "#api/types.ts";
 import {
-  type AtlasData, type CatalogFactoid, type CatalogPost, findPlace, framing, KINDS, MOST_FRESH, PIN_KINDS, regionViews,
+  type AtlasData, type CatalogFactoid, type CatalogPost, findPlace, framing, KINDS, mapData, MOST_FRESH, PIN_KINDS,
   visitCookies, visitSince, whatsNew,
 } from "#lib/atlas.ts";
 import { formatDate } from "#lib/format.ts";
@@ -72,7 +72,6 @@ export default route({
 
     const focus = atlas ? findPlace(atlas, asked) : undefined;
     const freshTags = fresh ? [...fresh.byPlace.keys()] : [];
-    const regions = atlas ? regionViews(atlas, focus?.tag ?? null, fresh?.byPlace ?? new Map()) : [];
     const meta = {
       title: focus ? `${focus.tag} | Atlas` : "Atlas",
       description: "The tags of bytecode.news as a map: where the community writes, and where it only defines.",
@@ -80,8 +79,9 @@ export default route({
     };
     const draw = view("Atlas.marko", {
       unavailable: !atlas,
-      regions,
-      placeCount: atlas?.places.length ?? 0,
+      // The layout alone; the view draws it (ui-primate#48)
+      map: atlas ? mapData(atlas) : { regions: [], places: [] },
+      freshByPlace: fresh ? Object.fromEntries(fresh.byPlace) : {},
       tags: atlas ? atlas.places.map((p) => p.tag).sort((a, b) => a.localeCompare(b)) : [],
       focus: focus?.tag ?? null,
       asked,

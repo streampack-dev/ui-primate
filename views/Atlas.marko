@@ -1,10 +1,11 @@
-import type { FreshItem, Kind, RegionView } from "#lib/atlas.ts";
+import type { FreshItem } from "#lib/atlas.ts";
+import { type FreshCount, type Kind, type MapData, regionViews } from "#lib/atlas-map.ts";
 
 export interface Input {
   meta?: import("#lib/meta.ts").Head;
   unavailable: boolean;
-  regions: RegionView[];
-  placeCount: number;
+  map: MapData;
+  freshByPlace: Record<string, FreshCount>;
   tags: string[];
   focus: string | null;
   asked: string;
@@ -26,6 +27,10 @@ export interface Input {
      new, a small ring for something changed. The list of regions and places is the way in without
      the map. -->
 <page-meta meta=input.meta/>
+<!-- The map is drawn from the API's layout here, not in the route, so its props carry the layout
+     once (ui-primate#48). -->
+<const/regions=regionViews(input.map, input.focus, input.freshByPlace)/>
+<const/placeCount=input.map.places.length/>
 <section class="atlas-page py-6 md:py-8">
   <div class="max-w-screen-2xl mx-auto px-4 md:px-8">
     <header class="mb-4">
@@ -34,7 +39,7 @@ export interface Input {
         <div>
           <p class="section-label text-amber mb-2">Index</p>
           <h1 class="font-display text-foreground leading-tight submit-title">Atlas</h1>
-          <p class="atlas-intro text-muted-foreground text-sm mt-2">The site's tags as places: tags used together share a region. ${input.placeCount} places in ${input.regions.length} regions.</p>
+          <p class="atlas-intro text-muted-foreground text-sm mt-2">The site's tags as places: tags used together share a region. ${placeCount} places in ${regions.length} regions.</p>
         </div>
         <form class="atlas-find" action="/atlas" method="get" role="search">
           <label class="sr-only" for="atlas-at">Find a place on the map (a tag)</label>
@@ -51,7 +56,7 @@ export interface Input {
         <p class="text-muted-foreground text-sm">The news service isn't answering. Try again in a moment.</p>
       </div>
     </if>
-    <else-if=(input.regions.length === 0)>
+    <else-if=(regions.length === 0)>
       <div class="py-12 text-center">
         <p class="section-label form-label-text mb-3">Nothing on the map yet</p>
         <p class="text-muted-foreground text-sm">Places appear once posts or factoids carry tags.</p>
@@ -101,13 +106,13 @@ export interface Input {
             </div>
           </div>
           <if=input.missed><p class="atlas-missed" role="status">No place on the map is called “${input.missed}”.</p></if>
-          <svg class=["atlas-map", input.focus && "atlas-framed"] viewBox=input.viewBox data-world=input.world preserveAspectRatio="xMidYMid meet" role="group" aria-label=`Map of the site's tags: ${input.placeCount} places in ${input.regions.length} regions` data-zoom=input.zoom style=`--u:${input.unit}`>
+          <svg class=["atlas-map", input.focus && "atlas-framed"] viewBox=input.viewBox data-world=input.world preserveAspectRatio="xMidYMid meet" role="group" aria-label=`Map of the site's tags: ${placeCount} places in ${regions.length} regions` data-zoom=input.zoom style=`--u:${input.unit}`>
             <g class="atlas-world">
               <g class="atlas-regions" aria-hidden="true">
-                <for|region| of=input.regions by="id"><circle class=["region", region.uncharted && "region-uncharted"] cx=region.x cy=region.y r=region.r/></for>
+                <for|region| of=regions by="id"><circle class=["region", region.uncharted && "region-uncharted"] cx=region.x cy=region.y r=region.r/></for>
               </g>
               <g class="atlas-places">
-                <for|region| of=input.regions by="id">
+                <for|region| of=regions by="id">
                   <g class="atlas-region" role="group" aria-label=region.name>
                     <for|p| of=region.places by="tag">
                       <a class=["place", `place-${p.kind}`, p.minor && "minor", p.major && "major", p.here && "here", p.fresh && "fresh", p.fresh && `fresh-${p.fresh}`] href=p.href data-tag=p.tag data-x=p.x data-y=p.y aria-label=p.label>
@@ -129,7 +134,7 @@ export interface Input {
                    posts and factoids, so the pins stay out of the tab order and the accessibility
                    tree (hundreds of them would bury the places). -->
               <g class="atlas-pins" aria-hidden="true">
-                <for|region| of=input.regions by="id">
+                <for|region| of=regions by="id">
                   <for|p| of=region.places by="tag">
                     <if=(p.pins.length > 0)>
                       <g class=["pins", p.here && "here"] data-for=p.tag>
@@ -140,7 +145,7 @@ export interface Input {
                 </for>
               </g>
               <g class="atlas-region-names" aria-hidden="true">
-                <for|region| of=input.regions by="id">
+                <for|region| of=regions by="id">
                   <text class="region-name above" x=region.x y=region.labelY data-size=region.size>${region.name}</text>
                   <text class=["region-name across", region.small && "small"] x=region.x y=region.y data-size=region.size><for|line| of=region.lines><tspan x=region.x dy=line.dy>${line.text}</tspan></for></text>
                 </for>
@@ -177,7 +182,7 @@ export interface Input {
           </else>
           <nav class="atlas-list" aria-labelledby="atlas-list-heading">
             <h2 class="section-label text-amber" id="atlas-list-heading">Places on the map</h2>
-            <for|region| of=input.regions by="id">
+            <for|region| of=regions by="id">
               <h3 class="atlas-list-region" id=`atlas-region-${region.id}`>${region.name}</h3>
               <ul class="atlas-list-places" aria-labelledby=`atlas-region-${region.id}`>
                 <for|p| of=region.places by="tag">
