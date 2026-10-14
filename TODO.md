@@ -172,16 +172,17 @@ Smaller things noticed along the way:
       the first, so reads (and temperature) are counted, code is highlighted, the masthead starts
       and the theme toggle works; forms are submitted by the browser (2026-10-02)
 - [x] With CSR, the head (title, canonical, description, OG, robots) follows client-side navigation:
-      routes put `meta` in the view's props, #lib/view.ts draws it into %meta% for the server's
-      render, and each view's <page-meta> applies it in the browser, as terrablue suggested
-      (Primate's website's Header.marko) (2026-10-02)
+      routes put `meta` in the view's props, and each view's <page-meta> hands its tags to
+      @primate/marko's <Head>, which draws them on the server and after each navigation (#50,
+      2026-10-14; before that, #lib/view.ts drew them into %meta% and <page-meta> set them by hand)
 - [x] Primate 0.42 (2026-10-03): its client submits forms properly (GET forms, answers that
       aren't 2xx, a redirect's #fragment), so client/forms.ts is gone and forms are drawn in place
       like links (test/browser/navigation.test.ts). The post form's helper buttons are named
       `helper`, not `action`: a control named `action` hides the form's own action from script, and
       Primate's client posted to `/[object HTMLButtonElement]`
-- [ ] @primate/marko 0.13 has a `<Head>` tag; <page-meta> and the %meta% placeholder
-      (#lib/view.ts) still work, and could move to it
+- [ ] <page-meta> hands <Head> its tags as escaped HTML, not as Marko tags, because
+      @primate/marko 0.13.1's server-side check misreads "<" and ">" in an attribute value
+      (primate-bugs/15). When that's fixed, draw the tags in Marko and drop headTags' escaping
 - [ ] Sessions end thirty days after sign-in, not after thirty idle days as ui-pudl's do
 
 Parked:

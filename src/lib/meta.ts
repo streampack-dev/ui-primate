@@ -1,8 +1,6 @@
 /* A page's title and its description for browsers and link previews: what a route puts in its
-   view's `meta` (#lib/view.ts), resolved here, and drawn as the head's %meta% placeholder takes it
-   (templates/app.html). Every value is escaped, and so is "%": Primate empties
-   anything left between two percent signs after it fills the placeholders, which would cut
-   "50% faster, 20% smaller" down to "50 smaller". */
+   view's `meta` (#lib/view.ts), resolved here, and drawn as tags (headTags) that
+   views/tags/page-meta.marko hands to Primate's <Head>. Every value is escaped. */
 const SITE = "ByteCode.News";
 const DESCRIPTION = "ByteCode.News: articles, knowledge, and community context.";
 
@@ -11,8 +9,7 @@ function escape(value: string): string {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/%/g, "&#37;");
+    .replace(/"/g, "&quot;");
 }
 
 /** Where the site is, for addresses a link preview fetches: SITE_URL (default the live site). */
@@ -31,8 +28,7 @@ export type Meta = {
   image?: { path: string; alt: string };
 };
 
-/** What a page's head says, resolved: drawn into %meta% on the server (headTags), and applied in
-   the browser after a client-side navigation (views/tags/page-meta.marko). */
+/** What a page's head says, resolved: drawn by headTags, on the server and in the browser. */
 export type Head = {
   /** The whole title, " | ByteCode.News" and all. */
   title: string;
@@ -61,7 +57,7 @@ export function meta({ title, description = DESCRIPTION, path, type = "website",
   };
 }
 
-/** [head] as the tags %meta% takes, escaped, with analytics. */
+/** [head] as tags, escaped, for <Head> (views/tags/page-meta.marko). */
 export function headTags(head: Head): string {
   const tags = [
     `<title>${escape(head.title)}</title>`,
@@ -88,8 +84,12 @@ export function headTags(head: Head): string {
     `<meta name="twitter:image" content="${src}">`,
     `<meta name="twitter:image:alt" content="${escape(head.imageAlt)}">`,
   );
-  tags.push(...analytics());
-  return tags.join("\n    ");
+  return tags.join("");
+}
+
+/** Google Analytics' tags, as the head's %analytics% placeholder takes them (templates/app.html). */
+export function analyticsTags(): string {
+  return analytics().join("\n    ");
 }
 
 /* Google Analytics, as ui-nextjs and ui-pudl load it (deploy#3): gtag on every page when
