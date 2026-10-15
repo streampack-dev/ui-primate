@@ -78,6 +78,64 @@ describe("search", () => {
     expect(text(doc.querySelector("main"))).toContain("Search Temporarily Unavailable");
   });
 
+  it("shows each result's passage, with the words that matched marked, in place of the excerpt", async () => {
+    await stub("/posts/search", results([
+      post({ title: "Runtimes", slug: "2026/09/runtimes", excerpt: "An excerpt not shown.", match: { source: "body", text: "An emerging runtime, call it oden", marks: [{ start: 3, end: 11 }] } }),
+    ]), { query: { q: "emergent" } });
+    const { doc } = await page("/search?q=emergent");
+    const hit = doc.querySelector("article.search-result")!;
+
+    expect(text(hit.querySelector(".search-passage"))).toBe("An emerging runtime, call it oden");
+    expect(hit.querySelectorAll(".search-passage mark").map((m) => text(m))).toEqual(["emerging"]);
+    expect(text(hit)).not.toContain("An excerpt not shown.");
+    // The address is as before.
+    expect(hit.querySelector("h2 a")?.getAttribute("href")).toBe("/posts/2026/09/runtimes");
+  });
+
+  it("shows a passage's text as text, never as markup", async () => {
+    await stub("/posts/search", results([
+      post({ match: { source: "body", text: "<script>alert(1)</script> <b>bold</b>", marks: [{ start: 26, end: 37 }] } }),
+    ]), { query: { q: "bold" } });
+    const { doc } = await page("/search?q=bold");
+    const passage = doc.querySelector(".search-passage")!;
+
+    expect(passage.querySelector("script")).toBeNull();
+    expect(passage.querySelector("b")).toBeNull();
+    expect(text(passage.querySelector("mark"))).toBe("<b>bold</b>");
+  });
+
+  it("shows the excerpt when a result has no passage", async () => {
+    await stub("/posts/search", results([post({ excerpt: "Loom, at last.", match: null })]), { query: { q: "loom" } });
+    const { doc } = await page("/search?q=loom");
+
+    expect(doc.querySelector(".search-passage")).toBeNull();
+    expect(text(doc.querySelector("article.search-result"))).toContain("Loom, at last.");
+  });
+
+  it("says why the API refused a query, such as one too long, keeping the words in the box", async () => {
+    const long = "a".repeat(201);
+    await stub("/posts/search", { title: "Bad Request", status: 400, detail: "Search query is too long: at most 200 characters" }, { query: { q: long }, status: 400 });
+    const { status, doc } = await page(`/search?q=${long}`);
+
+    expect(status).toBe(400);
+    expect(text(doc.querySelector(".search-error"))).toBe("Search query is too long: at most 200 characters");
+    expect(doc.querySelector(".search-error")?.getAttribute("role")).toBe("alert");
+    expect(doc.querySelector("article.search-result")).toBeNull();
+    expect(doc.querySelector("main input[name=q]")?.getAttribute("value")).toBe(long);
+  });
+
+  it("tells readers that quotes match a word exactly, on the page and in both header boxes", async () => {
+    const { doc } = await page("/search");
+
+    expect(text(doc.querySelector("main .search-hint"))).toContain("Use quotes for an exact word");
+    for (const id of ["header-search", "mobile-header-search", "search-q"]) {
+      const box = doc.querySelector(`#${id}`)!;
+      const hint = doc.querySelector(`#${box.getAttribute("aria-describedby")}`);
+      expect(text(hint), id).toContain("Use quotes for an exact word");
+    }
+    expect(doc.querySelector("#header-search")?.getAttribute("title")).toContain("Use quotes for an exact word");
+  });
+
   it("is titled for the words, and kept out of search engines", async () => {
     await stub("/posts/search", results([]), { query: { q: "jvm" } });
     const { doc } = await page("/search?q=jvm");

@@ -45,7 +45,8 @@ export interface Input {
           <div class="flex items-center gap-1 ml-auto">
             <form action="/search" method="get" class="hidden lg:flex items-center gap-1 px-2">
               <label for="header-search" class="sr-only">Search posts</label>
-              <input id="header-search" name="q" type="search" placeholder="Search posts..."
+              <span id="header-search-hint" class="sr-only">Use quotes for an exact word.</span>
+              <input id="header-search" name="q" type="search" placeholder="Search posts..." aria-describedby="header-search-hint" title="Use quotes for an exact word"
                 class="h-8 w-40 rounded border border-border/60 bg-background px-2 text-sm text-foreground placeholder:text-muted-foreground/75 focus:outline-none focus:ring-1 focus:ring-amber">
               <button type="submit" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200" aria-label="Search">🔍</button>
             </form>
@@ -90,7 +91,8 @@ export interface Input {
           <a href="/atlas" class="section-label text-muted-foreground hover:text-amber transition-colors whitespace-nowrap">Atlas</a>
           <form action="/search" method="get" class="flex items-center gap-1">
             <label for="mobile-header-search" class="sr-only">Search posts</label>
-            <input id="mobile-header-search" name="q" type="search" placeholder="Search..."
+            <span id="mobile-header-search-hint" class="sr-only">Use quotes for an exact word.</span>
+            <input id="mobile-header-search" name="q" type="search" placeholder="Search..." aria-describedby="mobile-header-search-hint" title="Use quotes for an exact word"
               class="h-8 w-28 rounded border border-border/60 bg-background px-2 text-sm text-foreground placeholder:text-muted-foreground/75 focus:outline-none focus:ring-1 focus:ring-amber">
             <button type="submit" class="section-label text-muted-foreground hover:text-amber transition-colors whitespace-nowrap" aria-label="Search">🔍</button>
           </form>

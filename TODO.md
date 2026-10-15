@@ -136,6 +136,10 @@ Since (2026-10-03):
       (ui-primate#48, 2026-10-14)
 - [x] The Atlas's admin relayout (POST /admin/atlas/relayout) stays in pudl, the admin home; it isn't
       offered here, by design (ui-primate#48, 2026-10-14)
+- [x] Search: each result shows the passage that matched, its words marked (bold and underlined,
+      not by colour alone), in place of the excerpt; the excerpt when there is none. The search
+      boxes say quotes match a word exactly, and a query the API refuses (too long, too many
+      quotes) is shown with its reason (#54, streampack#226, #227)
 
 Before it's deployed:
 

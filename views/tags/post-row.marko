@@ -1,12 +1,14 @@
 export interface Input {
-  row: { id: string; title: string; href: string; excerpt: string; author: string; published: string; date: string; comments: string; tags: string[]; audio?: boolean };
+  row: { id: string; title: string; href: string; excerpt: string; author: string; published: string; date: string; comments: string; tags: string[]; audio?: boolean; passage?: string };
   first: boolean;
   class?: string;
 }
 <const/p=input.row>
 <article class=["post-row group py-6", input.class, !input.first && "border-t border-border/30"]>
   <h2 class="headline-secondary text-foreground group-hover:text-amber transition-colors duration-200 mb-2"><a href=p.href>${p.title}</a></h2>
-  <if=p.excerpt><p class="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-3">${p.excerpt}</p></if>
+  <!-- A search result's passage is built by passageHtml: the API's text escaped, with <mark>s. -->
+  <if=p.passage><p class="search-passage text-muted-foreground text-sm leading-relaxed mb-3">$!{p.passage}</p></if>
+  <else-if=p.excerpt><p class="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-3">${p.excerpt}</p></else-if>
   <div class="byline text-muted-foreground flex items-center gap-1.5 flex-wrap">
     <span>By ${p.author}</span> <span aria-hidden="true">|</span> <time datetime=p.published>${p.date}</time>
     <if=p.comments> <span aria-hidden="true">|</span> <span>${p.comments}</span></if>

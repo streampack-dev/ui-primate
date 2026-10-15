@@ -1,9 +1,11 @@
 export interface Input {
   meta?: import("#lib/meta.ts").Head;
   q: string;
+  /** Why the API refused the search, in its words. */
+  error?: string;
   list: {
     count: string;
-    posts: { id: string; title: string; href: string; excerpt: string; author: string; published: string; date: string; comments: string; tags: string[] }[];
+    posts: { id: string; title: string; href: string; excerpt: string; author: string; published: string; date: string; comments: string; tags: string[]; passage?: string }[];
     pages: string;
     prev: string | null;
     next: string | null;
@@ -21,9 +23,11 @@ export interface Input {
         <if=input.list><p class="search-count text-muted-foreground text-sm mt-2">${input.list.count}</p></if>
         <form class="search-form flex gap-3 mt-6" action="/search" method="get" role="search">
           <label class="sr-only" for="search-q">Search posts</label>
-          <input class="form-field text-sm p-2" id="search-q" name="q" type="search" placeholder="Search posts..." value=input.q>
+          <input class="form-field text-sm p-2" id="search-q" name="q" type="search" placeholder="Search posts..." value=input.q aria-describedby="search-hint">
           <button type="submit" class="auth-button shrink-0">Search</button>
         </form>
+        <p class="search-hint text-muted-foreground text-sm mt-3" id="search-hint">Use quotes for an exact word: <code>"emergent"</code> finds only <em>emergent</em>, where <code>emergent</code> also finds <em>emerging</em>.</p>
+        <if=input.error><p class="search-error text-sm mt-3" role="alert">${input.error}</p></if>
       </div>
     </header>
 
@@ -39,8 +43,8 @@ export interface Input {
       </else>
       <list-pager pages=input.list.pages prev=input.list.prev next=input.list.next class="search-pages"/>
     </if>
-    <else>
-      <p class="text-muted-foreground text-sm">Search post titles and summaries.</p>
-    </else>
+    <else-if=!input.error>
+      <p class="text-muted-foreground text-sm">Search post titles, tags, summaries and text.</p>
+    </else-if>
   </div>
 </section>
