@@ -3,12 +3,15 @@
 import type { ContentList } from "#api/types.ts";
 import { listed } from "#lib/audio.ts";
 import { formatDate } from "#lib/format.ts";
+import { passageHtml } from "#lib/passage.ts";
 
 export type PostRow = {
   id: string; title: string; href: string; excerpt: string; author: string; published: string;
   date: string; comments: string; tags: string[];
   /** Whether it has a recording (#33). */
   audio: boolean;
+  /** In search results, why it matched: escaped HTML with <mark>s (#54); "" elsewhere. */
+  passage: string;
 };
 
 export function postRows(posts: ContentList["posts"] = []): PostRow[] {
@@ -23,6 +26,7 @@ export function postRows(posts: ContentList["posts"] = []): PostRow[] {
     comments: p.commentCount ? `${p.commentCount} comment${p.commentCount === 1 ? "" : "s"}` : "",
     tags: p.tags || [],
     audio: listed(p.versionKinds),
+    passage: passageHtml(p.match),
   }));
 }
 

@@ -49,6 +49,17 @@ const asking = new Map<string, Promise<unknown>>();
 export class ApiUnavailable extends Error {}
 
 /**
+ * Thrown when the API refuses a request with a 4xx other than 404: a search too long, say (#54).
+ * [detail] is its problem's own explanation. It's an ApiUnavailable, so a route that doesn't look
+ * for it answers as it did before; one that does can show the reason.
+ */
+export class ApiRefused extends ApiUnavailable {
+  constructor(readonly status: number, readonly detail: string, path: string) {
+    super(`${path}: API ${status}${detail ? `: ${detail}` : ""}`);
+  }
+}
+
+/**
  * A GET of [path] (with [query]), cached as above. Returns the answer's body, or null for a 404.
  */
 export async function cachedGet<T>(path: string, query: Record<string, string | number | undefined> = {}): Promise<T | null> {
@@ -86,11 +97,16 @@ async function ask<T>(url: string, path: string, before: Kept | undefined): Prom
       return before.data as T;
     }
     if (response.status === 404) return null;
+    if (response.status >= 400 && response.status < 500) {
+      const problem = await response.json().catch(() => ({}));
+      throw new ApiRefused(response.status, typeof problem?.detail === "string" ? problem.detail : "", path);
+    }
     if (!response.ok) throw new Error(`API ${response.status} on ${path}`);
     const data = await response.json();
     kept.set(url, { etag: response.headers.get("ETag"), data, checked: Date.now() });
     return data as T;
   } catch (e) {
+    if (e instanceof ApiRefused) throw e;
     if (before) return before.data as T;
     throw new ApiUnavailable(`${path}: ${(e as Error).message}`);
   }

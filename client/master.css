@@ -1107,6 +1107,28 @@
   @apply flex flex-wrap gap-1.5 mt-3;
 }
 
+/* A search result's passage (#54): the words that matched are bold and underlined, so they stand
+   out without the colour, in every theme; the tint is only an extra. */
+.search-passage mark {
+  color: var(--foreground);
+  background: color-mix(in oklch, var(--amber) 18%, transparent);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  border-radius: 2px;
+  padding: 0 0.1em;
+}
+.search-hint code { font-family: var(--font-mono); font-size: 0.85em; }
+/* Why the API refused a search: marked by its rule, its weight and role="alert", the text in the
+   foreground colour so it reads at full contrast. */
+.search-error {
+  color: var(--foreground);
+  font-weight: 600;
+  border-left: 3px solid var(--destructive);
+  padding-left: 0.75rem;
+}
+
 .tag {
   @apply border border-border rounded-full px-2 py-0.5;
   font-family: var(--font-mono);

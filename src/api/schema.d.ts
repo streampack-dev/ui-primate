@@ -1083,7 +1083,7 @@ export interface paths {
         };
         /**
          * Search published posts
-         * @description Full-text search across post titles (weighted higher) and excerpts. Only published, non-deleted posts are searched. Results are ranked by relevance. Blank queries return an empty list.
+         * @description Full-text search across post titles (weighted highest), tags and excerpts, and body text. Queries read like a web search box: `or` between alternatives, `-word` to exclude. Words are stemmed, so `emergent` also finds `emerging`; a quoted word or phrase must also appear exactly, so `"emergent"` finds only `emergent`. Each result's `match` is a passage showing why it matched, with the matching words marked. Only published, visible posts are searched. Results are ranked by relevance. Blank queries return an empty list.
          */
         get: operations["searchPosts"];
         put?: never;
@@ -1556,6 +1556,23 @@ export interface paths {
          * @description Aliases, splits, keeps, dismissals and stoplist changes: who and when.
          */
         get: operations["listTagActions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/secrets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the environment variables the next start needs */
+        get: operations["required"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2609,6 +2626,36 @@ export interface components {
              *     ]
              */
             versionKinds?: string[];
+            /** @description In search results only: a passage showing why the post matched, with the matching words marked. Null in other listings. */
+            match?: components["schemas"]["SearchMatch"] | null;
+        };
+        /** @description A range of `text`: from `start` up to, not including, `end`, counted in UTF-16 code units, as JavaScript's `String.prototype.slice` counts. */
+        SearchMark: {
+            /**
+             * Format: int32
+             * @example 3
+             */
+            start: number;
+            /**
+             * Format: int32
+             * @example 11
+             */
+            end: number;
+        };
+        /** @description Why a search result matched: a short passage from the post, as plain text, with the words that matched marked by offsets. Search stems words, so a marked word may differ from the one searched for (`emerging` for `emergent`); a quoted word matches exactly. */
+        SearchMatch: {
+            /**
+             * @description Where the passage comes from: `body`, `excerpt`, `title` or `tags`.
+             * @example body
+             */
+            source: string;
+            /**
+             * @description The passage, as plain text with no markup. ` … ` joins separate extracts, and starts or ends one cut from a longer text.
+             * @example An emerging runtime, call it oden, could use the same modules.
+             */
+            text: string;
+            /** @description The matching words in `text`, in order, without overlaps. */
+            marks: components["schemas"]["SearchMark"][];
         };
         CommentNode: {
             /** Format: uuid */
@@ -2878,6 +2925,15 @@ export interface components {
             actor: string;
             /** Format: date-time */
             actedAt: string;
+        };
+        SecretRequirement: {
+            variable: string;
+            description: string;
+            /** @enum {string} */
+            state: "STORED_IN_DATABASE" | "NOT_SET";
+        };
+        SecretRequirementsResponse: {
+            required: components["schemas"]["SecretRequirement"][];
         };
         /** @description Feed tags, a page of them */
         FeedTagListResponse: {
@@ -6326,7 +6382,7 @@ export interface operations {
         parameters: {
             query: {
                 /**
-                 * @description Search query
+                 * @description Search query: at most 200 characters, with at most 10 quoted words or phrases. A longer query, or one with more quotes, is a 400.
                  * @example virtual threads
                  */
                 q: string;
@@ -6336,7 +6392,7 @@ export interface operations {
                  */
                 page?: number;
                 /**
-                 * @description Number of results per page
+                 * @description Number of results per page, at most 100
                  * @example 20
                  */
                 size?: number;
@@ -7140,6 +7196,44 @@ export interface operations {
                 };
             };
             /** @description Admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    required: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The variables, by name, with what each is for; never their values */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SecretRequirementsResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description Not a super-admin */
             403: {
                 headers: {
                     [name: string]: unknown;
