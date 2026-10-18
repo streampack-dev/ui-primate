@@ -6,10 +6,11 @@
 
 # Build: Primate compiles the routes, Marko views and client assets (fingerprinted) into build/.
 FROM node:26-alpine AS build
+USER node
 WORKDIR /app
-COPY package.json package-lock.json .npmrc ./
+COPY --chown=node:node package.json package-lock.json .npmrc ./
 RUN npm ci
-COPY . .
+COPY --chown=node:node . .
 # primate build can fail and still exit 0 (primate-bugs/01), so the build is known good only by
 # what it leaves.
 RUN npx primate build && test -f build/server.js || { echo "The build failed: no build/server.js" >&2; exit 1; }
@@ -17,16 +18,14 @@ RUN npx primate build && test -f build/server.js || { echo "The build failed: no
 # Run: the build and the production dependencies, no sources, as an unprivileged user. Everything
 # that varies (BCN_API_BASE, BCN_ACCEPT_VERSION, PORT) is read at run time.
 FROM node:26-alpine AS runner
+USER nobody
 WORKDIR /app
 ARG UI_COMMIT=unknown
 ARG UI_BRANCH=unknown
 ENV NODE_ENV=production PORT=3000 UI_COMMIT=${UI_COMMIT} UI_BRANCH=${UI_BRANCH}
-COPY package.json package-lock.json .npmrc ./
-RUN npm ci --omit=dev && npm cache clean --force
-COPY --from=build /app/build ./build
-COPY --from=build /app/config ./config
+COPY --from=build --chown=nobody:nobody /app/build ./build
+COPY --from=build --chown=nobody:nobody /app/config ./config
 # The link-preview cards' fonts and images (src/og/cards.ts reads them at run time).
-COPY --from=build /app/assets ./assets
-USER node
+COPY --from=build --chown=nobody:nobody /app/assets ./assets
 EXPOSE 3000
-CMD ["npx", "primate", "serve"]
+CMD ["node", "--permission", "--allow-fs-read=build", "--allow-fs-read=config", "--allow-fs-read=assets", "--allow-fs-read=.env.local", "--allow-fs-read=.env", "--allow-fs-read=.env.production.local", "--allow-fs-read=.env.production", "--allow-net", "build/server.js"]
