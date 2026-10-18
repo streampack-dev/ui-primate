@@ -23,6 +23,7 @@
     "markdown-it-task-lists": "^2.1.1",
     "marko": "^6.4.4",
     "openapi-fetch": "^0.17.0",
+    "pele": "1.6.0",
     "pema": "^0.11.0",
     "primate": "^0.42.2",
     "sanitize-html": "^2.18.0",

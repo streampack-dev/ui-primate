@@ -192,8 +192,9 @@ Smaller things noticed along the way:
 - [x] Mermaid diagrams in posts (#61): the API draws them (streampack#252); master.css colours
       them with the site's tokens, light and dark, and they're set in IBM's own IBM Plex Sans and
       Mono (static/diagram-fonts/, `just diagram-fonts`), the faces the API measured them in
-- [ ] Mermaid in the editor's preview (#61): draw the preview's `mermaid` blocks in the browser
-      with Pele, in the API's markup and options, as ui-pudl's bcn-mermaid.js does
+- [x] Mermaid in the editor's preview (#61): client/mermaid.ts draws the preview's `mermaid`
+      blocks in the browser with Pele (exactly the version streampack bundles), in the API's markup
+      and options, as ui-pudl's bcn-mermaid.js does; Pele loads only when a preview has one
 
 Parked:
 
