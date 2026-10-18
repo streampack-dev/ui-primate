@@ -682,6 +682,51 @@
   @apply mt-2 text-center;
 }
 
+/* Mermaid diagrams (#61): the API draws them into the post as SVG (streampack#252), coloured by
+   Pele's variables, which take the site's tokens here, so light and dark both follow. Their fonts
+   are IBM Plex Sans and Mono, the ones the API measured every label in (templates/app.html), so
+   --pele-font is never set. Text and shapes carry a diagram's meaning, not its colours. */
+.post-body figure.mermaid {
+  --pele-bg: var(--background);
+  --pele-fg: var(--foreground);
+  --pele-muted: var(--muted-foreground);
+  --pele-line: var(--foreground);
+  --pele-surface: var(--card);
+  --pele-surface-alt: var(--secondary);
+  --pele-border: var(--border);
+  --pele-accent: var(--primary);
+  --pele-radius: var(--radius-sm);
+  overflow-x: auto;
+}
+
+.post-body figure.mermaid > svg {
+  display: block;
+  margin: 0 auto;
+}
+
+.post-body figure.mermaid > details {
+  @apply mt-2;
+}
+
+.post-body figure.mermaid > details > summary {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+
+/* A diagram that wasn't drawn: its source and why, marked by the words as well as the rule. */
+.post-body figure.mermaid-refused {
+  border-left: 3px solid var(--amber);
+  @apply pl-4;
+}
+
+.post-body figure.mermaid-refused > figcaption {
+  @apply text-left;
+  color: var(--foreground);
+}
+
 .post-body pre {
   @apply overflow-auto p-4 my-5;
   background: color-mix(in oklab, var(--card), black 5%);

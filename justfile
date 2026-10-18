@@ -49,6 +49,30 @@ create-db:
 fonts:
     node tools/fonts.mjs
 
+# The fonts Mermaid diagrams are drawn in (#61): IBM Plex Sans, and the Plex Mono faces the site
+# doesn't load from Google, as IBM ships them, into static/diagram-fonts/. Keep them at the versions
+# streampack bundles (its just update-plex), whose metrics the API measured every label with.
+# npm pack runs no package scripts.
+diagram-fonts sans="1.1.0" mono="2.5.0":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    work="$(mktemp -d)"
+    trap 'rm -rf "$work"' EXIT
+    target="static/diagram-fonts"
+    mkdir -p "$work/sans" "$work/mono"
+    (cd "$work/sans" && npm pack "@ibm/plex-sans@{{sans}}" --silent >/dev/null && tar xzf ibm-plex-sans-*.tgz)
+    (cd "$work/mono" && npm pack "@ibm/plex-mono@{{mono}}" --silent >/dev/null && tar xzf ibm-plex-mono-*.tgz)
+    rm -rf "$target"
+    mkdir -p "$target"
+    for face in Regular Bold Italic BoldItalic; do
+      cp "$work/sans/package/fonts/complete/woff2/IBMPlexSans-$face.woff2" "$target/"
+    done
+    for face in Bold Italic BoldItalic; do
+      cp "$work/mono/package/fonts/complete/woff2/IBMPlexMono-$face.woff2" "$target/"
+    done
+    cp "$work/sans/package/LICENSE.txt" "$target/IBM-Plex-OFL.txt"
+    echo "IBM Plex Sans {{sans}} and IBM Plex Mono {{mono}} into $target"
+
 # Refresh the committed OpenAPI snapshot from the API, and the types generated from it.
 refresh-spec:
     {{app_env}} curl -sSf "${BCN_API_BASE:-https://api.bytecode.news}/v3/api-docs" | python3 -m json.tool --indent 2 > spec/openapi.json
