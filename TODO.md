@@ -189,6 +189,11 @@ Smaller things noticed along the way:
       @primate/marko 0.13.1's server-side check misreads "<" and ">" in an attribute value
       (primate-bugs/15). When that's fixed, draw the tags in Marko and drop headTags' escaping
 - [ ] Sessions end thirty days after sign-in, not after thirty idle days as ui-pudl's do
+- [x] Mermaid diagrams in posts (#61): the API draws them (streampack#252); master.css colours
+      them with the site's tokens, light and dark, and they're set in IBM's own IBM Plex Sans and
+      Mono (static/diagram-fonts/, `just diagram-fonts`), the faces the API measured them in
+- [ ] Mermaid in the editor's preview (#61): draw the preview's `mermaid` blocks in the browser
+      with Pele, in the API's markup and options, as ui-pudl's bcn-mermaid.js does
 
 Parked:
 

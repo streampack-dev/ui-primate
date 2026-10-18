@@ -151,6 +151,10 @@ are in memory or if the password is streampack's.
 A session cookie lasts thirty days. Old sessions are cleared out hourly: a visitor's a day after
 it began (it only held a form token), and a reader's thirty days after they signed in.
 
+## Diagrams
+
+A post's Mermaid diagrams arrive drawn, as SVG in its `renderedHtml` (streampack#252). `client/master.css` colours them from the site's tokens, so light and dark both follow. They're set in IBM Plex Sans and Mono, the faces the API measured every label in, as IBM ships them: `static/diagram-fonts/`, declared in `templates/app.html` and fetched only by a page with a diagram. Refresh them with `just diagram-fonts`, at the versions streampack bundles. Never set `--pele-font`: a label in another font won't fit its box.
+
 ## License
 
-MIT; see [LICENSE](LICENSE).
+MIT; see [LICENSE](LICENSE). IBM Plex is under the SIL Open Font License (`static/diagram-fonts/IBM-Plex-OFL.txt`).
