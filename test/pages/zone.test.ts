@@ -35,6 +35,14 @@ describe("times shown", () => {
     expect((await goesOut("Asia/Kolkata")).text).toBe("October 20, 2026, 8:00 PM GMT+5:30");
   });
 
+  it("read the cookie as clientjs writes it, the zone's name as it is, and as it was written before, encoded", async () => {
+    const raw = await signedIn(ADMIN);
+    raw.cookies.set("bcn-tz", "America/New_York");
+    const { doc } = await raw.get("/admin/scheduled");
+    expect(text(doc.querySelector("article.admin-scheduled time"))).toBe("October 20, 2026, 10:30 AM EDT");
+    expect((await goesOut("America/New_York")).text).toBe("October 20, 2026, 10:30 AM EDT");
+  });
+
   it("are in UTC, said so, without the cookie, or with one that names no zone", async () => {
     expect((await goesOut()).text).toBe("October 20, 2026, 2:30 PM UTC");
     expect((await goesOut("Mars/Olympus_Mons")).text).toBe("October 20, 2026, 2:30 PM UTC");
