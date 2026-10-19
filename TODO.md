@@ -199,8 +199,9 @@ Smaller things noticed along the way:
       passage", which quotes it in the new-comment form; anchored comments show as callouts in the
       space beside the centred post (which never moves for them), or as markers after their
       paragraph where that space is too narrow. client/annotate.ts, on clientjs's anchors module
-- [ ] When clientjs grows the rest of ui-pudl#252 (Mermaid, local times), move client/mermaid.ts
-      and client/zone.ts onto it
+- [x] client/mermaid.ts draws through clientjs's mermaid module (#75)
+- [ ] When clientjs grows the rest of ui-pudl#252 (annotate, local times, Atlas), move
+      client/annotate.ts (#76), client/zone.ts and client/atlas.ts onto it
 - [x] robots.txt (#72) and a bounded llms.txt (#73): the sitemap named, crawlers kept out of pages
       with nothing to index, the latest 30 posts and where the rest are for language models
 
