@@ -161,7 +161,7 @@ it began (it only held a form token), and a reader's thirty days after they sign
 
 A post's Mermaid diagrams arrive drawn, as SVG in its `renderedHtml` (streampack#252). `client/master.css` colours them from the site's tokens, so light and dark both follow. They're set in IBM Plex Sans and Mono, the faces the API measured every label in, as IBM ships them: `static/diagram-fonts/`, declared in `templates/app.html` and fetched only by a page with a diagram. Refresh them with `just diagram-fonts`, at the versions streampack bundles. Never set `--pele-font`: a label in another font won't fit its box.
 
-The editor's preview is rendered here, not by the API, so its diagrams are drawn in the browser: `client/mermaid.ts` runs [Pele](https://pele.run) (MIT) with the API's options and markup, after the Plex faces load, so the preview's boxes match the published post's. Pele is pinned in `package.json` to exactly the version streampack bundles; move them together. It's loaded only when a preview has a diagram.
+The editor's preview is rendered here, not by the API, so its diagrams are drawn in the browser: `client/mermaid.ts` runs [Pele](https://pele.run) (MIT) through the mermaid module of [`@streampack-dev/clientjs`](https://github.com/streampack-dev/clientjs), which has the API's options and markup and waits for the Plex faces, so the preview's boxes match the published post's (and ui-pudl's preview, which uses the same module). Pele is pinned in `package.json` to exactly the version streampack bundles; move them together. It's loaded only when a preview has a diagram.
 
 ## Comments on a passage
 
