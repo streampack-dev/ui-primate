@@ -12,12 +12,20 @@ import { view } from "#lib/view.ts";
 
 const SUMMARY_FALLBACK = "Read the latest content on bytecode.news.";
 
-/** A comment form being shown again: a new comment, a reply to [id], or an edit of [id]. */
-export type CommentForm = { kind: "new" | "reply" | "edit"; id?: string; draft: string; error: string };
+/** The passage a new comment quotes (#65), as the form's hidden fields carry it. */
+export type QuoteDraft = { exact: string; prefix: string; suffix: string };
+
+/** A comment form being shown again: a new comment (with the passage it quotes, if any), a reply to [id], or an edit of [id]. */
+export type CommentForm = { kind: "new" | "reply" | "edit"; id?: string; draft: string; error: string; anchor?: QuoteDraft };
 
 /* The thread as the view draws it: who, when, what, whether the reader may edit it (and what they
-   wrote, to edit), and the replies under it. */
-type Comment = { id: string; author: string; date: string; html: string; deleted: boolean; editable: boolean; markdown: string; replies: Comment[] };
+   wrote, to edit), the passage it quotes and whether that's still in the post (#65), and the
+   replies under it. */
+type Comment = {
+  id: string; author: string; date: string; html: string; deleted: boolean; editable: boolean; markdown: string;
+  anchor: { exact: string; prefix: string; suffix: string; found: boolean } | null;
+  replies: Comment[];
+};
 function thread(nodes: CommentNode[] = []): Comment[] {
   return nodes.map((n) => ({
     id: n.id || "",
@@ -27,6 +35,9 @@ function thread(nodes: CommentNode[] = []): Comment[] {
     deleted: !!n.deleted,
     editable: !!n.editable,
     markdown: n.markdownSource || "",
+    anchor: n.anchor && !n.deleted
+      ? { exact: n.anchor.exact, prefix: n.anchor.prefix || "", suffix: n.anchor.suffix || "", found: !!n.anchorFound }
+      : null,
     replies: thread(n.children),
   }));
 }
@@ -89,6 +100,8 @@ export async function postPage(path: string, form?: CommentForm, status = 200) {
     // An admin's way to the editor.
     editHref: isAdmin(reader) && post.id ? `/edit/${post.id}` : null,
     commentsAllowed,
+    // Only a dated post takes comments, so only it takes one on a passage (#65).
+    quotable: dated,
     commentsAvailable: thread_ !== null,
     commentCount: thread_?.totalActiveCount ?? 0,
     comments: thread(thread_?.comments),

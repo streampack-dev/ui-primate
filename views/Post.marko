@@ -12,20 +12,24 @@ export interface Input {
   html: string;
   audio: { url: string; mediaType: string; format: string; size: string; words: string | null; iso: string | null; note: string | null } | null;
   commentsAllowed: boolean;
+  /** Whether a comment may quote a passage of it: a dated post's may (#65). */
+  quotable: boolean;
   commentsAvailable: boolean;
   commentCount: number;
   comments: any[];
   slug: string;
   editHref: string | null;
   talk: { slug: string; signedIn: boolean; admin: boolean; csrf: string; login: string;
-    form: { kind: "new" | "reply" | "edit"; id?: string; draft: string; error: string } | null };
+    form: { kind: "new" | "reply" | "edit"; id?: string; draft: string; error: string;
+      anchor?: { exact: string; prefix: string; suffix: string } } | null };
 }
 
 <page-meta meta=input.meta/>
 <const/talk=input.talk>
 <const/fresh=(talk.form?.kind === "new" ? talk.form : null)>
+<const/quoting=(input.quotable && input.commentsAllowed && talk.signedIn)>
 <section class="py-8 md:py-12" data-read-post=input.id>
-  <article class="max-w-3xl mx-auto px-6 md:px-8">
+  <article class="post-article max-w-3xl mx-auto px-6 md:px-8">
     <header>
       <div class="border-t-2 border-amber mb-6"/>
       <h1 class="headline-lead text-foreground mb-4">${input.title}</h1>
@@ -50,7 +54,14 @@ export interface Input {
     </if>
     <div class="border-t border-border/40 mt-6 mb-6"/>
     <if=input.audio><post-audio audio=input.audio/></if>
-    <div class="post-body">$!{input.html}</div>
+    <div class="post-body" data-anchor-body>$!{input.html}</div>
+    <if=quoting>
+      <!-- Shown beside a selection in the post by client/annotate.ts (#65). -->
+      <p class="anchor-ask" hidden>
+        <button type="button" class="auth-button" data-anchor-ask>Comment on this passage</button>
+        <span class="anchor-ask-note" role="status" data-anchor-note></span>
+      </p>
+    </if>
 
     <if=input.commentsAllowed>
       <section class="comments mt-10 border-t border-border/40 pt-6" id="comments">
@@ -65,6 +76,17 @@ export interface Input {
         <if=talk.signedIn>
           <form class="comment-form" method="post" action=`/posts/${talk.slug}/comments`>
             <input type="hidden" name="csrf" value=talk.csrf>
+            <if=input.quotable>
+              <!-- The passage the comment quotes, filled by client/annotate.ts (#65). -->
+              <input type="hidden" name="anchorExact" value=(fresh?.anchor?.exact ?? "") data-anchor-field="exact">
+              <input type="hidden" name="anchorPrefix" value=(fresh?.anchor?.prefix ?? "") data-anchor-field="prefix">
+              <input type="hidden" name="anchorSuffix" value=(fresh?.anchor?.suffix ?? "") data-anchor-field="suffix">
+              <div class="comment-quote" data-comment-quote hidden=!fresh?.anchor>
+                <p class="byline form-label">Quoting</p>
+                <blockquote class="comment-anchor"><p data-comment-quote-text>${fresh?.anchor?.exact ?? ""}</p></blockquote>
+                <button type="button" class="form-helper comment-quote-remove" data-comment-quote-remove>Don't quote it</button>
+              </div>
+            </if>
             <label class="byline form-label" for="new-comment">Add a comment</label>
             <textarea class="form-field form-mono" id="new-comment" name="markdownSource" rows="5" required
               aria-describedby="new-comment-hint">${fresh?.draft ?? ""}</textarea>

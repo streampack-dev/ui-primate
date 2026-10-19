@@ -1,5 +1,6 @@
 export interface Input {
-  comment: { id: string; author: string; date: string; html: string; deleted: boolean; editable: boolean; markdown: string; replies: any[] };
+  comment: { id: string; author: string; date: string; html: string; deleted: boolean; editable: boolean; markdown: string;
+    anchor: { exact: string; prefix: string; suffix: string; found: boolean } | null; replies: any[] };
   talk: { slug: string; signedIn: boolean; admin: boolean; csrf: string;
     form: { kind: "new" | "reply" | "edit"; id?: string; draft: string; error: string } | null };
 }
@@ -8,9 +9,15 @@ export interface Input {
 <const/reply=(talk.form?.kind === "reply" && talk.form.id === c.id ? talk.form : null)>
 <const/edit=(talk.form?.kind === "edit" && talk.form.id === c.id ? talk.form : null)>
 <article class="comment" id=`comment-${c.id}`>
-  <p class="meta">${c.author} at ${c.date}</p>
+  <p class="meta"><span class="comment-author">${c.author}</span> at ${c.date}</p>
   <if=c.deleted><p>[deleted]</p></if>
   <else>
+    <if=c.anchor>
+      <!-- The passage it quotes, for client/annotate.ts (#65); the quote itself is in its body. -->
+      <span class="comment-anchor-data" hidden data-exact=c.anchor.exact data-prefix=c.anchor.prefix
+        data-suffix=c.anchor.suffix data-found=String(c.anchor.found)/>
+      <if=!c.anchor.found><p class="comment-anchor-gone">This passage is no longer in the post.</p></if>
+    </if>
     <div class="post-body comment-body">$!{c.html}</div>
     <if=(talk.signedIn && c.id)>
       <div class="comment-actions">

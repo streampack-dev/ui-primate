@@ -1283,6 +1283,109 @@ textarea.form-field {
   @apply mt-8 pt-6 border-t border-border/40;
 }
 
+/* Comments on a passage (#65, client/annotate.ts). The passage gets a light mark, a dotted
+   underline as well as a tint, so it shows without colour. */
+.post-article { position: relative; }
+::highlight(comment-anchor) {
+  background-color: color-mix(in oklab, var(--amber) 16%, transparent);
+  text-decoration: underline dotted var(--amber);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+/* "Comment on this passage", beside the selection. */
+.anchor-ask {
+  position: absolute;
+  z-index: 5;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+.anchor-ask[hidden] { display: none; }
+.anchor-ask .auth-button { box-shadow: 0 2px 6px rgb(0 0 0 / 0.25); }
+.anchor-ask-note:empty { display: none; }
+.anchor-ask-note {
+  @apply text-sm px-2 py-1 rounded;
+  max-width: 20rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+/* The quote a new comment carries, above its box. */
+.comment-quote { @apply mb-4; }
+.comment-quote[hidden] { display: none; }
+.comment-quote blockquote.comment-anchor {
+  @apply my-1 py-1 pl-4;
+  border-left: 3px solid var(--amber);
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+/* A comment's quote, at the start of its body, from the API (streampack#256), smaller than the
+   post's own quotes; hidden where its callout shows it beside the post. */
+.comment-body > blockquote.comment-anchor:first-child { @apply my-2; font-size: 0.95em; }
+.comment.anchor-callout-shown > .comment-body > blockquote.comment-anchor:first-child { display: none; }
+.comment-anchor-gone {
+  @apply text-sm my-1;
+  font-style: italic;
+  color: var(--muted-foreground);
+}
+.comment-anchor-link {
+  @apply text-sm ml-3;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+/* Wide: the callouts in the space to the right of the post, which stays where it is. */
+.anchor-margin {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(100% + 1rem);
+  width: 14rem;
+}
+.anchor-callout {
+  position: absolute;
+  inset-inline: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--amber);
+  border-radius: 0.25rem;
+  background: var(--card);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+.anchor-callout-link { color: var(--foreground); text-decoration: none; }
+.anchor-callout-link:hover, .anchor-callout-link:focus-visible { text-decoration: underline; }
+.anchor-callout-count { color: var(--foreground); font-weight: 600; text-decoration: underline; }
+.anchor-callout a:focus-visible, .anchor-marker:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+/* Narrow: a marker after the passage's paragraph, a speech bubble with the count in it. */
+.anchor-marker {
+  /* Below the drop cap's float, and apart from a second marker on the same paragraph. */
+  float: left;
+  clear: left;
+  margin-right: 0.375rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 1.6rem;
+  margin: 0 0 1rem;
+  padding: 0 0.5rem;
+  border: 2px solid var(--amber);
+  border-radius: 0.8rem 0.8rem 0.8rem 0.15rem;
+  background: var(--card);
+  color: var(--foreground);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.anchor-marker + .anchor-marker { clear: none; }
+.anchor-marker + :not(.anchor-marker) { clear: left; }
+
 /* Channel logs: ui-nextjs's, drawn on the server. */
 .log-channel {
   @apply block px-3 py-2.5 font-mono text-xs transition-colors border-l-2 border-transparent text-muted-foreground hover:text-foreground hover:border-border;
