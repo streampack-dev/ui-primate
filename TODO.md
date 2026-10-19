@@ -202,7 +202,7 @@ Smaller things noticed along the way:
 - [x] client/mermaid.ts draws through clientjs's mermaid module (#75)
 - [x] client/annotate.ts sets up clientjs's annotate module (#76)
 - [x] client/zone.ts says times through clientjs's zone module (#79)
-- [ ] Move client/atlas.ts onto clientjs's atlas (#80)
+- [x] client/atlas.ts moves the map about through clientjs's atlas module (#80)
 - [x] robots.txt (#72) and a bounded llms.txt (#73): the sitemap named, crawlers kept out of pages
       with nothing to index, the latest 30 posts and where the rest are for language models
 
