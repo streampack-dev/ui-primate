@@ -184,6 +184,14 @@ describe("comments on a passage, in a browser", () => {
     expect(await page.$eval("[data-anchor-body]", (e) => e.getBoundingClientRect().left)).toBe(before);
   });
 
+  it("has room for callouts from a window about 1280px wide", async () => {
+    const { page } = await open(PAGE, "light", new Map(), { viewport: { width: 1300, height: 900 } });
+    await page.waitForSelector(".anchor-callout");
+
+    expect(await page.locator(".anchor-callout").count()).toBe(3);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+
   it("moves between callouts and markers as the window is resized", async () => {
     const { page } = await open(PAGE, "light", new Map(), WIDE);
     await page.waitForSelector(".anchor-callout");

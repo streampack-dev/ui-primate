@@ -22,10 +22,10 @@ import { eachPage } from "./each-page.ts";
 
 /* What this script adds inside a post body, which isn't the post's text. */
 const IGNORE = ".anchor-marker";
-/* The room, in rem, that the callouts need to the right of the post: 16rem of callout and a rem
+/* The room, in rem, that the callouts need to the right of the post: 14rem of callout and a rem
    either side. The post never moves to make room: it stays centred, its lines as they were, and
    the callouts use the space beside it, or it gets markers. */
-const MARGIN_REM = 18;
+const MARGIN_REM = 16;
 const EXCERPT = 140;
 
 const remPx = () => parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;

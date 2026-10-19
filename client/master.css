@@ -1341,7 +1341,7 @@ textarea.form-field {
   top: 0;
   bottom: 0;
   left: calc(100% + 1rem);
-  width: 16rem;
+  width: 14rem;
 }
 .anchor-callout {
   position: absolute;
