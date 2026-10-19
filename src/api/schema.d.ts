@@ -2056,6 +2056,15 @@ export interface components {
         EditCommentHttpRequest: {
             markdownSource: string;
         };
+        /** @description The passage of the post that a comment quotes (a text quote selector) */
+        CommentAnchor: {
+            /** @description The quoted text, 1 to 500 characters */
+            exact: string;
+            /** @description The post's text just before the quote, at most 64 characters */
+            prefix?: string | null;
+            /** @description The post's text just after the quote, at most 64 characters */
+            suffix?: string | null;
+        };
         CommentDetail: {
             /** Format: uuid */
             id: string;
@@ -2065,6 +2074,7 @@ export interface components {
             renderedHtml: string;
             /** Format: date-time */
             createdAt: string;
+            anchor?: components["schemas"]["CommentAnchor"] | null;
         };
         EditProfileRequest: {
             displayName?: string | null;
@@ -2153,6 +2163,7 @@ export interface components {
             /** Format: uuid */
             parentCommentId?: string | null;
             markdownSource: string;
+            anchor?: components["schemas"]["CommentAnchor"] | null;
         };
         SuggestTagsHttpRequest: {
             title?: string | null;
@@ -2672,6 +2683,8 @@ export interface components {
             deleted: boolean;
             editable: boolean;
             children: components["schemas"]["CommentNode"][];
+            anchor?: components["schemas"]["CommentAnchor"] | null;
+            anchorFound?: boolean | null;
         };
         CommentThreadResponse: {
             /** Format: uuid */

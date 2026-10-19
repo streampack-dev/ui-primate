@@ -157,6 +157,12 @@ A post's Mermaid diagrams arrive drawn, as SVG in its `renderedHtml` (streampack
 
 The editor's preview is rendered here, not by the API, so its diagrams are drawn in the browser: `client/mermaid.ts` runs [Pele](https://pele.run) (MIT) with the API's options and markup, after the Plex faces load, so the preview's boxes match the published post's. Pele is pinned in `package.json` to exactly the version streampack bundles; move them together. It's loaded only when a preview has a diagram.
 
+## Comments on a passage
+
+A reader who selects text in a post gets a "Comment on this passage" button, which quotes the selection in the new-comment form; the quote goes to the API as the comment's anchor (streampack#256). Comments that quote a passage show as callouts beside the post, level with their passage, when the space to the right of the centred post has room (18rem); otherwise as a marker after the passage's paragraph. The post never moves or rewraps for them. A comment whose passage an edit removed says so, from the API's `anchorFound`.
+
+`client/annotate.ts` does the site's part. The text matching and the callouts' placing come from `@streampack-dev/clientjs` (its `anchors` module), from the streampack-dev Nexus as the masthead is; it must match the API's `html_text()`, so move it when streampack changes how it reads a post's text. Without script, the form takes no quote and the thread shows each quote as the API rendered it.
+
 ## License
 
 MIT; see [LICENSE](LICENSE). IBM Plex is under the SIL Open Font License (`static/diagram-fonts/IBM-Plex-OFL.txt`).

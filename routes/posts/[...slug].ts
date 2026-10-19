@@ -9,7 +9,9 @@ import { datedSlug, notFound, postPage } from "#lib/post-page.ts";
    comments under it. A post at an old address moves to its own for good.
 
    A comment on a post, or a reply to one of its comments, is posted to the post's address with
-   /comments after it. (Primate won't have a route for that beside this one, so it's here.) */
+   /comments after it. (Primate won't have a route for that beside this one, so it's here.) A new
+   comment may quote a passage of the post (#65): the form's anchor fields go to the API as its
+   anchor, left out when there's no passage, and never for a reply. */
 export default route({
   get(request) {
     return postPage(request.path.get("slug"));
@@ -23,9 +25,13 @@ export default route({
     if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
     const parent = UUID.test(form.parentCommentId || "") ? form.parentCommentId : null;
     const draft = form.markdownSource || "";
+    const quote = !parent && (form.anchorExact || "").trim()
+      ? { exact: form.anchorExact, prefix: form.anchorPrefix || "", suffix: form.anchorSuffix || "" }
+      : undefined;
+    const anchor = quote && { exact: quote.exact, prefix: quote.prefix || null, suffix: quote.suffix || null };
 
-    return write(slug, { kind: parent ? "reply" : "new", id: parent ?? undefined, draft, error: "" },
-      (access) => send("POST", `/posts/${slug}/comments`, { markdownSource: draft, ...(parent ? { parentCommentId: parent } : {}) }, bearer(access)),
+    return write(slug, { kind: parent ? "reply" : "new", id: parent ?? undefined, draft, error: "", anchor: quote },
+      (access) => send("POST", `/posts/${slug}/comments`, { markdownSource: draft, ...(parent ? { parentCommentId: parent } : {}), ...(anchor ? { anchor } : {}) }, bearer(access)),
       async (answer) => {
         const made = await answer.json().catch(() => null) as { id?: string } | null;
         return `/posts/${slug}#${made?.id ? `comment-${made.id}` : "comments"}`;

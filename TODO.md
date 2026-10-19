@@ -195,6 +195,12 @@ Smaller things noticed along the way:
 - [x] Mermaid in the editor's preview (#61): client/mermaid.ts draws the preview's `mermaid`
       blocks in the browser with Pele (exactly the version streampack bundles), in the API's markup
       and options, as ui-pudl's bcn-mermaid.js does; Pele loads only when a preview has one
+- [x] Comments on a passage (#65, streampack#256): a selection in a post offers "Comment on this
+      passage", which quotes it in the new-comment form; anchored comments show as callouts in the
+      space beside the centred post (which never moves for them), or as markers after their
+      paragraph where that space is too narrow. client/annotate.ts, on clientjs's anchors module
+- [ ] When clientjs grows the rest of ui-pudl#252 (Mermaid, local times), move client/mermaid.ts
+      and client/zone.ts onto it
 
 Parked:
 

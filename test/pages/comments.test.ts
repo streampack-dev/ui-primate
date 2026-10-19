@@ -226,3 +226,100 @@ describe("removing a comment", () => {
     expect(await posted(`/admin/comments/${THEIRS}`)).toEqual([]);
   });
 });
+
+/* A comment on a passage (#65, streampack#256): the passage goes to the API as the comment's anchor,
+   and each comment's anchor comes back to the page for client/annotate.ts. */
+describe("commenting on a passage", () => {
+  const QUOTING = "019f0000-0000-7000-8000-0000000e0004";
+  const ORPHAN = "019f0000-0000-7000-8000-0000000e0005";
+
+  it("offers a signed-in reader the button and the form's empty quote, hidden until script shows them", async () => {
+    const v = await signedIn();
+    const { doc } = await v.get(PAGE);
+    const form = doc.querySelector("section.comments form.comment-form")!;
+
+    const ask = doc.querySelector("article .anchor-ask")!;
+    expect(ask.hasAttribute("hidden")).toBe(true);
+    expect(text(ask.querySelector("button[type=button][data-anchor-ask]"))).toBe("Comment on this passage");
+    for (const name of ["anchorExact", "anchorPrefix", "anchorSuffix"]) {
+      expect(form.querySelector(`input[type=hidden][name=${name}]`)?.getAttribute("value")).toBe("");
+    }
+    expect(form.querySelector("[data-comment-quote]")?.hasAttribute("hidden")).toBe(true);
+    expect(doc.querySelectorAll(".comment-reply input[name^=anchor]")).toEqual([]);
+  });
+
+  it("offers no button to a reader who isn't signed in", async () => {
+    const { doc } = await new Visitor().get(PAGE);
+
+    expect(doc.querySelector(".anchor-ask")).toBeNull();
+  });
+
+  it("sends the passage as the comment's anchor", async () => {
+    await stub(`/posts/${SLUG}/comments`, { id: NEW }, { method: "POST", status: 201 });
+    const v = await signedIn();
+    await v.post(`${PAGE}/comments`, { markdownSource: "Nice.", anchorExact: "Midden.", anchorPrefix: "", anchorSuffix: "" });
+
+    expect((await posted(`/posts/${SLUG}/comments`))[0].body).toEqual({ markdownSource: "Nice.", anchor: { exact: "Midden.", prefix: null, suffix: null } });
+  });
+
+  it("sends the passage's context when it has some", async () => {
+    await stub(`/posts/${SLUG}/comments`, { id: NEW }, { method: "POST", status: 201 });
+    const v = await signedIn();
+    await v.post(`${PAGE}/comments`, { markdownSource: "Nice.", anchorExact: "reads", anchorPrefix: "Midden ", anchorSuffix: " heap" });
+
+    expect((await posted(`/posts/${SLUG}/comments`))[0].body.anchor).toEqual({ exact: "reads", prefix: "Midden ", suffix: " heap" });
+  });
+
+  it("leaves the anchor out when there's no passage, and from a reply", async () => {
+    await stub(`/posts/${SLUG}/comments`, { id: NEW }, { method: "POST", status: 201 });
+    const v = await signedIn();
+    await v.post(`${PAGE}/comments`, { markdownSource: "Plain.", anchorExact: " ", anchorPrefix: "", anchorSuffix: "" });
+    await v.post(`${PAGE}/comments`, { markdownSource: "Quite.", parentCommentId: THEIRS, anchorExact: "Midden." });
+
+    const [plain, reply] = await posted(`/posts/${SLUG}/comments`);
+    expect(plain.body).toEqual({ markdownSource: "Plain." });
+    expect(reply.body).toEqual({ markdownSource: "Quite.", parentCommentId: THEIRS });
+  });
+
+  it("keeps the draft and its quote when the API refuses it", async () => {
+    await stub(`/posts/${SLUG}/comments`, { status: 400, detail: "The quoted passage isn't in the post" }, { method: "POST", status: 400 });
+    const v = await signedIn();
+    const { status, doc } = await v.post(`${PAGE}/comments`, { markdownSource: "My draft.", anchorExact: "brown <fox>", anchorPrefix: "The quick ", anchorSuffix: "." });
+    const form = doc.querySelector("section.comments form.comment-form")!;
+
+    expect(status).toBe(400);
+    expect(text(form.querySelector(".form-error"))).toBe("The quoted passage isn't in the post");
+    expect(form.querySelector("textarea")?.textContent).toBe("My draft.");
+    expect(form.querySelector("input[name=anchorExact]")?.getAttribute("value")).toBe("brown <fox>");
+    expect(form.querySelector("input[name=anchorPrefix]")?.getAttribute("value")).toBe("The quick ");
+    expect(form.querySelector("input[name=anchorSuffix]")?.getAttribute("value")).toBe(".");
+    const quote = form.querySelector("[data-comment-quote]")!;
+    expect(quote.hasAttribute("hidden")).toBe(false);
+    expect(text(quote.querySelector("[data-comment-quote-text]"))).toBe("brown <fox>");
+  });
+
+  it("carries each comment's anchor, and marks one whose passage is gone", async () => {
+    await stub(`/posts/${SLUG}/comments`, {
+      totalActiveCount: 3,
+      comments: [
+        comment({ id: QUOTING, renderedHtml: "<blockquote class=\"comment-anchor\"><p>Midden.</p></blockquote><p>Agreed.</p>", anchor: { exact: "Midden.", prefix: null, suffix: null }, anchorFound: true }),
+        comment({ id: ORPHAN, renderedHtml: "<blockquote class=\"comment-anchor\"><p>lazy dog</p></blockquote><p>Gone?</p>", anchor: { exact: "lazy dog", prefix: "the ", suffix: null }, anchorFound: false }),
+        comment(),
+      ],
+    });
+    const { doc } = await new Visitor().get(PAGE);
+
+    const data = doc.querySelector(`#comment-${QUOTING} > .comment-anchor-data`)!;
+    expect(data.hasAttribute("hidden")).toBe(true);
+    expect(data.getAttribute("data-exact")).toBe("Midden.");
+    expect(data.getAttribute("data-prefix")).toBe("");
+    expect(data.getAttribute("data-found")).toBe("true");
+    expect(doc.querySelector(`#comment-${QUOTING} .comment-anchor-gone`)).toBeNull();
+
+    expect(doc.querySelector(`#comment-${ORPHAN} > .comment-anchor-data`)?.getAttribute("data-found")).toBe("false");
+    expect(doc.querySelector(`#comment-${ORPHAN} > .comment-anchor-data`)?.getAttribute("data-prefix")).toBe("the ");
+    expect(text(doc.querySelector(`#comment-${ORPHAN} .comment-anchor-gone`))).toBe("This passage is no longer in the post.");
+
+    expect(doc.querySelector(`#comment-${THEIRS} .comment-anchor-data, #comment-${THEIRS} .comment-anchor-gone`)).toBeNull();
+  });
+});
