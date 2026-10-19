@@ -17,6 +17,6 @@ export default route({
       return new Response("Card unavailable", { status: 503 });
     }
     if (!post?.title) return new Response("Not found", { status: 404 });
-    return png(await postImage(post));
+    return png(await postImage(post), request.headers.try("if-none-match"));
   },
 });

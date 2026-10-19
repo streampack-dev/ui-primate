@@ -1,3 +1,4 @@
+import { get } from "node:http";
 import { beforeEach, describe, expect, inject, it } from "vitest";
 import { page, text } from "../support/page.ts";
 import { list, post, resetStubs, stub, stubSite } from "../support/stub.ts";
@@ -51,6 +52,50 @@ describe("the site's link-preview card", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("image/png");
     expect(await png(response)).toEqual({ width: 1200, height: 630 });
+  });
+});
+
+/* The response's own headers, as a crawler reads them: fetch hides how the body was sent. */
+function raw(path: string, headers: Record<string, string> = {}): Promise<{ status: number; headers: Record<string, string | string[] | undefined>; length: number }> {
+  return new Promise((resolve, reject) => {
+    get(`${inject("appUrl")}${path}`, { headers }, (res) => {
+      let length = 0;
+      res.on("data", (chunk: Buffer) => { length += chunk.length; });
+      res.on("end", () => resolve({ status: res.statusCode!, headers: res.headers, length }));
+    }).on("error", reject);
+  });
+}
+
+/* LinkedIn shows no image for a card sent in chunks, without its length (#69); pudl's, sent with
+   one, it shows. */
+describe("a card as a crawler fetches it", () => {
+  for (const path of ["/og/site.png", "/og/posts/2026/09/midden.png"]) {
+    it(`${path} comes with its length and an ETag, not in chunks`, async () => {
+      await stub("/posts/2026/09/midden", detail());
+      const answer = await raw(path);
+
+      expect(answer.status).toBe(200);
+      expect(answer.headers["transfer-encoding"]).toBeUndefined();
+      expect(Number(answer.headers["content-length"])).toBe(answer.length);
+      expect(answer.length).toBeGreaterThan(1000);
+      expect(answer.headers.etag).toMatch(/^"[0-9a-f]{16,}"$/);
+    });
+  }
+
+  it("is answered 304 when the crawler already has it, and drawn again when it hasn't", async () => {
+    await stub("/posts/2026/09/midden", detail());
+    const first = await raw("/og/posts/2026/09/midden.png");
+    const etag = first.headers.etag as string;
+
+    const again = await raw("/og/posts/2026/09/midden.png", { "If-None-Match": etag });
+    expect(again.status).toBe(304);
+    expect(again.length).toBe(0);
+    expect(again.headers.etag).toBe(etag);
+
+    await stub("/posts/2026/09/midden", detail({ title: "Midden, edited" }));
+    const edited = await raw("/og/posts/2026/09/midden.png", { "If-None-Match": etag });
+    expect(edited.status).toBe(200);
+    expect(edited.headers.etag).not.toBe(etag);
   });
 });
 
