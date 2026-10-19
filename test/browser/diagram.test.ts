@@ -45,6 +45,15 @@ async function preview(markdown: string) {
   return opened;
 }
 
+describe("the fixture", () => {
+  // It's the API's rendered HTML and nothing else: once it began with the server's log lines,
+  // captured with it, and the stubbed post showed them as text.
+  it("is the API's HTML, without anything captured around it", () => {
+    expect(published.startsWith("<p>A diagram:</p>")).toBe(true);
+    expect(published).not.toMatch(/^\d\d:\d\d:\d\d/m);
+  });
+});
+
 describe("a post's diagrams, in a browser", () => {
   for (const theme of ["light", "dark"] as const) {
     it(`take the site's colours and the fonts they were measured in, in the ${theme} theme`, async () => {
