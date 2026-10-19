@@ -201,6 +201,8 @@ Smaller things noticed along the way:
       paragraph where that space is too narrow. client/annotate.ts, on clientjs's anchors module
 - [ ] When clientjs grows the rest of ui-pudl#252 (Mermaid, local times), move client/mermaid.ts
       and client/zone.ts onto it
+- [x] robots.txt (#72) and a bounded llms.txt (#73): the sitemap named, crawlers kept out of pages
+      with nothing to index, the latest 30 posts and where the rest are for language models
 
 Parked:
 
