@@ -183,6 +183,25 @@ image tag="":
     docker buildx build --platform "$platforms" "${build_args[@]}" "${labels[@]}" "${tags[@]}" --push .
     echo "Pushed ${image}:${version}$([[ "${DOCKER_PUSH_LATEST:-true}" == "true" ]] && printf ' and :latest')"
 
+# Build the image locally (not pushed) and check that it serves a link-preview card (#67). The
+# tests run the app with the repository's node_modules, so only the image itself shows what it
+# lacks. Run it before a release that touches the Dockerfile.
+smoke-image:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    docker build -q -t ui-primate:smoke . >/dev/null
+    id="$(docker run -d --rm -p 127.0.0.1::3000 ui-primate:smoke)"
+    trap 'docker stop "$id" >/dev/null' EXIT
+    port="$(docker port "$id" 3000/tcp | head -1 | sed 's/.*://')"
+    for _ in $(seq 1 60); do curl -s -o /dev/null "http://127.0.0.1:$port/og/site.png" && break; sleep 0.5; done
+    answer="$(curl -s -o /dev/null -w '%{http_code} %{content_type}' "http://127.0.0.1:$port/og/site.png")"
+    if [[ "$answer" != "200 image/png" ]]; then
+      echo "The image's /og/site.png answered: $answer" >&2
+      docker logs "$id" 2>&1 | tail -20 >&2
+      exit 1
+    fi
+    echo "The image serves link-preview cards: $answer"
+
 # Releases come from main, up to date with origin's: never from a feature branch.
 _on-main:
     #!/usr/bin/env bash

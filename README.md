@@ -21,6 +21,12 @@ branch coverage, with the report in `coverage/`; the target is 70% of lines. The
 coverage is mapped back to the sources through the build's source map. The browser scripts in
 `client/` run in the browser, and aren't counted. `just` lists the rest.
 
+The tests run the app with the repository's `node_modules`, so they can't see what the image lacks.
+`just smoke-image` builds the image locally (not pushed), starts it, and checks that it serves a
+link-preview card: the cards' renderers, satori and resvg, are the only packages the image installs,
+and resvg is a native add-on the permission model has to allow (#67). Run it before releasing a
+change to the `Dockerfile`.
+
 ## Releasing
 
 A full release, from an up-to-date `main`:
