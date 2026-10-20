@@ -8,13 +8,25 @@ default:
 clean:
     rm -rf build node_modules
 
+# Install the packages package-lock.json pins (#84): `npm ci`, when node_modules is missing or older
+# than package.json or the lockfile. Without it, a fresh checkout or worktree fails, or, worse, Node
+# finds a parent directory's node_modules and runs on its versions. npm ci deletes and reinstalls
+# everything, so it isn't run when nothing changed; `just clean` forces it.
+_deps:
+    #!/usr/bin/env sh
+    set -eu
+    installed=node_modules/.package-lock.json
+    if [ ! -f "$installed" ] || [ package-lock.json -nt "$installed" ] || [ package.json -nt "$installed" ]; then
+      npm ci
+    fi
+
 # Pages are drawn in the browser here; a production build renders them on the server (config/app.ts).
 # Run locally with live reload, against BCN_API_BASE (default the live API, read-only)
-dev:
+dev: _deps
     {{app_env}} UI_DEV=1 npx primate
 
 # Build for production: server-rendered pages, fingerprinted assets, in build/.
-build:
+build: _deps
     npx primate build
     @# primate build can fail and still exit 0 (primate-bugs/01): known good only by what it leaves.
     @test -f build/server.js || { echo "The build failed: no build/server.js" >&2; exit 1; }
@@ -28,13 +40,13 @@ node_major := `sed -n 's/^FROM node:\([0-9]*\)-alpine.*/\1/p' Dockerfile | head 
 
 # Run the tests, the app on the Node the image ships with. They start their own Postgres
 # (Testcontainers), so Docker must be running.
-test:
+test: _deps
     UI_TEST_NODE="$(npx -y node@{{node_major}} -p process.execPath | tail -1)" npm test
 
 # Run every test and report coverage (#43): the target is 70% of lines, reported, not enforced. The
 # served app's coverage is mapped back to the sources through the build's source map; the browser
 # scripts in client/ run in the browser and aren't counted. The report is in coverage/.
-coverage:
+coverage: _deps
     rm -rf coverage coverage-raw
     UI_TEST_NODE="$(npx -y node@{{node_major}} -p process.execPath | tail -1)" NODE_V8_COVERAGE="$PWD/coverage-raw" npm test
     node tools/coverage-report.mjs
