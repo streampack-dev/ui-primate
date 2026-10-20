@@ -8,12 +8,16 @@ sealed tokens, fingerprinted assets, and a Docker image pushed to Nexus.
 ## Running it
 
 ```sh
-npm ci
 cp .env.default .env   # then fill in what's empty
 just create-db         # ui-primate's own database, on streampack's local Postgres
 just dev               # live reload; pages render in the browser here
 just run               # the production build: server-rendered, as it ships
 ```
+
+`just dev`, `build`, `run`, `test` and `coverage` install the packages first (`npm ci`) when
+`node_modules` is missing or older than `package.json` or `package-lock.json`, so a fresh checkout,
+a new worktree or a pull that changed the lockfile needs no separate install. `just clean` removes
+`node_modules`, so the next one installs afresh.
 
 `just test` runs the tests against a production build, a stub API and a Postgres of their own
 (Testcontainers), so Docker must be running. `just coverage` runs them and reports line and
