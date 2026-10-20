@@ -23,9 +23,8 @@ coverage is mapped back to the sources through the build's source map. The brows
 
 The tests run the app with the repository's `node_modules`, so they can't see what the image lacks.
 `just smoke-image` builds the image locally (not pushed), starts it, and checks that it serves a
-link-preview card: the cards' renderers, satori and resvg, are the only packages the image installs,
-and resvg is a native add-on the permission model has to allow (#67). Run it before releasing a
-change to the `Dockerfile`.
+link-preview card. Primate bundles satori and resvg into the build; resvg is a native add-on the
+permission model has to allow (#67). Run it before releasing a change to the `Dockerfile`.
 
 ## Releasing
 
