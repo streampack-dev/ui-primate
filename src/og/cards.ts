@@ -5,16 +5,8 @@
    wherever it's drawn. Laid out by satori, painted by resvg: what next/og does inside. */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-
-/* Loaded from node_modules when first needed, not bundled: satori's WebAssembly and resvg's native
-   binary don't survive Primate's server bundle, and Primate has no way to leave a package out of
-   it (primate-bugs/07). A name the bundler can't follow keeps it out. */
-const unbundled = (name: string) => import(name);
-let renderers: Promise<{ satori: typeof import("satori").default; Resvg: typeof import("@resvg/resvg-js").Resvg }> | null = null;
-function renderer() {
-  return (renderers ??= Promise.all([unbundled("satori"), unbundled("@resvg/resvg-js")])
-    .then(([s, r]) => ({ satori: s.default, Resvg: r.Resvg ?? r.default.Resvg })));
-}
+import { Resvg } from "@resvg/resvg-js";
+import satori from "satori";
 
 export const WIDTH = 1200;
 export const HEIGHT = 630;
@@ -86,7 +78,6 @@ const wordmark = (style: Record<string, unknown>) =>
   el("div", { display: "flex", ...style }, el("span", {}, "bytecode"), el("span", { color: ACCENT }, "."), el("span", {}, "news"));
 
 async function draw(card: Node): Promise<Uint8Array> {
-  const { satori, Resvg } = await renderer();
   const svg = await satori(card as never, { width: WIDTH, height: HEIGHT, fonts: load().fonts });
   return new Resvg(svg, { fitTo: { mode: "width", value: WIDTH } }).render().asPng();
 }

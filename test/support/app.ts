@@ -5,9 +5,31 @@
 import { spawn, execFileSync } from "node:child_process";
 import { existsSync, rmSync } from "node:fs";
 import net from "node:net";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import type { TestProject } from "vitest/node";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { startStubApi } from "./stub-api.ts";
+
+/** Testcontainers finds Docker itself, but does not look for Podman's standard sockets. */
+function configureContainerRuntime() {
+  if (process.env.DOCKER_HOST) return;
+
+  const uid = process.getuid?.();
+  const sockets = [
+    process.env.XDG_RUNTIME_DIR && join(process.env.XDG_RUNTIME_DIR, "podman/podman.sock"),
+    uid !== undefined && `/run/user/${uid}/podman/podman.sock`,
+    "/run/podman/podman.sock",
+    join(homedir(), ".local/share/containers/podman/machine/podman.sock"),
+  ].filter((socket): socket is string => Boolean(socket));
+  const socket = sockets.find(existsSync);
+  if (!socket) return;
+
+  process.env.DOCKER_HOST = `unix://${socket}`;
+  // Ryuk cannot use the rootless Podman socket. Containers started here are stopped in teardown.
+  if (socket !== "/run/podman/podman.sock") process.env.TESTCONTAINERS_RYUK_DISABLED ??= "true";
+  if (process.platform === "darwin") process.env.TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE ??= "/var/run/docker.sock";
+}
 
 function freePort(): Promise<number> {
   return new Promise((resolve) => {
@@ -43,6 +65,7 @@ export async function startApp(env: Record<string, string>): Promise<{ url: stri
 }
 
 export default async function setup(project: TestProject) {
+  configureContainerRuntime();
   const [stubApi, db] = await Promise.all([startStubApi(), new PostgreSqlContainer("postgres:18").start()]);
   // primate build can fail and still exit 0, so a build is only known good by what it leaves.
   rmSync("build", { recursive: true, force: true });

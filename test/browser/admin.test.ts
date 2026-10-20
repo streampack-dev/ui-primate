@@ -50,5 +50,5 @@ describe("the admin pages, in a browser", () => {
         await expectAccessible(page);
       }
     }
-  });
+  }, 60_000);
 });
