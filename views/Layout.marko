@@ -75,7 +75,7 @@ export interface Input {
             <if=input.reader>
               <if=input.admin><a href="/admin" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-1.5 md:px-2">Admin</a></if>
               <a href="/profile" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-1.5 md:px-2 max-w-[10rem] truncate" title=input.reader.displayName>${input.reader.displayName}</a>
-              <form method="post" action="/logout" class="inline">
+              <form method="post" action="/logout" class="inline-flex items-center">
                 <input type="hidden" name="csrf" value=input.csrf>
                 <button type="submit" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-1.5 md:px-2">Sign out</button>
               </form>

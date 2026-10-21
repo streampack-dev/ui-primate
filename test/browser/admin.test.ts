@@ -30,11 +30,14 @@ describe("the header, signed in as an admin, on a phone", () => {
         const fit = await page.evaluate(() => {
           const header = document.querySelector("header")!;
           const out = [...document.querySelectorAll("header form[action='/logout'] button")].map((b) => b.getBoundingClientRect().right);
-          return { header: header.scrollWidth, page: document.documentElement.scrollWidth, signOutRight: Math.max(...out) };
+          const account = [...header.querySelectorAll("a[href='/submit'], a[href='/admin'], a[href='/profile'], form[action='/logout'] button")]
+            .map((item) => { const box = item.getBoundingClientRect(); return box.top + box.height / 2; });
+          return { header: header.scrollWidth, page: document.documentElement.scrollWidth, signOutRight: Math.max(...out), account };
         });
         expect(fit.header, `${path} header width`).toBeLessThanOrEqual(390);
         expect(fit.page, `${path} page width`).toBeLessThanOrEqual(390);
         expect(fit.signOutRight, `${path} Sign out's right edge`).toBeLessThanOrEqual(390);
+        expect(Math.max(...fit.account) - Math.min(...fit.account), `${path} account links' vertical centres`).toBeLessThanOrEqual(1);
         await expectAccessible(page);
       }
     }
