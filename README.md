@@ -172,6 +172,10 @@ A reader who selects text in a post gets a "Comment on this passage" button, whi
 
 `client/annotate.ts` does the site's part: its selectors, the status line for refusals, and setting up each page as it's shown. The interface is `@streampack-dev/clientjs`'s `annotate` module, the same in ui-pudl, from the streampack-dev Nexus as the masthead is; its text matching (the `anchors` module) must match the API's `html_text()`, so move it when streampack changes how it reads a post's text. Without script, the form takes no quote and the thread shows each quote as the API rendered it.
 
+## Links to a section
+
+The API gives each heading in a post an id that starts with `section-` (streampack#270), so a heading can't take the name of something else on the page, such as `#comments`. `client/sections.ts` uses `@streampack-dev/clientjs`'s `sections` module, the same in ui-pudl: an address with the bare name, such as `#going-nowhere`, reaches the heading `#section-going-nowhere` and the address becomes the section's own, and each `h2` to `h4` gets a `#` link to its section, shown while its heading is hovered or the link has focus. `client/annotate.ts` leaves the links out of the post's text. Without script, only the full id works.
+
 ## Crawlers
 
 `/robots.txt` names the sitemap and keeps crawlers out of pages with nothing to index (signing in, the editor, the admin's pages, profiles, search results, the card gallery and the forms). Everything else is open, including the logs and their filters, and no crawler is named, so language models' crawlers are welcome. `/llms.txt` is a short guide to the site for them, in the llms.txt convention: the latest 30 posts, where the rest are, and what each section holds. It stays the same size as the archive grows. Both are in `routes/`.
