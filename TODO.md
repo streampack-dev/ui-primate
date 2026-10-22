@@ -203,6 +203,9 @@ Smaller things noticed along the way:
 - [x] client/annotate.ts sets up clientjs's annotate module (#76)
 - [x] client/zone.ts says times through clientjs's zone module (#79)
 - [x] client/atlas.ts moves the map about through clientjs's atlas module (#80)
+- [x] Links to a post's sections (#89, streampack#274): a bare `#going-nowhere` reaches the
+      heading `#section-going-nowhere`, and each h2 to h4 has a `#` link, shown on hover or focus.
+      client/sections.ts, on clientjs's sections module
 - [x] robots.txt (#72) and a bounded llms.txt (#73): the sitemap named, crawlers kept out of pages
       with nothing to index, the latest 30 posts and where the rest are for language models
 - [x] Author pages (#88, streampack#273): `/authors/<user id>` lists an author's published posts
