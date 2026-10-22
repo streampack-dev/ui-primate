@@ -91,7 +91,7 @@ export interface Input {
                   <h3 class="headline-brief text-foreground group-hover:text-amber transition-colors duration-200"><a href=`/posts/${post.slug}`>${post.title}</a></h3>
                   <if=post.excerpt><p class="text-muted-foreground/70 text-sm leading-relaxed mt-2 line-clamp-3" data-popular-dek>${post.excerpt}</p></if>
                   <div class="byline text-muted-foreground/70 mt-2 flex items-center gap-2">
-                    <span>${post.author}</span>
+                    <span><author-name name=post.author href=post.authorHref/></span>
                     <span class="text-border/50">|</span>
                     <time datetime=post.published>${post.date}</time>
                     <if=post.audio><audio-mark rule="text-border/50"/></if>

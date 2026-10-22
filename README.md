@@ -172,6 +172,12 @@ A reader who selects text in a post gets a "Comment on this passage" button, whi
 
 `client/annotate.ts` does the site's part: its selectors, the status line for refusals, and setting up each page as it's shown. The interface is `@streampack-dev/clientjs`'s `annotate` module, the same in ui-pudl, from the streampack-dev Nexus as the masthead is; its text matching (the `anchors` module) must match the API's `html_text()`, so move it when streampack changes how it reads a post's text. Without script, the form takes no quote and the thread shows each quote as the API rendered it.
 
+## Authors
+
+Each byline links to the author's page, `/authors/<user id>`, which lists their published posts twenty to a page, headed with their display name (streampack#273's `GET /posts?author=`). The address is the user id, so it stays the same when the author renames. An author with no published posts, or an id that isn't a user id, answers 404. A post from an API too old to send `authorId` keeps a plain-text byline.
+
+The profile page lists the reader's own posts (`GET /auth/posts`), with each one's state in words: Published, Scheduled or Draft. A published post links to itself. An unpublished one links to the editor for an admin and isn't a link for anyone else, since only admins can use the editor. When the list can't be had, the rest of the profile still shows.
+
 ## Crawlers
 
 `/robots.txt` names the sitemap and keeps crawlers out of pages with nothing to index (signing in, the editor, the admin's pages, profiles, search results, the card gallery and the forms). Everything else is open, including the logs and their filters, and no crawler is named, so language models' crawlers are welcome. `/llms.txt` is a short guide to the site for them, in the llms.txt convention: the latest 30 posts, where the rest are, and what each section holds. It stays the same size as the archive grows. Both are in `routes/`.

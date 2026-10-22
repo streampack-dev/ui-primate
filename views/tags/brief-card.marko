@@ -1,4 +1,4 @@
-export interface Input { post: { title: string; slug: string; excerpt: string; author: string; published: string; date: string; comments: number; audio?: boolean } }
+export interface Input { post: { title: string; slug: string; excerpt: string; author: string; authorHref?: string | null; published: string; date: string; comments: number; audio?: boolean } }
 <const/post=(input.post)>
 <article class="group">
   <h4 class="headline-brief text-foreground group-hover:text-amber transition-colors duration-200">
@@ -6,7 +6,7 @@ export interface Input { post: { title: string; slug: string; excerpt: string; a
   </h4>
   <if=post.excerpt><p class="text-muted-foreground/70 text-sm leading-relaxed mt-2 line-clamp-2" data-masthead-dek="more">${post.excerpt}</p></if>
   <div class="byline text-muted-foreground/70 mt-2.5 flex items-center gap-2">
-    <span>${post.author}</span>
+    <span><author-name name=post.author href=post.authorHref/></span>
     <span class="text-border/40">|</span>
     <time datetime=post.published>${post.date}</time>
     <byline-comments count=post.comments rule="text-border/40"/>

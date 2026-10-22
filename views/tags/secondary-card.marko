@@ -1,4 +1,4 @@
-export interface Input { post: { title: string; slug: string; excerpt: string; author: string; published: string; date: string; comments: number; audio?: boolean } }
+export interface Input { post: { title: string; slug: string; excerpt: string; author: string; authorHref?: string | null; published: string; date: string; comments: number; audio?: boolean } }
 <const/post=(input.post)>
 <article class="group">
   <div class="byline text-muted-foreground/70 mb-2.5 flex items-center gap-2">
@@ -10,5 +10,5 @@ export interface Input { post: { title: string; slug: string; excerpt: string; a
     <a href=`/posts/${post.slug}`>${post.title}</a>
   </h3>
   <if=post.excerpt><p class="text-muted-foreground text-sm leading-relaxed mt-2.5 line-clamp-3" data-masthead-dek="secondary">${post.excerpt}</p></if>
-  <p class="byline text-muted-foreground/70 mt-3">By ${post.author}</p>
+  <p class="byline text-muted-foreground/70 mt-3">By <author-name name=post.author href=post.authorHref/></p>
 </article>

@@ -280,7 +280,7 @@ export interface paths {
         };
         /**
          * List published posts
-         * @description Returns a paginated list of posts that are approved, not deleted, and have a publishedAt date in the past. Authenticated users also see their own drafts interleaved in the results.
+         * @description Returns a paginated list of posts that are approved, not deleted, and have a publishedAt date in the past. Filter by one of `category`, `tag` or `author`; `author` with either of the others is refused.
          */
         get: operations["listPosts"];
         put?: never;
@@ -1413,6 +1413,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/posts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the authenticated user's own posts
+         * @description Returns the caller's posts in every state, newest first, each with its `state`: `DRAFT`, `SCHEDULED` or `PUBLISHED`. Deleted posts and system pages are left out.
+         */
+        get: operations["listOwnPosts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/export": {
         parameters: {
             query?: never;
@@ -1946,6 +1966,8 @@ export interface components {
             /** Format: uuid */
             authorId?: string | null;
             authorDisplayName: string;
+            /** @enum {string|null} */
+            authorRole?: "GUEST" | "USER" | "ADMIN" | "SUPER_ADMIN" | null;
             /** @enum {string} */
             status: "DRAFT" | "APPROVED";
             /** Format: date-time */
@@ -2621,7 +2643,17 @@ export interface components {
             title: string;
             slug: string;
             excerpt?: string | null;
+            /**
+             * Format: uuid
+             * @description The author's user id, for `GET /posts?author=`; null for an anonymous post.
+             */
+            authorId?: string | null;
             authorDisplayName: string;
+            /**
+             * @description The author's role; null for an anonymous post.
+             * @enum {string|null}
+             */
+            authorRole?: "GUEST" | "USER" | "ADMIN" | "SUPER_ADMIN" | null;
             /** Format: date-time */
             publishedAt?: string | null;
             /** Format: int32 */
@@ -2637,6 +2669,11 @@ export interface components {
              *     ]
              */
             versionKinds?: string[];
+            /**
+             * @description Where the post is in its life: `DRAFT`, `SCHEDULED` or `PUBLISHED`. Public lists carry only published posts; `GET /auth/posts` carries all three.
+             * @enum {string}
+             */
+            state?: "DRAFT" | "SCHEDULED" | "PUBLISHED";
             /** @description In search results only: a passage showing why the post matched, with the matching words marked. Null in other listings. */
             match?: components["schemas"]["SearchMatch"] | null;
         };
@@ -4159,6 +4196,8 @@ export interface operations {
                 category?: string;
                 /** @description Filter by tag name */
                 tag?: string;
+                /** @description Filter by the author's user id (#273) */
+                author?: string;
             };
             header?: never;
             path?: never;
@@ -6951,6 +6990,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserPrincipal"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listOwnPosts: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Zero-based page index
+                 * @example 0
+                 */
+                page?: number;
+                /**
+                 * @description Number of posts per page
+                 * @example 20
+                 */
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated list of the caller's posts */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContentListResponse"];
                 };
             };
             /** @description Not authenticated */

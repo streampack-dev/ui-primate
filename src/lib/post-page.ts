@@ -7,6 +7,7 @@ import type { CommentNode, CommentThread, ContentDetail } from "#api/types.ts";
 import { csrf, current, isAdmin } from "#auth/readers.ts";
 import { asReader, bearer } from "#auth/signed-in.ts";
 import { audioOf } from "#lib/audio.ts";
+import { authorHref } from "#lib/authors.ts";
 import { formatDate, formatUpdatedTime } from "#lib/format.ts";
 import { view } from "#lib/view.ts";
 
@@ -89,6 +90,8 @@ export async function postPage(path: string, form?: CommentForm, status = 200) {
     slug: path,
     title: post.title,
     author: post.authorDisplayName,
+    // The author's page (#88), when the API says who they are.
+    authorHref: authorHref(post.authorId),
     published: post.publishedAt,
     date: formatDate(post.publishedAt),
     updated: formatUpdatedTime(post.updatedAt),

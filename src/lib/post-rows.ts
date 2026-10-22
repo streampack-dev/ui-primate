@@ -2,11 +2,15 @@
    comments, tags and whether it has a recording, as ui-nextjs's ArticleRow has them. */
 import type { ContentList } from "#api/types.ts";
 import { listed } from "#lib/audio.ts";
+import { authorHref } from "#lib/authors.ts";
 import { formatDate } from "#lib/format.ts";
 import { passageHtml } from "#lib/passage.ts";
 
 export type PostRow = {
-  id: string; title: string; href: string; excerpt: string; author: string; published: string;
+  id: string; title: string; href: string; excerpt: string; author: string;
+  /** The author's page (#88), or null when the API doesn't say who they are. */
+  authorHref: string | null;
+  published: string;
   date: string; comments: string; tags: string[];
   /** Whether it has a recording (#33). */
   audio: boolean;
@@ -21,6 +25,7 @@ export function postRows(posts: ContentList["posts"] = []): PostRow[] {
     href: `/posts/${p.slug}`,
     excerpt: p.excerpt || "",
     author: p.authorDisplayName || "",
+    authorHref: authorHref(p.authorId),
     published: p.publishedAt || "",
     date: formatDate(p.publishedAt),
     comments: p.commentCount ? `${p.commentCount} comment${p.commentCount === 1 ? "" : "s"}` : "",

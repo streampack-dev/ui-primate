@@ -205,6 +205,10 @@ Smaller things noticed along the way:
 - [x] client/atlas.ts moves the map about through clientjs's atlas module (#80)
 - [x] robots.txt (#72) and a bounded llms.txt (#73): the sitemap named, crawlers kept out of pages
       with nothing to index, the latest 30 posts and where the rest are for language models
+- [x] Author pages (#88, streampack#273): `/authors/<user id>` lists an author's published posts
+      as a category's page does, headed with their name; every byline links there when the API
+      gives the post's `authorId`. The profile lists the reader's own posts with each one's state
+      in words: a published one links to the post, an unpublished one to the editor for an admin
 
 Parked:
 

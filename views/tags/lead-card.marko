@@ -1,8 +1,8 @@
-export interface Input { post: { id: string; title: string; slug: string; excerpt: string; author: string; published: string; date: string; comments: number; tags: string[]; audio?: boolean } }
+export interface Input { post: { id: string; title: string; slug: string; excerpt: string; author: string; authorHref?: string | null; published: string; date: string; comments: number; tags: string[]; audio?: boolean } }
 <const/post=(input.post)>
 <article class="group">
   <div class="byline text-muted-foreground mb-4 flex items-center gap-2">
-    <span>By ${post.author}</span>
+    <span>By <author-name name=post.author href=post.authorHref/></span>
     <span class="text-border">|</span>
     <time datetime=post.published>${post.date}</time>
     <byline-comments count=post.comments/>
