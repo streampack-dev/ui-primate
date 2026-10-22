@@ -7,8 +7,8 @@ import { notFound } from "#lib/post-page.ts";
 import { pageAsked, pager, postRows } from "#lib/post-rows.ts";
 
 /* An author's published posts (#88), twenty to a page, as a category's page lists them. The author
-   is known by their user id (streampack#273), and named from their posts: an author with none
-   published has no page to show. */
+   is known by their user id (streampack#273), and named from their posts. An author with none
+   published, and an id that is no one's, are the same to the API: both are an empty list, 200. */
 export default route({
   async get(request) {
     const id = request.path.get("id").toLowerCase();
@@ -35,6 +35,6 @@ export default route({
       posts,
       ...pager(page, list?.totalPages ?? 0, (p) => (p > 0 ? `${path}?page=${p}` : path)),
       meta,
-    }, { status: posts.length === 0 && page === 0 ? 404 : 200 });
+    });
   },
 });

@@ -174,7 +174,7 @@ A reader who selects text in a post gets a "Comment on this passage" button, whi
 
 ## Authors
 
-Each byline links to the author's page, `/authors/<user id>`, which lists their published posts twenty to a page, headed with their display name (streampack#273's `GET /posts?author=`). The address is the user id, so it stays the same when the author renames. An author with no published posts, or an id that isn't a user id, answers 404. A post from an API too old to send `authorId` keeps a plain-text byline.
+Each byline links to the author's page, `/authors/<user id>`, which lists their published posts twenty to a page, headed with their display name (streampack#273's `GET /posts?author=`). The address is the user id, so it stays the same when the author renames. An author with no published posts, and an id that is no one's, answer 200 with an empty list (the API can't tell them apart); an address that isn't a user id at all answers 404. A post from an API too old to send `authorId` keeps a plain-text byline.
 
 The profile page lists the reader's own posts (`GET /auth/posts`), with each one's state in words: Published, Scheduled or Draft. A published post links to itself. An unpublished one links to the editor for an admin and isn't a link for anyone else, since only admins can use the editor. When the list can't be had, the rest of the profile still shows.
 

@@ -45,10 +45,10 @@ describe("an author's page", () => {
     expect(doc.querySelector("link[rel=canonical]")?.getAttribute("href")).toMatch(new RegExp(`/authors/${ADA}$`));
   });
 
-  it("says there's nothing to read when the author has no published posts", async () => {
+  it("is an empty list, not a 404, for an author with no published posts or no such author", async () => {
     await stub("/posts", list([]), { query: { author: ADA } });
     const { status, doc } = await page(`/authors/${ADA}`);
-    expect(status).toBe(404);
+    expect(status).toBe(200);
     expect(text(doc.querySelector("main"))).toContain("No published posts");
   });
 
