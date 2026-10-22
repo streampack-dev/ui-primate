@@ -9,6 +9,10 @@ export interface Input {
   deleteError?: string;
   confirmDraft?: string;
   exportError?: string;
+  /** The reader's own posts (#88), newest first; null when they couldn't be listed. */
+  posts: { id: string; title: string; state: string; date: string; published: string; href: string | null }[] | null;
+  /** The reader's author page (#88). */
+  authorPage: string | null;
 }
 
 <page-meta meta=input.meta/>
@@ -43,6 +47,33 @@ export interface Input {
         </div>
         <button type="submit" class="auth-button shrink-0 mt-6">Save</button>
       </form>
+    </section>
+
+    <section class="border-t border-border/40 pt-8 mb-8" aria-labelledby="your-posts-heading">
+      <h2 class="section-label text-amber mb-5" id="your-posts-heading">Your Posts</h2>
+      <if=(input.posts === null)>
+        <p class="form-hint">Your posts couldn't be listed just now. Try again shortly.</p>
+      </if>
+      <else-if=(input.posts.length === 0)>
+        <p class="form-hint">You haven't written any posts yet.</p>
+      </else-if>
+      <else>
+        <ul class="own-posts">
+          <for|p| of=input.posts by="id">
+            <li class="own-post flex items-baseline justify-between gap-4 py-2 border-t border-border/20 first:border-t-0">
+              <span class="own-post-title text-sm text-foreground">
+                <if=p.href><a href=p.href>${p.title}</a></if>
+                <else>${p.title}</else>
+              </span>
+              <span class="byline text-muted-foreground shrink-0">
+                <span class="own-post-state">${p.state}</span>
+                <if=p.date> <span aria-hidden="true">|</span> <time datetime=p.published>${p.date}</time></if>
+              </span>
+            </li>
+          </for>
+        </ul>
+        <if=(input.authorPage && input.posts.some((p) => p.state === "Published"))><p class="form-hint mt-4"><a class="own-author-page" href=input.authorPage>Your author page</a>, as readers see it</p></if>
+      </else>
     </section>
 
     <section class="border-t border-border/40 pt-8" aria-labelledby="data-heading">

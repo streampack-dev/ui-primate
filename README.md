@@ -172,6 +172,12 @@ A reader who selects text in a post gets a "Comment on this passage" button, whi
 
 `client/annotate.ts` does the site's part: its selectors, the status line for refusals, and setting up each page as it's shown. The interface is `@streampack-dev/clientjs`'s `annotate` module, the same in ui-pudl, from the streampack-dev Nexus as the masthead is; its text matching (the `anchors` module) must match the API's `html_text()`, so move it when streampack changes how it reads a post's text. Without script, the form takes no quote and the thread shows each quote as the API rendered it.
 
+## Authors
+
+Each byline links to the author's page, `/authors/<user id>`, which lists their published posts twenty to a page, headed with their display name (streampack#273's `GET /posts?author=`). The address is the user id, so it stays the same when the author renames. An author with no published posts, and an id that is no one's, answer 200 with an empty list (the API can't tell them apart); an address that isn't a user id at all answers 404. A post from an API too old to send `authorId` keeps a plain-text byline.
+
+The profile page lists the reader's own posts (`GET /auth/posts`), with each one's state in words: Published, Scheduled or Draft. A published post links to itself. An unpublished one links to the editor for an admin and isn't a link for anyone else, since only admins can use the editor. When the list can't be had, the rest of the profile still shows.
+
 ## Links to a section
 
 The API gives each heading in a post an id that starts with `section-` (streampack#270), so a heading can't take the name of something else on the page, such as `#comments`. `client/sections.ts` uses `@streampack-dev/clientjs`'s `sections` module, the same in ui-pudl: an address with the bare name, such as `#going-nowhere`, reaches the heading `#section-going-nowhere` and the address becomes the section's own, and each `h2` to `h4` gets a `#` link to its section, shown while its heading is hovered or the link has focus. `client/annotate.ts` leaves the links out of the post's text. Without script, only the full id works.

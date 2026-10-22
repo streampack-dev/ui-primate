@@ -1,0 +1,4 @@
+export interface Input { name: string; href?: string | null }
+<!-- A byline's name (#88): a link to the author's page when the API says who they are. -->
+<if=input.href><a class="author-link" href=input.href>${input.name}</a></if>
+<else>${input.name}</else>

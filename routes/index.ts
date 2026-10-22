@@ -2,6 +2,7 @@ import route from "primate/route";
 import { cachedGet } from "#api/client.ts";
 import type { ContentList } from "#api/types.ts";
 import { listed } from "#lib/audio.ts";
+import { authorHref } from "#lib/authors.ts";
 import { formatDate } from "#lib/format.ts";
 import { view } from "#lib/view.ts";
 
@@ -20,7 +21,7 @@ export default route({
     }
     const posts = (list.value.posts || []).map((p) => ({
       id: p.id, title: p.title, slug: p.slug, excerpt: p.excerpt?.trim() || "",
-      author: p.authorDisplayName, published: p.publishedAt, date: formatDate(p.publishedAt),
+      author: p.authorDisplayName, authorHref: authorHref(p.authorId), published: p.publishedAt, date: formatDate(p.publishedAt),
       comments: p.commentCount || 0, tags: p.tags || [], audio: listed(p.versionKinds),
     }));
     return view("Front.marko", {
@@ -28,7 +29,7 @@ export default route({
       totalPages: list.value.totalPages || 0,
       posts,
       popular: popular.status === "fulfilled" && popular.value
-        ? (popular.value.posts || []).map((p) => ({ id: p.id, title: p.title, slug: p.slug, excerpt: p.excerpt?.trim() || "", author: p.authorDisplayName, published: p.publishedAt, date: formatDate(p.publishedAt), audio: listed(p.versionKinds) }))
+        ? (popular.value.posts || []).map((p) => ({ id: p.id, title: p.title, slug: p.slug, excerpt: p.excerpt?.trim() || "", author: p.authorDisplayName, authorHref: authorHref(p.authorId), published: p.publishedAt, date: formatDate(p.publishedAt), audio: listed(p.versionKinds) }))
         : [],
       dateline: new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "UTC" }).toUpperCase(),
       meta: { path: page ? `/?page=${page}` : "/" },

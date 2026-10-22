@@ -3,6 +3,8 @@ export interface Input {
   id: string;
   title: string;
   author: string;
+  /** The author's page (#88), or null when the API doesn't say who they are. */
+  authorHref?: string | null;
   published: string;
   date: string;
   updated: string;
@@ -34,7 +36,7 @@ export interface Input {
       <div class="border-t-2 border-amber mb-6"/>
       <h1 class="headline-lead text-foreground mb-4">${input.title}</h1>
       <div class="byline text-muted-foreground flex items-center gap-1.5 flex-wrap">
-        <span>By ${input.author}</span>
+        <span>By <author-name name=input.author href=input.authorHref/></span>
         <span class="text-border/60 mx-1">|</span>
         <time datetime=input.published>${input.date}</time>
         <if=input.updated>
