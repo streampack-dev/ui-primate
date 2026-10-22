@@ -428,6 +428,41 @@
   border-top: 1px solid var(--border);
 }
 
+.post-body h2,
+.post-body h3,
+.post-body h4 {
+  scroll-margin-top: 1rem;
+}
+
+/* Each heading's link to its own address (#89, client/sections.ts): the "#" itself is the sign, in
+   the heading's face. It keeps its room when hidden, so a heading never moves, and it stays in the
+   focus order, shown while it has focus. */
+.post-body a.section-link {
+  margin-left: 0.35em;
+  color: var(--muted-foreground);
+  text-decoration-line: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.post-body :is(h2, h3, h4):hover > a.section-link,
+.post-body a.section-link:focus-visible {
+  opacity: 1;
+}
+
+.post-body a.section-link:visited {
+  color: var(--muted-foreground);
+}
+
+.post-body a.section-link:hover {
+  color: var(--amber);
+  text-decoration-line: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post-body a.section-link { transition: none; }
+}
+
 .post-body a {
   color: var(--amber);
   text-decoration-line: underline;
