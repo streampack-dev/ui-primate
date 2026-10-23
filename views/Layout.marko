@@ -11,7 +11,6 @@ export interface Input {
   reader: { displayName: string } | null;
   admin: boolean;
   csrf: string;
-  submit: boolean;
 }
 
 <div class="noise-overlay">
@@ -71,7 +70,8 @@ export interface Input {
           <!-- The account links: in line after a rule from md up; signed in, their own row on a phone. -->
           <div class=["flex items-center justify-end gap-1", input.reader ? "w-full md:w-auto" : "ml-auto md:ml-0"]>
             <div class="hidden md:block h-4 w-px bg-border/40"/>
-            <if=input.submit><a href="/submit" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-1.5 md:px-2">Submit</a></if>
+            <!-- Submit for every reader (#92): where the site takes no anonymous posts, /submit signs them in first and brings them back. -->
+            <a href="/submit" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-1.5 md:px-2">Submit</a>
             <if=input.reader>
               <if=input.admin><a href="/admin" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-1.5 md:px-2">Admin</a></if>
               <a href="/profile" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-1.5 md:px-2 max-w-[10rem] truncate" title=input.reader.displayName>${input.reader.displayName}</a>

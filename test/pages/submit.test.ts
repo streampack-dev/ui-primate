@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { text } from "../support/page.ts";
-import { ADMIN, signedIn } from "../support/readers.ts";
+import { ADMIN, signedIn, stubSignIn } from "../support/readers.ts";
 import { requests, resetStubs, stub, stubSite } from "../support/stub.ts";
 import { Visitor } from "../support/visitor.ts";
 
@@ -83,6 +83,20 @@ describe("the submission form", () => {
 
     expect(status).toBe(303);
     expect(location).toBe("/login?return=%2Fsubmit");
+  });
+
+  it("shows Submit to every reader, and signs them in after the press when the site takes no anonymous posts (#92)", async () => {
+    await stubSite({ anonymousSubmission: false });
+    await stubSignIn();
+    const v = new Visitor();
+    const submitLink = async () => (await v.get("/")).doc.querySelectorAll("header a[href='/submit']");
+
+    expect(await submitLink()).toHaveLength(1);
+    expect((await v.get("/submit")).location).toBe("/login?return=%2Fsubmit");
+    await v.post("/login/code", { email: "joe@example.com", return: "/submit" });
+    const back = await v.post("/login", { code: "123456", return: "/submit" });
+    expect(back.location).toBe("/submit");
+    expect((await v.get("/submit")).doc.querySelector("form#submit-post")).not.toBeNull();
   });
 
   it("offers the helpers each reader may use", async () => {

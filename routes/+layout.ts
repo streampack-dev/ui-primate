@@ -40,7 +40,6 @@ async function draw() {
     reader: current(),
     admin: isAdmin(current()),
     csrf: (session.try() as { csrf?: string } | undefined)?.csrf ?? "",
-    submit: !!current() || f?.anonymousSubmission !== false,
   });
 }
 
