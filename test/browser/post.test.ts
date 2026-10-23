@@ -89,7 +89,8 @@ describe("the front page, in a browser", () => {
 
   it("shows the moon in the light and the sun in the dark", async () => {
     const { page } = await open("/");
-    const toggle = page.locator("[data-theme-toggle]");
+    // The header's own, shown on a wide screen; a phone's is in its menu (#95).
+    const toggle = page.locator("[data-theme-toggle]:visible");
     await expect.poll(() => toggle.locator(".icon-moon").isVisible()).toBe(true);
     expect(await toggle.locator(".icon-sun").isVisible()).toBe(false);
     await toggle.click();

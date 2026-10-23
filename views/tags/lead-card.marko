@@ -1,7 +1,7 @@
 export interface Input { post: { id: string; title: string; slug: string; excerpt: string; author: string; authorHref?: string | null; published: string; date: string; comments: number; tags: string[]; audio?: boolean } }
 <const/post=(input.post)>
 <article class="group">
-  <div class="byline text-muted-foreground mb-4 flex items-center gap-2">
+  <div class="byline text-muted-foreground mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 [&>*]:whitespace-nowrap">
     <span>By <author-name name=post.author href=post.authorHref/></span>
     <span class="text-border">|</span>
     <time datetime=post.published>${post.date}</time>

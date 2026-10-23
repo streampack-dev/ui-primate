@@ -30,6 +30,7 @@ export default config({
   entrypoints: {
     css: "master.css",
     theme: "theme.ts",
+    menus: "menus.ts",
     masthead: "masthead.ts",
     read: "read.ts",
     zone: "zone.ts",

@@ -1,7 +1,7 @@
 export interface Input { post: { title: string; slug: string; excerpt: string; author: string; authorHref?: string | null; published: string; date: string; comments: number; audio?: boolean } }
 <const/post=(input.post)>
 <article class="group">
-  <div class="byline text-muted-foreground/70 mb-2.5 flex items-center gap-2">
+  <div class="byline text-muted-foreground/70 mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 [&>*]:whitespace-nowrap">
     <time datetime=post.published>${post.date}</time>
     <byline-comments count=post.comments/>
     <if=post.audio><audio-mark/></if>

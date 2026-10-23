@@ -45,8 +45,7 @@ describe("the tag vocabulary's pages, in a browser", () => {
           const { page, errors } = await open(path, theme, v.cookies, { viewport });
           await expectAccessible(page);
           expect(errors, path).toEqual([]);
-          // The page's own content fits a phone. (The site header, signed in as an admin, doesn't
-          // yet, on every page: not this page's to fix.)
+          // The page's own content fits a phone; the header's fit is test/browser/header.test.ts's (#94).
           if (viewport) {
             const wide = await page.evaluate(() => [...document.querySelectorAll("main *")].filter((el) => el.getBoundingClientRect().right > window.innerWidth + 1).map((el) => el.outerHTML.slice(0, 80)));
             expect(wide, `${path} fits a phone`).toEqual([]);
