@@ -5,7 +5,8 @@ export interface Input { post: { title: string; slug: string; excerpt: string; a
     <a href=`/posts/${post.slug}`>${post.title}</a>
   </h4>
   <if=post.excerpt><p class="text-muted-foreground/70 text-sm leading-relaxed mt-2 line-clamp-2" data-masthead-dek="more">${post.excerpt}</p></if>
-  <div class="byline text-muted-foreground/70 mt-2.5 flex items-center gap-2">
+  <!-- Each part whole: a narrow card moves a part to the next line rather than breaking it (#96). -->
+  <div class="byline text-muted-foreground/70 mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 [&>*]:whitespace-nowrap">
     <span><author-name name=post.author href=post.authorHref/></span>
     <span class="text-border/40">|</span>
     <time datetime=post.published>${post.date}</time>

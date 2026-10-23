@@ -366,6 +366,15 @@
   }
 }
 
+/* The masthead's date and tagline, readable over the art (#96): full strength, with a halo of the page's
+   own background around each letter, so whatever the animation draws behind them stays behind. */
+.masthead-legible {
+  text-shadow:
+    0 0 2px var(--background),
+    0 0 6px var(--background),
+    0 0 12px var(--background);
+}
+
 /* The submit form's spam trap: there for bots, off screen for people (ui-nextjs#43). */
 .hp {
   position: absolute;
@@ -1553,6 +1562,107 @@ textarea.form-field {
 
 .dark .theme-toggle .icon-sun {
   display: block;
+}
+
+@layer components {
+  /* The header's menus (#95, views/Layout.marko): <details>, their titles without the browser's marker,
+     their panels on the page's own background. The caret turns over when a menu is open. */
+  /* A flex box, so a title sits on the same line as the links beside it, with no line box of its own. */
+  .hmenu {
+    display: flex;
+    align-items: center;
+  }
+  .hmenu > summary {
+    list-style: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .hmenu > summary::-webkit-details-marker {
+    display: none;
+  }
+  .hmenu[open] > summary .hmenu-caret {
+    transform: rotate(180deg);
+  }
+  .hmenu-panel {
+    position: absolute;
+    top: calc(100% + 0.6rem);
+    z-index: 60;
+    min-width: 11rem;
+    padding: 0.35rem 0;
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    background: var(--background);
+    box-shadow: 0 10px 30px -10px color-mix(in oklab, var(--foreground), transparent 75%);
+  }
+  /* Below lg, the one menu is a sheet under the whole header. */
+  .hmenu-sheet {
+    top: 100%;
+    left: 0;
+    right: 0;
+    border-width: 0 0 1px;
+    border-radius: 0;
+    padding: 0.75rem 0.5rem;
+    max-height: calc(100dvh - 3.75rem);
+    overflow-y: auto;
+  }
+  .hmenu-item {
+    display: flex;
+    width: 100%;
+    padding: 0.45rem 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    text-align: left;
+    white-space: nowrap;
+    color: var(--foreground);
+    cursor: pointer;
+  }
+  .hmenu-item:hover,
+  .hmenu-item:focus-visible {
+    color: var(--amber);
+    background: var(--muted);
+  }
+  .hmenu-heading {
+    margin-top: 0.6rem;
+    padding: 0.6rem 0.85rem 0.25rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  .hmenu-rule {
+    margin: 0.6rem 0;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Submit (#92, #95): the header's one filled button, the shallowest way in. Its box sets it apart
+     from the links beside it, in every theme, without its colour. */
+  .submit-button {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    height: 2rem;
+    padding: 0 0.85rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--amber);
+    background: var(--amber);
+    color: var(--background);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: background-color 200ms, color 200ms;
+  }
+  .submit-button:hover,
+  .submit-button:focus-visible {
+    background: transparent;
+    color: var(--amber);
+  }
 }
 
 /* The link-preview gallery: each card as a shared link shows it. */

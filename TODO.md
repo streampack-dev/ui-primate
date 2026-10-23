@@ -79,6 +79,16 @@ Since (2026-10-03):
 - [x] The site header, signed in as an admin, was wider than a phone (390px) on every page, its
       sign-out form past the edge: a signed-in reader's account links now take their own row on a
       phone (ui-primate#25, 2026-10-09)
+- [x] The header (#94, #95) is one row at every width. From 1024px: the brand, Tags, Atlas and More
+      (Factoids, RSS Reader, Karma, Logs), search (a box from 1280px, the magnifier links to /search
+      below), Subscribe (RSS, Podcast), the theme, Submit as the one filled button, and the account
+      (a menu under the reader's name: Profile, Admin, Sign out) or Log in. Below 1024px: the brand,
+      Submit and a menu holding the rest. The menus are <details>, so they work without script;
+      client/menus.ts shuts the others, and shuts on Escape and a press outside. Fixes the nav
+      drawn over RSS at 768-800px signed in, and the sideways scroll at 320px (2026-10-23)
+- [x] Front page (#96): a card's author, date, comments and audio each stay whole, moving to the
+      next line rather than breaking; pagination comes after Popular Reads; the masthead's date and
+      tagline are full strength with a halo of the page's background (2026-10-23)
 - [x] The feed list (#28), in the RSS reader: /rss?view=feeds swaps the items for every feed the
       site follows, as IRC's `feed list` gives it ("Title - address", the title linking to the site
       when it has one), by title, twenty to a page as the items are. A small "Feed List" link beside

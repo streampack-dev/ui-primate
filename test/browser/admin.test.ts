@@ -22,22 +22,27 @@ beforeEach(async () => {
 });
 
 describe("the header, signed in as an admin, on a phone", () => {
-  it("fits the screen, Sign out included, and stays accessible", async () => {
+  it("is one row that fits the screen, its menu holding Sign out, and stays accessible", async () => {
     const v = await signedIn(ADMIN);
     for (const theme of ["light", "dark"] as const) {
       for (const path of ["/", "/admin", "/admin/scheduled"]) {
         const { page } = await open(path, theme, v.cookies, { viewport: { width: 390, height: 844 } });
+        // One row: the account is in the menu (#95), which opens within the screen.
+        await page.locator("header summary[aria-label=Menu]").click();
         const fit = await page.evaluate(() => {
           const header = document.querySelector("header")!;
-          const out = [...document.querySelectorAll("header form[action='/logout'] button")].map((b) => b.getBoundingClientRect().right);
-          const account = [...header.querySelectorAll("a[href='/submit'], a[href='/admin'], a[href='/profile'], form[action='/logout'] button")]
-            .map((item) => { const box = item.getBoundingClientRect(); return box.top + box.height / 2; });
-          return { header: header.scrollWidth, page: document.documentElement.scrollWidth, signOutRight: Math.max(...out), account };
+          const account = [...header.querySelectorAll(".hmenu-sheet a[href='/admin'], .hmenu-sheet a[href='/profile'], .hmenu-sheet form[action='/logout'] button")]
+            .map((item) => item.getBoundingClientRect());
+          return { header: header.scrollWidth, row: header.getBoundingClientRect().height, page: document.documentElement.scrollWidth, account };
         });
         expect(fit.header, `${path} header width`).toBeLessThanOrEqual(390);
+        expect(fit.row, `${path} header height`).toBeLessThanOrEqual(64);
         expect(fit.page, `${path} page width`).toBeLessThanOrEqual(390);
-        expect(fit.signOutRight, `${path} Sign out's right edge`).toBeLessThanOrEqual(390);
-        expect(Math.max(...fit.account) - Math.min(...fit.account), `${path} account links' vertical centres`).toBeLessThanOrEqual(1);
+        expect(fit.account, `${path} Admin, Profile and Sign out`).toHaveLength(3);
+        for (const box of fit.account) {
+          expect(box.width, path).toBeGreaterThan(0);
+          expect(box.right, path).toBeLessThanOrEqual(390);
+        }
         await expectAccessible(page);
       }
     }

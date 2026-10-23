@@ -68,6 +68,14 @@ describe("the front page", () => {
     expect(text(doc.querySelector("aside"))).toContain("Popular one");
   });
 
+  it("pages after the popular posts, so the page ends where it says it goes on (#96)", async () => {
+    await stubFront([post()], { totalPages: 3, popular: [post({ title: "Popular one" })] });
+    const { doc } = await page("/");
+    const order = [...doc.querySelectorAll("aside, .pagination")].map((e) => e.tagName === "ASIDE" ? "popular" : "pages");
+
+    expect(order).toEqual(["popular", "pages"]);
+  });
+
   it("pages through older posts, nine at a time, without the masthead", async () => {
     await stubFront([post()], { totalPages: 3 });
     await stub("/posts", list([post({ title: "Older" })], 1, 3), { query: { page: 1, size: 9 } });

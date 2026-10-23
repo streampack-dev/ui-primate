@@ -15,88 +15,114 @@ export interface Input {
 
 <div class="noise-overlay">
   <div class="relative flex min-h-screen flex-col">
+    <!-- The header (#95): one row at every width. From lg up: the brand, the sections (the rarer ones
+         under More), search, the feeds under Subscribe, the theme, Submit as its one filled button,
+         and the account. Below lg: the brand, Submit and a menu holding the rest. The menus are
+         <details>, so they open without script; client/menus.ts closes them on Escape and outside. -->
     <header class="sticky top-0 z-50 w-full">
       <div class="h-[2px] bg-amber"/>
       <div class="bg-background/95 supports-[backdrop-filter]:bg-background/80 backdrop-blur border-b border-border/40">
-        <!-- One row from md up, as before. On a phone, a signed-in reader's account links take a row of their
-             own under the brand (an admin's Submit, Admin, name and Sign out don't fit beside it). -->
-        <div class="container flex flex-wrap md:flex-nowrap min-h-14 md:h-14 py-1 md:py-0 max-w-screen-xl items-center gap-y-1">
-          <div class="hidden md:flex items-center min-w-0">
-            <a href="/" class="mr-6 flex items-center shrink-0">
-              <span class="font-display text-xl tracking-normal">
-                <span class="text-foreground">${input.brand[0]}</span><span class="text-amber">.</span><span class="text-foreground/80">${input.brand[1]}</span>
-              </span>
-            </a>
-            <div class="h-5 w-px bg-border/40 mr-5 shrink-0"/>
-            <nav class="flex items-center gap-5 min-w-0">
-              <a href="/" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 whitespace-nowrap">Front Page</a>
-              <a href="/tags" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 whitespace-nowrap">Tags</a>
-              <a href="/atlas" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 whitespace-nowrap">Atlas</a>
-            </nav>
-          </div>
-          <div class="md:hidden">
-            <a href="/" class="flex items-center">
-              <span class="font-display text-lg tracking-normal">
-                <span class="text-foreground">${input.brand[0]}</span><span class="text-amber">.</span><span class="text-foreground/80">${input.brand[1]}</span>
-              </span>
-            </a>
-          </div>
-          <div class="flex items-center gap-1 ml-auto">
-            <form action="/search" method="get" class="hidden lg:flex items-center gap-1 px-2">
+        <div class="container flex h-14 max-w-screen-xl items-center gap-3 px-4 md:px-8">
+          <a href="/" class="flex items-center shrink-0">
+            <span class="font-display text-lg lg:text-xl tracking-normal whitespace-nowrap">
+              <span class="text-foreground">${input.brand[0]}</span><span class="text-amber">.</span><span class="text-foreground/80">${input.brand[1]}</span>
+            </span>
+          </a>
+          <div class="hidden lg:block h-5 w-px bg-border/40 ml-3 shrink-0"/>
+          <nav class="hidden lg:flex items-center gap-5 ml-2" aria-label="Sections">
+            <a href="/tags" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 whitespace-nowrap">Tags</a>
+            <a href="/atlas" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 whitespace-nowrap">Atlas</a>
+            <details class="hmenu relative" data-menu>
+              <summary class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 whitespace-nowrap">More<chevron/></summary>
+              <div class="hmenu-panel left-0">
+                <if=input.factoids><a class="hmenu-item" href="/factoids">Factoids</a></if>
+                <if=input.rss><a class="hmenu-item" href="/rss">RSS Reader</a></if>
+                <a class="hmenu-item" href="/karma">Karma</a>
+                <a class="hmenu-item" href="/logs">Logs</a>
+              </div>
+            </details>
+          </nav>
+          <div class="hidden lg:flex items-center gap-4 ml-auto">
+            <form action="/search" method="get" class="hidden xl:flex items-center gap-1">
               <label for="header-search" class="sr-only">Search posts</label>
               <span id="header-search-hint" class="sr-only">Use quotes for an exact word.</span>
               <input id="header-search" name="q" type="search" placeholder="Search posts..." aria-describedby="header-search-hint" title="Use quotes for an exact word"
                 class="h-8 w-40 rounded border border-border/60 bg-background px-2 text-sm text-foreground placeholder:text-muted-foreground/75 focus:outline-none focus:ring-1 focus:ring-amber">
-              <button type="submit" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200" aria-label="Search">🔍</button>
+              <button type="submit" class="inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-amber transition-colors duration-200" aria-label="Search"><search-icon/></button>
             </form>
-            <div class="hidden lg:block h-4 w-px bg-border/40"/>
-            <a class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-1.5 md:px-2" href="/feed.xml">RSS</a>
-            <!-- The podcast (#33): the posts with recordings, as a feed for podcast players. -->
-            <a class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-1.5 md:px-2 inline-flex items-center gap-1" href="/podcast.xml" type="application/rss+xml" title="Subscribe to the ByteCode.News podcast (RSS feed)"><audio-icon/>Podcast</a>
-            <div class="h-4 w-px bg-border/40"/>
-            <!-- Lucide's sun and moon (ISC), as ui-nextjs has them: the sun in the dark, to go light, and the
-                 moon in the light. The stylesheet shows the one for the theme the page is in. -->
-            <button type="button" data-theme-toggle hidden aria-label="Toggle theme"
-              class="theme-toggle inline-flex items-center justify-center w-9 h-9 text-muted-foreground hover:text-amber transition-colors duration-200 cursor-pointer">
-              <svg class="icon-sun h-4 w-4" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/>
-                <path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
-              </svg>
-              <svg class="icon-moon h-4 w-4" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/>
-              </svg>
-            </button>
+            <a href="/search" class="xl:hidden inline-flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-amber transition-colors duration-200" aria-label="Search" title="Search"><search-icon/></a>
+            <details class="hmenu relative" data-menu>
+              <summary class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 whitespace-nowrap">Subscribe<chevron/></summary>
+              <div class="hmenu-panel right-0">
+                <a class="hmenu-item" href="/feed.xml">RSS</a>
+                <!-- The podcast (#33): the posts with recordings, as a feed for podcast players. -->
+                <a class="hmenu-item inline-flex items-center gap-2" href="/podcast.xml" type="application/rss+xml" title="Subscribe to the ByteCode.News podcast (RSS feed)"><audio-icon/>Podcast</a>
+              </div>
+            </details>
+            <theme-toggle/>
           </div>
-          <!-- The account links: in line after a rule from md up; signed in, their own row on a phone. -->
-          <div class=["flex items-center justify-end gap-1", input.reader ? "w-full md:w-auto" : "ml-auto md:ml-0"]>
-            <div class="hidden md:block h-4 w-px bg-border/40"/>
-            <!-- Submit for every reader (#92): where the site takes no anonymous posts, /submit signs them in first and brings them back. -->
-            <a href="/submit" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-1.5 md:px-2">Submit</a>
+          <!-- Submit for every reader (#92): where the site takes no anonymous posts, /submit signs them in first and brings them back. -->
+          <a href="/submit" class="submit-button ml-auto lg:ml-0">Submit</a>
+          <div class="hidden lg:flex items-center">
             <if=input.reader>
-              <if=input.admin><a href="/admin" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-1.5 md:px-2">Admin</a></if>
-              <a href="/profile" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-1.5 md:px-2 max-w-[10rem] truncate" title=input.reader.displayName>${input.reader.displayName}</a>
-              <form method="post" action="/logout" class="inline-flex items-center">
-                <input type="hidden" name="csrf" value=input.csrf>
-                <button type="submit" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-1.5 md:px-2">Sign out</button>
-              </form>
+              <details class="hmenu relative" data-menu>
+                <summary class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 whitespace-nowrap" title=input.reader.displayName><span class="inline-block max-w-[8rem] truncate align-bottom">${input.reader.displayName}</span><chevron/></summary>
+                <div class="hmenu-panel right-0">
+                  <a class="hmenu-item" href="/profile">Profile</a>
+                  <if=input.admin><a class="hmenu-item" href="/admin">Admin</a></if>
+                  <form method="post" action="/logout">
+                    <input type="hidden" name="csrf" value=input.csrf>
+                    <button type="submit" class="hmenu-item">Sign out</button>
+                  </form>
+                </div>
+              </details>
             </if>
             <else>
-              <a href="/login" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 px-1.5 md:px-2">Log in</a>
+              <a href="/login" class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 whitespace-nowrap">Log in</a>
             </else>
           </div>
+          <details class="hmenu lg:hidden" data-menu>
+            <summary class="inline-flex items-center justify-center w-9 h-9 text-muted-foreground hover:text-amber transition-colors duration-200" aria-label="Menu" title="Menu">
+              <svg class="h-5 w-5" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
+            </summary>
+            <div class="hmenu-panel hmenu-sheet">
+              <form action="/search" method="get" class="flex items-center gap-1 px-3 pb-2">
+                <label for="mobile-header-search" class="sr-only">Search posts</label>
+                <span id="mobile-header-search-hint" class="sr-only">Use quotes for an exact word.</span>
+                <input id="mobile-header-search" name="q" type="search" placeholder="Search posts..." aria-describedby="mobile-header-search-hint" title="Use quotes for an exact word"
+                  class="h-9 min-w-0 flex-1 rounded border border-border/60 bg-background px-2 text-sm text-foreground placeholder:text-muted-foreground/75 focus:outline-none focus:ring-1 focus:ring-amber">
+                <button type="submit" class="inline-flex items-center justify-center w-9 h-9 text-muted-foreground hover:text-amber transition-colors duration-200" aria-label="Search"><search-icon/></button>
+              </form>
+              <nav aria-label="Sections">
+                <a class="hmenu-item" href="/">Front Page</a>
+                <a class="hmenu-item" href="/tags">Tags</a>
+                <a class="hmenu-item" href="/atlas">Atlas</a>
+                <if=input.factoids><a class="hmenu-item" href="/factoids">Factoids</a></if>
+                <if=input.rss><a class="hmenu-item" href="/rss">RSS Reader</a></if>
+                <a class="hmenu-item" href="/karma">Karma</a>
+                <a class="hmenu-item" href="/logs">Logs</a>
+              </nav>
+              <p class="hmenu-heading">Subscribe</p>
+              <a class="hmenu-item" href="/feed.xml">RSS</a>
+              <a class="hmenu-item inline-flex items-center gap-2" href="/podcast.xml" type="application/rss+xml" title="Subscribe to the ByteCode.News podcast (RSS feed)"><audio-icon/>Podcast</a>
+              <if=input.reader>
+                <p class="hmenu-heading truncate" title=input.reader.displayName>${input.reader.displayName}</p>
+                <a class="hmenu-item" href="/profile">Profile</a>
+                <if=input.admin><a class="hmenu-item" href="/admin">Admin</a></if>
+                <form method="post" action="/logout">
+                  <input type="hidden" name="csrf" value=input.csrf>
+                  <button type="submit" class="hmenu-item">Sign out</button>
+                </form>
+              </if>
+              <else>
+                <div class="hmenu-rule"/>
+                <a class="hmenu-item" href="/login">Log in</a>
+              </else>
+              <div class="hmenu-rule"/>
+              <div class="flex items-center gap-1 px-1"><theme-toggle/><span class="font-mono text-sm text-muted-foreground" aria-hidden="true">Light or dark</span></div>
+            </div>
+          </details>
         </div>
-        <nav class="md:hidden flex items-center gap-4 overflow-x-auto px-6 pb-2">
-          <a href="/" class="section-label text-muted-foreground hover:text-amber transition-colors whitespace-nowrap">Front Page</a>
-          <a href="/tags" class="section-label text-muted-foreground hover:text-amber transition-colors whitespace-nowrap">Tags</a>
-          <a href="/atlas" class="section-label text-muted-foreground hover:text-amber transition-colors whitespace-nowrap">Atlas</a>
-          <form action="/search" method="get" class="flex items-center gap-1">
-            <label for="mobile-header-search" class="sr-only">Search posts</label>
-            <span id="mobile-header-search-hint" class="sr-only">Use quotes for an exact word.</span>
-            <input id="mobile-header-search" name="q" type="search" placeholder="Search..." aria-describedby="mobile-header-search-hint" title="Use quotes for an exact word"
-              class="h-8 w-28 rounded border border-border/60 bg-background px-2 text-sm text-foreground placeholder:text-muted-foreground/75 focus:outline-none focus:ring-1 focus:ring-amber">
-            <button type="submit" class="section-label text-muted-foreground hover:text-amber transition-colors whitespace-nowrap" aria-label="Search">🔍</button>
-          </form>
-        </nav>
       </div>
     </header>
 
