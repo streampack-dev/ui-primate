@@ -12,8 +12,9 @@ document.addEventListener("toggle", (event) => {
 document.addEventListener("click", (event) => {
   for (const menu of open()) {
     if (!menu.contains(event.target as Node)) menu.open = false;
-    // A choice in the menu shuts it, as the page drawn in place would.
-    else if ((event.target as Element).closest?.(".hmenu-panel a")) menu.open = false;
+    // A choice in the menu shuts it, as the page drawn in place would; a Share to button (#98) opens
+    // another tab, and leaves its menu open, saying whether it copied, for the reader's return.
+    else if ((event.target as Element).closest?.(".hmenu-panel a:not([data-share-to])")) menu.open = false;
   }
 });
 

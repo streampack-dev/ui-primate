@@ -181,3 +181,34 @@ describe("the front page's head", () => {
     expect(doc.querySelector("meta[property='og:type']")?.getAttribute("content")).toBe("website");
   });
 });
+
+describe("a post's Share to (#98), as served", () => {
+  it("is a <details> with BCN's text and the networks' pages, so it works without script", async () => {
+    await stubPost();
+    const { doc } = await page("/posts/2026/09/midden");
+    const url = doc.querySelector("link[rel=canonical]")!.getAttribute("href")!;
+    const shared = `From BCN:\n\nMidden reads heap dumps.\n\n${url}`;
+
+    const menu = doc.querySelector("article details.share-menu[data-menu]")!;
+    expect(text(menu.querySelector("summary"))).toBe("Share to…");
+    expect(menu.querySelector("textarea[data-share-text]")!.textContent).toBe(shared);
+    const links = menu.querySelectorAll("a[data-share-to]");
+    expect(links.map((a) => [a.getAttribute("data-share-to"), text(a)])).toEqual([["x", "X"], ["linkedin", "LinkedIn"], ["facebook", "Facebook"]]);
+    expect(links.map((a) => a.getAttribute("href"))).toEqual([
+      `https://x.com/intent/post?text=${encodeURIComponent(shared)}`,
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+    ]);
+    for (const a of links) {
+      expect(a.getAttribute("target")).toBe("_blank");
+      expect(a.getAttribute("rel")).toBe("noopener");
+    }
+  });
+
+  it("without an excerpt, shares the frame and the address", async () => {
+    await stubPost(detail({ excerpt: null }));
+    const { doc } = await page("/posts/2026/09/midden");
+    const url = doc.querySelector("link[rel=canonical]")!.getAttribute("href")!;
+    expect(doc.querySelector("textarea[data-share-text]")!.textContent).toBe(`From BCN:\n\n${url}`);
+  });
+});

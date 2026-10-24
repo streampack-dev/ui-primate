@@ -222,6 +222,10 @@ Smaller things noticed along the way:
       as a category's page does, headed with their name; every byline links there when the API
       gives the post's `authorId`. The profile lists the reader's own posts with each one's state
       in words: a published one links to the post, an unpublished one to the editor for an admin
+- [x] Share to… on a post (#98): a menu with BCN's text (`From BCN:`, the excerpt as it is, the
+      post's address) in an editable box, and X, LinkedIn and Facebook buttons that copy the box and
+      open the network's own share page. client/share.ts, on clientjs's share module; without
+      script it's a <details> whose buttons are links to the networks' pages
 
 Parked:
 

@@ -21,6 +21,8 @@ export interface Input {
   comments: any[];
   slug: string;
   editHref: string | null;
+  /** Share to (#98): BCN's text and each network's page; null for the site's own pages. */
+  share?: { text: string; networks: { id: string; name: string; page: string }[] } | null;
   talk: { slug: string; signedIn: boolean; admin: boolean; csrf: string; login: string;
     form: { kind: "new" | "reply" | "edit"; id?: string; draft: string; error: string;
       anchor?: { exact: string; prefix: string; suffix: string } } | null };
@@ -48,6 +50,24 @@ export interface Input {
           <a class="form-helper" href=input.editHref>Edit</a>
         </if>
       </div>
+      <if=input.share>
+        <!-- Share to (#98): the text to share, and a button per network that copies it and opens the
+             network's own share page (client/share.ts, with clientjs's share module). A <details>, as
+             the header's menus are, so it opens without script; its buttons are then plain links to
+             the networks' pages, and the text is here to copy by hand. -->
+        <details class="hmenu share-menu relative mt-3" data-menu>
+          <summary class="section-label text-muted-foreground hover:text-amber transition-colors duration-200 whitespace-nowrap">Share to…<chevron/></summary>
+          <div class="hmenu-panel share-panel left-0" data-share>
+            <label class="byline form-label" for="share-text">Text to share</label>
+            <textarea class="form-field share-text" id="share-text" data-share-text rows="11" spellcheck="false">${input.share.text}</textarea>
+            <p class="form-hint">Each button copies the text and opens the network's own page, where you paste it.</p>
+            <p class="share-networks" role="group" aria-label="Share to">
+              <for|n| of=input.share.networks><a class="auth-button share-button" data-share-to=n.id href=n.page target="_blank" rel="noopener">${n.name}</a></for>
+            </p>
+            <p class="share-status" role="status" data-share-status></p>
+          </div>
+        </details>
+      </if>
     </header>
     <if=input.tags.length>
       <div class="tags mt-4">

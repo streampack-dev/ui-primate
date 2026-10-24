@@ -2,6 +2,7 @@
    a visit (routes/posts/[...slug].ts) and again for a comment the API refused, with the reader's
    draft and the reason, where they wrote it (routes/posts/.../comments.ts, routes/comments/). */
 import response from "primate/response";
+import { NETWORKS, shareText } from "@streampack-dev/clientjs/share";
 import { ApiUnavailable, cachedGet, send } from "#api/client.ts";
 import type { CommentNode, CommentThread, ContentDetail } from "#api/types.ts";
 import { csrf, current, isAdmin } from "#auth/readers.ts";
@@ -9,6 +10,7 @@ import { asReader, bearer } from "#auth/signed-in.ts";
 import { audioOf } from "#lib/audio.ts";
 import { authorHref } from "#lib/authors.ts";
 import { formatDate, formatUpdatedTime } from "#lib/format.ts";
+import { siteUrl } from "#lib/meta.ts";
 import { view } from "#lib/view.ts";
 
 const SUMMARY_FALLBACK = "Read the latest content on bytecode.news.";
@@ -102,6 +104,9 @@ export async function postPage(path: string, form?: CommentForm, status = 200) {
     audio: audioOf(post.versions),
     // An admin's way to the editor.
     editHref: isAdmin(reader) && post.id ? `/edit/${post.id}` : null,
+    // Share to (#98): BCN's text and each network's page, from clientjs's share module, so the
+    // menu's links work without script. A dated post only; the site's own pages aren't shared so.
+    share: dated ? shareOf(post.excerpt, `${siteUrl()}/posts/${post.slug}`) : null,
     commentsAllowed,
     // Only a dated post takes comments, so only it takes one on a passage (#65).
     quotable: dated,
@@ -130,6 +135,12 @@ export async function postPage(path: string, form?: CommentForm, status = 200) {
     // A signed-in reader's page is theirs: their forms' token, their own comments' edit forms.
     headers: reader ? { "Cache-Control": "private, no-store" } : {},
   });
+}
+
+/** A post's Share to menu (#98): the text, and each network's share page for it. */
+export function shareOf(excerpt: string | null | undefined, url: string) {
+  const text = shareText({ dek: excerpt, url });
+  return { text, networks: NETWORKS.map((n) => ({ id: n.id, name: n.name, page: n.page(text, url) })) };
 }
 
 export function notFound() {
