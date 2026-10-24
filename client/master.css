@@ -1637,6 +1637,31 @@ textarea.form-field {
     margin: 0.6rem 0;
     border-top: 1px solid var(--border);
   }
+  /* Share to (#98): a wider panel holding the text and the networks' buttons. The status says what
+     happened in words; failure is also marked in the destructive colour. */
+  .share-panel {
+    width: min(28rem, calc(100vw - 3rem));
+    padding: 0.85rem;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .share-text {
+    width: 100%;
+    resize: vertical;
+    line-height: 1.45;
+  }
+  .share-networks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .share-status {
+    min-height: 1.4em;
+    font-size: 0.85rem;
+  }
+  .share-status[data-kind="warn"] {
+    color: var(--destructive);
+  }
 
   /* Submit (#92, #95): the header's one filled button, the shallowest way in. Its box sets it apart
      from the links beside it, in every theme, without its colour. */
