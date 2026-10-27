@@ -11,9 +11,7 @@ WORKDIR /app
 COPY --chown=node:node package.json package-lock.json .npmrc ./
 RUN npm ci
 COPY --chown=node:node . .
-# primate build can fail and still exit 0 (primate-bugs/01), so the build is known good only by
-# what it leaves.
-RUN npx primate build && test -f build/server.js || { echo "The build failed: no build/server.js" >&2; exit 1; }
+RUN npx primate build
 
 # Run: the build, no sources or node_modules, as an unprivileged user. Everything that varies
 # (BCN_API_BASE, BCN_ACCEPT_VERSION, PORT) is read at run time.

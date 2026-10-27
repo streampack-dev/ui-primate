@@ -1,20 +1,43 @@
-/* What the page's head says (its route's `meta`, resolved by #lib/view.ts), drawn with Primate's
+/* What the page's head says (its route's `meta`, resolved by #lib/meta.ts), drawn with Primate's
    <Head>: into the server's render, for a crawler or link preview that runs no script, and again
    in the browser after a client-side navigation, whose JSON carries a view's props but not the
-   head. A view drawn without meta draws no head of its own.
-
-   The tags come as HTML from headTags, escaped there, rather than as Marko tags: Marko leaves "<"
-   and ">" in an attribute value as they are, and @primate/marko 0.13.1's server-side check of a
-   <Head> misreads them ("List<String>" in a post's title) and fails the page (primate-bugs/15).
+   head. A view drawn without meta draws no head of its own. Marko escapes each value; Primate
+   0.43 takes "<" and ">" in an attribute ("List<String>" in a post's title) as they are
+   (primate-bugs/15, primate#215).
    Analytics isn't here: the browser would run a <Head>'s scripts again when it takes the page
    over (#lib/view.ts draws it). */
 import { Head } from "@primate/marko/tags";
-import { headTags, type Head as Meta } from "#lib/meta.ts";
+import { SITE, type Head as Meta } from "#lib/meta.ts";
 
 export interface Input {
   meta?: Meta;
 }
 
 <if=input.meta>
-  <Head>$!{headTags(input.meta)}</Head>
+  <const/head=input.meta/>
+  <Head>
+    <title>${head.title}</title>
+    <meta name="description" content=head.description>
+    <meta property="og:site_name" content=SITE>
+    <meta property="og:title" content=head.ogTitle>
+    <meta property="og:description" content=head.description>
+    <meta property="og:type" content=head.type>
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="alternate" type="application/rss+xml" title=SITE href="/feed.xml">
+    // The posts with recordings, for podcast players (#33).
+    <link rel="alternate" type="application/rss+xml" title=`${SITE} podcast` href="/podcast.xml">
+    <if=head.robots>
+      <meta name="robots" content=head.robots>
+    </if>
+    <if=head.url>
+      <link rel="canonical" href=head.url>
+      <meta property="og:url" content=head.url>
+    </if>
+    <meta property="og:image" content=head.image>
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content=head.imageAlt>
+    <meta name="twitter:image" content=head.image>
+    <meta name="twitter:image:alt" content=head.imageAlt>
+  </Head>
 </if>

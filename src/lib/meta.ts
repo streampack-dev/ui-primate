@@ -1,16 +1,8 @@
 /* A page's title and its description for browsers and link previews: what a route puts in its
-   view's `meta` (#lib/view.ts), resolved here, and drawn as tags (headTags) that
-   views/tags/page-meta.marko hands to Primate's <Head>. Every value is escaped. */
-const SITE = "ByteCode.News";
+   view's `meta` (#lib/view.ts), resolved here, and drawn by views/tags/page-meta.marko with
+   Primate's <Head>, which escapes every value. */
+export const SITE = "ByteCode.News";
 const DESCRIPTION = "ByteCode.News: articles, knowledge, and community context.";
-
-function escape(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
 
 /** Where the site is, for addresses a link preview fetches: SITE_URL (default the live site). */
 export function siteUrl(): string {
@@ -28,7 +20,7 @@ export type Meta = {
   image?: { path: string; alt: string };
 };
 
-/** What a page's head says, resolved: drawn by headTags, on the server and in the browser. */
+/** What a page's head says, resolved: drawn by views/tags/page-meta.marko, on the server and in the browser. */
 export type Head = {
   /** The whole title, " | ByteCode.News" and all. */
   title: string;
@@ -55,36 +47,6 @@ export function meta({ title, description = DESCRIPTION, path, type = "website",
     image: siteUrl() + shown.path,
     imageAlt: shown.alt,
   };
-}
-
-/** [head] as tags, escaped, for <Head> (views/tags/page-meta.marko). */
-export function headTags(head: Head): string {
-  const tags = [
-    `<title>${escape(head.title)}</title>`,
-    `<meta name="description" content="${escape(head.description)}">`,
-    `<meta property="og:site_name" content="${SITE}">`,
-    `<meta property="og:title" content="${escape(head.ogTitle)}">`,
-    `<meta property="og:description" content="${escape(head.description)}">`,
-    `<meta property="og:type" content="${head.type}">`,
-    `<meta name="twitter:card" content="summary_large_image">`,
-    `<link rel="alternate" type="application/rss+xml" title="${SITE}" href="/feed.xml">`,
-    // The posts with recordings, for podcast players (#33).
-    `<link rel="alternate" type="application/rss+xml" title="${SITE} podcast" href="/podcast.xml">`,
-  ];
-  if (head.robots) tags.push(`<meta name="robots" content="${escape(head.robots)}">`);
-  if (head.url) {
-    tags.push(`<link rel="canonical" href="${escape(head.url)}">`, `<meta property="og:url" content="${escape(head.url)}">`);
-  }
-  const src = escape(head.image);
-  tags.push(
-    `<meta property="og:image" content="${src}">`,
-    `<meta property="og:image:width" content="1200">`,
-    `<meta property="og:image:height" content="630">`,
-    `<meta property="og:image:alt" content="${escape(head.imageAlt)}">`,
-    `<meta name="twitter:image" content="${src}">`,
-    `<meta name="twitter:image:alt" content="${escape(head.imageAlt)}">`,
-  );
-  return tags.join("");
 }
 
 /** Google Analytics' tags, as the head's %analytics% placeholder takes them (templates/app.html). */

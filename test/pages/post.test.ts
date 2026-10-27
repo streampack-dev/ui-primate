@@ -88,6 +88,17 @@ describe("a post", () => {
     expect(doc.querySelector("meta[name=description]")?.getAttribute("content")).toBe("Generics: List<String>, AT&T, &lt; as typed.");
   });
 
+  it("has each head tag once, none left in the body (primate#231)", async () => {
+    await stubPost();
+    const { doc } = await page("/posts/2026/09/midden");
+
+    for (const selector of ["title", "meta[property='og:title']", "link[rel=canonical]", "meta[name=description]"]) {
+      expect(doc.querySelectorAll(selector).length, selector).toBe(1);
+      expect(doc.querySelector(`head ${selector}`), selector).not.toBeNull();
+    }
+    expect(doc.querySelectorAll("body template meta, body template title").length).toBe(0);
+  });
+
   it("moves a post at an old address to its own, for good", async () => {
     await stub("/posts/2026/09/old-name", detail({ slug: "2026/09/midden" }));
     const response = await fetch(`${inject("appUrl")}/posts/2026/09/old-name`, { redirect: "manual" });

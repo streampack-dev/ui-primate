@@ -67,15 +67,13 @@ export async function startApp(env: Record<string, string>): Promise<{ url: stri
 export default async function setup(project: TestProject) {
   configureContainerRuntime();
   const [stubApi, db] = await Promise.all([startStubApi(), new PostgreSqlContainer("postgres:18").start()]);
-  // primate build can fail and still exit 0, so a build is only known good by what it leaves.
+  // A failed build exits non-zero (primate-bugs/01, primate#109).
   rmSync("build", { recursive: true, force: true });
-  let output = "";
   try {
-    output = execFileSync("npx", ["primate", "build"], { stdio: "pipe" }).toString();
+    execFileSync("npx", ["primate", "build"], { stdio: "pipe" });
   } catch (e) {
-    output = `${(e as { stderr?: Buffer }).stderr || ""}${(e as { stdout?: Buffer }).stdout || ""}`;
+    throw new Error(`The build failed:\n${(e as { stderr?: Buffer }).stderr || ""}${(e as { stdout?: Buffer }).stdout || ""}`);
   }
-  if (!existsSync("build/server.js")) throw new Error(`The build failed:\n${output}`);
 
   // The pages ask the API every time (BCN_CACHE_FRESH_SECONDS 0), since tests change its answers
   // between pages; how long answers are kept is the client's own test (unit/client.test.ts).
