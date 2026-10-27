@@ -120,11 +120,12 @@ export async function editorPage(id: string, post: ContentDetail, shown: EditVie
   });
 }
 
-/** A posted form's fields, every value of a repeated one kept. Primate's body.form() and its
-   request's formData() both keep only the last (primate-bugs/08), so the body is read as text. */
-export async function formData(request: { original: Request }): Promise<{ one: (name: string) => string; all: (name: string) => string[] }> {
-  const data = new URLSearchParams(await request.original.text());
-  return { one: (name) => data.get(name) ?? "", all: (name) => data.getAll(name) };
+/** A posted form's fields, every value of a repeated one kept: Primate's body.formEntries()
+   (primate-bugs/08, primate#116), where body.form() keeps only the last. */
+export async function formData(request: { body: { formEntries(): Promise<[string, string][]> } }): Promise<{ one: (name: string) => string; all: (name: string) => string[] }> {
+  const entries = await request.body.formEntries();
+  const all = (name: string) => entries.filter(([key]) => key === name).map(([, value]) => value);
+  return { one: (name) => all(name)[0] ?? "", all };
 }
 
 export { notFound };

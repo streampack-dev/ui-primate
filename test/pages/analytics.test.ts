@@ -14,7 +14,8 @@ describe("an address nothing answers", () => {
     const response = await fetch(`${inject("appUrl")}/no/such/page`);
     const html = await response.text();
     expect(response.status).toBe(404);
-    expect(html).toContain("<title>Not Found | ByteCode.News</title>");
+    // Primate 0.43 marks the head's tags as its own (data-primate-marko-head).
+    expect(html).toMatch(/<title[^>]*>Not Found \| ByteCode\.News<\/title>/);
     expect(html).toContain("<footer");
   });
 });

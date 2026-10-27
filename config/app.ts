@@ -2,15 +2,15 @@ import marko from "@primate/marko";
 import tailwind from "@primate/tailwind";
 import config from "primate/config";
 import assetCache from "../src/lib/asset-cache.ts";
-import requestTimeout from "../src/lib/request-timeout.ts";
+
+/** How long a request may take to arrive whole (#47): a recording, up to 100 MB, is passed on to
+    the API as it arrives, so half an hour lets it come at about half a megabit. */
+export const REQUEST_TIMEOUT_MS = 30 * 60 * 1000;
 
 export default config({
   modules: [
     // First, so it's around everything: how long browsers keep Primate's own files.
     assetCache as never,
-    // Half an hour for a request to arrive whole, where Node gives five minutes: a recording's
-    // upload on a slow connection (#47).
-    requestTimeout as never,
     // Pages are rendered on the server, and the client runtime takes over from there: following a
     // link, or going back, fetches the next page's data and redraws the body in place, without
     // loading a new document. The page's interactive parts are small scripts in client/, which set
@@ -22,6 +22,9 @@ export default config({
   http: {
     host: "0.0.0.0",
     port: Number.parseInt(process.env.PORT || "3000", 10),
+    // Half an hour for a request to arrive whole, where Node gives five minutes: a recording's
+    // upload on a slow connection (#47). Headers still have Node's minute.
+    timeout: { request: REQUEST_TIMEOUT_MS },
   },
   // Fonts that client/ CSS points at are emitted as files, fingerprinted, and preloaded on every
   // page (Primate preloads each woff2 it bundles): the faces every page uses (tools/fonts.mjs).

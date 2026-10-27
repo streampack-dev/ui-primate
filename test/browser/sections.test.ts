@@ -31,12 +31,6 @@ beforeEach(async () => {
   await stub(`/posts/${ID}/access`, {}, { status: 204 });
 });
 
-/* Primate 0.11.4 throws in its popstate handler on any change of the hash in a page whose session
-   has no Primate history yet (storage.peek on an empty store: "reading 'at'"), with or without this
-   page's scripts. It's Primate's, and harmless here: the browser has gone to the section already. */
-const PRIMATE_POPSTATE = "TypeError: Cannot read properties of undefined (reading 'at')";
-const ours = (errors: string[]) => errors.filter((e) => e !== PRIMATE_POPSTATE);
-
 const hash = (page: Page) => page.evaluate(() => location.hash);
 const inView = (page: Page, id: string) =>
   page.evaluate((id) => {
@@ -50,7 +44,8 @@ describe("a post's sections, in a browser", () => {
     await expect.poll(() => hash(page)).toBe("#section-going-nowhere");
     await expect.poll(() => inView(page, "section-going-nowhere")).toBe(true);
     expect(await page.evaluate(() => document.querySelector(":target")?.id)).toBe("section-going-nowhere");
-    expect(ours(errors)).toEqual([]);
+    // No error at all: Primate 0.43 no longer throws in popstate on a hash change (primate#233).
+    expect(errors).toEqual([]);
   });
 
   it("are reached when the hash changes on the page", async () => {

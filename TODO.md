@@ -136,10 +136,10 @@ Since (2026-10-03):
       Next are the zone's. Days' addresses are the API's; lines' anchors stay their UTC second, so
       links to lines keep working. A server that doesn't name a zone is UTC's, labelled "(UTC)"
       (2026-10-14)
-- [x] An upload has half an hour to arrive, where Node's requestTimeout gives five minutes (408):
-      Primate doesn't let the app set it, so #lib/request-timeout.ts (a module) raises it on the
-      server each request came in on (#47, 2026-10-14). When Primate takes the setting
-      (primate-bugs/16), set it in config/app.ts instead
+- [x] An upload has half an hour to arrive, where Node's requestTimeout gives five minutes (408)
+      (#47, 2026-10-14): set in config/app.ts as `http.timeout.request` since Primate 0.43
+      (primate-bugs/16); #lib/request-timeout.ts, which raised it on each request's server, is gone
+      (#100, 2026-10-27)
 - [x] The Atlas's props carry the API's layout, not its drawing: the view draws the map from it
       (#lib/atlas-map.ts, safe in the browser), so the props are about half what they were (245 KB
       to 123 KB for 248 places). Primate has no way to leave one view's props out of hydration
@@ -155,8 +155,9 @@ Before it's deployed:
 
 - [x] Favicon
 - [x] A proper icon for the theme toggle
-- [x] `just image` and the Dockerfile check the build produced `build/server.js`:
-      `primate build` can fail and still exit 0 (primate-bugs/01)
+- [x] A failed `primate build` exits non-zero (primate-bugs/01, fixed upstream), so `just build`,
+      the Dockerfile and the tests trust its exit status; their check for `build/server.js` is gone
+      (#100, 2026-10-27)
 - [x] Sessions in a database of ui-primate's own (BCN_DB_URL)
 
 Smaller things noticed along the way:
@@ -195,9 +196,13 @@ Smaller things noticed along the way:
       like links (test/browser/navigation.test.ts). The post form's helper buttons are named
       `helper`, not `action`: a control named `action` hides the form's own action from script, and
       Primate's client posted to `/[object HTMLButtonElement]`
-- [ ] <page-meta> hands <Head> its tags as escaped HTML, not as Marko tags, because
-      @primate/marko 0.13.1's server-side check misreads "<" and ">" in an attribute value
-      (primate-bugs/15). When that's fixed, draw the tags in Marko and drop headTags' escaping
+- [x] <page-meta> draws its tags in Marko: Primate 0.43 takes "<" and ">" in an attribute value
+      (primate-bugs/15), and draws each head tag once (primate-bugs/17); headTags' escaped HTML is
+      gone (#100, 2026-10-27)
+- [x] Primate 0.43 (#100, 2026-10-27): repeated form fields come through body.formEntries()
+      (primate-bugs/08), so #lib/editor.ts no longer reads the body as text; each page is set up
+      after navigate.after() rather than a MutationObserver on the body (client/each-page.ts); and
+      a hash change no longer throws in popstate (primate-bugs/18)
 - [ ] Sessions end thirty days after sign-in, not after thirty idle days as ui-pudl's do
 - [x] Mermaid diagrams in posts (#61): the API draws them (streampack#252); master.css colours
       them with the site's tokens, light and dark, and they're set in IBM's own IBM Plex Sans and
