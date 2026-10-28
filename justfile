@@ -8,30 +8,30 @@ default:
 clean:
     rm -rf build node_modules
 
-# Install the packages package-lock.json pins (#84): `npm ci`, when node_modules is missing or older
-# than package.json or the lockfile. Without it, a fresh checkout or worktree fails, or, worse, Node
-# finds a parent directory's node_modules and runs on its versions. npm ci deletes and reinstalls
-# everything, so it isn't run when nothing changed; `just clean` forces it.
+# Install the packages flog.lock pins (#84, #102): `flog install`, when node_modules is missing or
+# older than package.json or the lockfile. Without it, a fresh checkout or worktree fails, or, worse,
+# Node finds a parent directory's node_modules and runs on its versions. It isn't run when nothing
+# changed; `just clean` forces it.
 _deps:
     #!/usr/bin/env sh
     set -eu
-    installed=node_modules/.package-lock.json
-    if [ ! -f "$installed" ] || [ package-lock.json -nt "$installed" ] || [ package.json -nt "$installed" ]; then
-      npm ci
+    installed=node_modules/.flog-managed.json
+    if [ ! -f "$installed" ] || [ flog.lock -nt "$installed" ] || [ package.json -nt "$installed" ]; then
+      flog install
     fi
 
 # Pages are drawn in the browser here; a production build renders them on the server (config/app.ts).
 # Run locally with live reload, against BCN_API_BASE (default the live API, read-only)
 dev: _deps
-    {{app_env}} UI_DEV=1 npx primate
+    {{app_env}} UI_DEV=1 flog x primate
 
 # Build for production: server-rendered pages, fingerprinted assets, in build/.
 build: _deps
-    npx primate build
+    flog x primate build
 
 # Run the production build locally, against BCN_API_BASE (default the live API, read-only).
 run: build
-    {{app_env}} npx primate serve
+    {{app_env}} flog x primate serve
 
 # The Node the image runs (the Dockerfile's FROM), which the tests run the app on.
 node_major := `sed -n 's/^FROM node:\([0-9]*\)-alpine.*/\1/p' Dockerfile | head -1`
@@ -39,14 +39,14 @@ node_major := `sed -n 's/^FROM node:\([0-9]*\)-alpine.*/\1/p' Dockerfile | head 
 # Run the tests, the app on the Node the image ships with. They start their own Postgres
 # (Testcontainers), so Docker must be running.
 test: _deps
-    UI_TEST_NODE="$(npx -y node@{{node_major}} -p process.execPath | tail -1)" npm test
+    UI_TEST_NODE="$(npx -y node@{{node_major}} -p process.execPath | tail -1)" flog run test
 
 # Run every test and report coverage (#43): the target is 70% of lines, reported, not enforced. The
 # served app's coverage is mapped back to the sources through the build's source map; the browser
 # scripts in client/ run in the browser and aren't counted. The report is in coverage/.
 coverage: _deps
     rm -rf coverage coverage-raw
-    UI_TEST_NODE="$(npx -y node@{{node_major}} -p process.execPath | tail -1)" NODE_V8_COVERAGE="$PWD/coverage-raw" npm test
+    UI_TEST_NODE="$(npx -y node@{{node_major}} -p process.execPath | tail -1)" NODE_V8_COVERAGE="$PWD/coverage-raw" flog run test
     node tools/coverage-report.mjs
 
 # Create ui-primate's own database for development, on streampack's local Postgres
@@ -86,7 +86,7 @@ diagram-fonts sans="1.1.0" mono="2.5.0":
 # Refresh the committed OpenAPI snapshot from the API, and the types generated from it.
 refresh-spec:
     {{app_env}} curl -sSf "${BCN_API_BASE:-https://api.bytecode.news}/v3/api-docs" | python3 -m json.tool --indent 2 > spec/openapi.json
-    npx openapi-typescript spec/openapi.json -o src/api/schema.d.ts
+    flog x openapi-typescript spec/openapi.json -o src/api/schema.d.ts
 
 # Move to a release of streampack-dev/masthead from Nexus: the newest by default, or the version
 # given. Kept in package.json as ^version, as ui-pudl keeps masthead.version.
@@ -96,9 +96,10 @@ update-masthead version="":
     set -euo pipefail
     version="{{version}}"
     version="${version#v}"
-    npm install --save "@streampack-dev/masthead@${version:-latest}"
+    version="${version:-$(flog view @streampack-dev/masthead version)}"
+    flog add "@streampack-dev/masthead@^${version}"
     echo "Updated masthead to $(node -p "require('./node_modules/@streampack-dev/masthead/package.json').version")"
-    git status --short package.json package-lock.json
+    git status --short package.json flog.lock
 
 # Log in to the Docker registry. Uses DOCKER_USERNAME/DOCKER_PASSWORD first, then ~/.m2/settings.xml.
 docker-login:
@@ -235,14 +236,14 @@ release level="patch": _on-main
     #!/usr/bin/env bash
     set -euo pipefail
     level="{{level}}"
-    files=(package.json package-lock.json)
+    files=(package.json flog.lock)
     case "$level" in
       patch|minor|major) ;;
       *) echo "release level must be one of: patch, minor, major" >&2; exit 1 ;;
     esac
 
     if ! git diff --quiet -- "${files[@]}"; then
-      echo "package.json or package-lock.json has uncommitted changes (a failed release?). Commit or restore it first." >&2
+      echo "package.json or flog.lock has uncommitted changes (a failed release?). Commit or restore it first." >&2
       exit 1
     fi
 
@@ -264,15 +265,16 @@ release level="patch": _on-main
 
     echo "Releasing $current -> $next"
     trap 'status=$?; if [[ $status -ne 0 ]]; then git checkout -- "${files[@]}"; echo "Release failed; package.json restored to $current." >&2; fi' EXIT
-    npm version "$next" --no-git-tag-version >/dev/null
+    # The version is package.json's alone; flog.lock doesn't record it.
+    node -e 'const fs = require("fs"), p = JSON.parse(fs.readFileSync("package.json", "utf8")); p.version = process.argv[1]; fs.writeFileSync("package.json", JSON.stringify(p, null, 2) + "\n")' "$next"
     just image "$next"
-    echo "Released $next. Commit package.json and package-lock.json."
+    echo "Released $next. Commit package.json."
 
 # The whole release, as it's done from the shell: release, then commit the new version in
-# package.json and package-lock.json and push it. Each step runs only if the one before it worked.
+# package.json and push it. Each step runs only if the one before it worked.
 full-release level="patch":
     just release {{level}}
-    git add package*.json
+    git add package.json
     git commit -m "Updating version"
     git push
 

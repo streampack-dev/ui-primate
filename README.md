@@ -7,6 +7,11 @@ sealed tokens, fingerprinted assets, and a Docker image pushed to Nexus.
 
 ## Running it
 
+Packages are managed with [flog](https://flog.run) (#102): install it with
+`curl -fsSL https://flog.run/install | sh`. `flog.lock` pins the packages for macOS on Apple silicon
+and for the image's Alpine Linux on amd64 and arm64; after changing a dependency, lock all three
+again with `flog lock --target darwin/arm64 --target linux/x64/musl --target linux/arm64/musl`.
+
 ```sh
 cp .env.default .env   # then fill in what's empty
 just create-db         # ui-primate's own database, on streampack's local Postgres
@@ -14,8 +19,8 @@ just dev               # live reload; pages render in the browser here
 just run               # the production build: server-rendered, as it ships
 ```
 
-`just dev`, `build`, `run`, `test` and `coverage` install the packages first (`npm ci`) when
-`node_modules` is missing or older than `package.json` or `package-lock.json`, so a fresh checkout,
+`just dev`, `build`, `run`, `test` and `coverage` install the packages first (`flog install`) when
+`node_modules` is missing or older than `package.json` or `flog.lock`, so a fresh checkout,
 a new worktree or a pull that changed the lockfile needs no separate install. `just clean` removes
 `node_modules`, so the next one installs afresh.
 
@@ -35,11 +40,11 @@ permission model has to allow (#67). Run it before releasing a change to the `Do
 A full release, from an up-to-date `main`:
 
 ```sh
-just release patch && git add package*.json && git commit -m "Updating version" && git push
+just release patch && git add package.json && git commit -m "Updating version" && git push
 ```
 
 `just full-release` does exactly that, each step only if the one before it worked; give it `minor`
-or `major` for those. `just release` bumps the version in `package.json` and `package-lock.json`
+or `major` for those. `just release` bumps the version in `package.json` (`flog.lock` doesn't record it)
 and builds and pushes the image; it refuses to run from any branch but `main`, or from a `main`
 behind `origin/main`, and changes nothing when it does.
 
