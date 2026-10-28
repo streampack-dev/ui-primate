@@ -16,7 +16,7 @@
     "@primate/tailwind": "^0.11.0",
     "@resvg/resvg-js": "^2.6.2",
     "@streampack-dev/clientjs": "^0.2.6",
-    "@streampack-dev/masthead": "^0.5.5",
+    "@streampack-dev/masthead": "^0.5.6",
     "busboy": "^1.6.0",
     "highlight.js": "^11.12.0",
     "markdown-it": "^15.0.2",
