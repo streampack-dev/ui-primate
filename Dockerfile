@@ -10,15 +10,15 @@
 # installer fetches, so a rebuild uses the same one.
 FROM node:26-alpine AS build
 ARG FLOG_VERSION=0.1.11
-RUN apk add --no-cache curl
+RUN apk add curl
 USER node
 ENV PATH="/home/node/.local/bin:${PATH}"
 RUN curl -fsSL https://flog.run/install | FLOG_VERSION=${FLOG_VERSION} sh && flog --version
 WORKDIR /app
 COPY --chown=node:node package.json flog.lock .npmrc ./
-RUN flog install
+RUN flog install --prod
 COPY --chown=node:node . .
-RUN flog x primate build
+RUN flog build
 
 # Run: the build, no sources or node_modules, as an unprivileged user. Everything that varies
 # (BCN_API_BASE, BCN_ACCEPT_VERSION, PORT) is read at run time.
