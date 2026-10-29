@@ -5,13 +5,20 @@
 # and has Uint8Array.toHex, which Primate's UUIDs need (primate-bugs/10).
 
 # Build: Primate compiles the routes, Marko views and client assets (fingerprinted) into build/.
+# Packages come from flog.lock through flog (#102), which locks this image's Alpine targets
+# (linux/x64/musl and linux/arm64/musl) beside the development Mac's. FLOG_VERSION pins the flog the
+# installer fetches, so a rebuild uses the same one.
 FROM node:26-alpine AS build
+ARG FLOG_VERSION=0.1.11
+RUN apk add --no-cache curl
 USER node
+ENV PATH="/home/node/.local/bin:${PATH}"
+RUN curl -fsSL https://flog.run/install | FLOG_VERSION=${FLOG_VERSION} sh && flog --version
 WORKDIR /app
-COPY --chown=node:node package.json package-lock.json .npmrc ./
-RUN npm ci
+COPY --chown=node:node package.json flog.lock .npmrc ./
+RUN flog install
 COPY --chown=node:node . .
-RUN npx primate build
+RUN flog x primate build
 
 # Run: the build, no sources or node_modules, as an unprivileged user. Everything that varies
 # (BCN_API_BASE, BCN_ACCEPT_VERSION, PORT) is read at run time.
