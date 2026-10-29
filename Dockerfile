@@ -9,7 +9,7 @@
 # (linux/x64/musl and linux/arm64/musl) beside the development Mac's. FLOG_VERSION pins the flog the
 # installer fetches, so a rebuild uses the same one.
 FROM node:26-alpine AS build
-ARG FLOG_VERSION=0.1.10
+ARG FLOG_VERSION=0.1.11
 RUN apk add --no-cache curl
 USER node
 ENV PATH="/home/node/.local/bin:${PATH}"

@@ -1,5 +1,8 @@
 {
   "version": 1,
+  "overrides": {
+    "fflate": "0.7.5"
+  },
   "targets": {
     "darwin/arm64": {
       "settings": {
@@ -2156,6 +2159,7 @@
       "dependencies": {
         "fflate": {
           "specifier": "^0.7.3",
+          "override": "0.7.5",
           "resolution": "fflate@0.7.5"
         },
         "string.prototype.codepointat": {
@@ -4792,12 +4796,6 @@
       "resolutionContext": {
         "picomatch": "picomatch@4.0.7"
       }
-    },
-    "fflate@0.7.3": {
-      "name": "fflate",
-      "version": "0.7.3",
-      "resolved": "https://registry.npmjs.org/fflate/-/fflate-0.7.3.tgz",
-      "integrity": "sha512-0Zz1jOzJWERhyhsimS54VTqOteCNwRtIlh8isdL0AXLo0g7xNTfTL7oWrkmCnPhZGocKIkWHBistBrrpoNH3aw=="
     },
     "fflate@0.7.5": {
       "name": "fflate",
@@ -7516,7 +7514,8 @@
         },
         "fflate": {
           "specifier": "0.7.3",
-          "resolution": "fflate@0.7.3"
+          "override": "0.7.5",
+          "resolution": "fflate@0.7.5"
         },
         "harfbuzzjs": {
           "specifier": "0.10.0",
