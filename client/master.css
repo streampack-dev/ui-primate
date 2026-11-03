@@ -72,7 +72,7 @@
   --border: oklch(0.80 0.018 72);
   --input: oklch(0.80 0.018 72);
   --ring: oklch(0.45 0.12 50);
-  --amber: oklch(0.48 0.15 55);
+  --amber: oklch(0.44 0.15 55);
   --amber-dim: oklch(0.38 0.11 55);
   --chart-1: oklch(0.45 0.12 50);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -91,25 +91,25 @@
 
 .dark {
   --background: oklch(0.11 0.008 60);
-  --foreground: oklch(0.90 0.01 75);
+  --foreground: oklch(0.93 0.01 75);
   --card: oklch(0.14 0.008 60);
-  --card-foreground: oklch(0.90 0.01 75);
+  --card-foreground: oklch(0.93 0.01 75);
   --popover: oklch(0.14 0.008 60);
-  --popover-foreground: oklch(0.90 0.01 75);
+  --popover-foreground: oklch(0.93 0.01 75);
   --primary: oklch(0.78 0.14 70);
   --primary-foreground: oklch(0.11 0.008 60);
   --secondary: oklch(0.18 0.008 60);
   --secondary-foreground: oklch(0.85 0.01 75);
   --muted: oklch(0.18 0.008 60);
-  --muted-foreground: oklch(0.74 0.012 70);
+  --muted-foreground: oklch(0.86 0.012 70);
   --accent: oklch(0.18 0.01 60);
   --accent-foreground: oklch(0.85 0.01 75);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(0.27 0.01 60);
   --input: oklch(0.27 0.012 60);
   --ring: oklch(0.78 0.14 70);
-  --amber: oklch(0.82 0.15 70);
-  --amber-dim: oklch(0.61 0.09 70);
+  --amber: oklch(0.86 0.13 75);
+  --amber-dim: oklch(0.82 0.08 72);
   --chart-1: oklch(0.78 0.14 70);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -195,49 +195,49 @@
     font-family: var(--font-display), Georgia, serif;
     font-size: clamp(3.5rem, 10vw, 7rem);
     line-height: 0.9;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.01em;
   }
 
   .headline-lead {
     font-family: var(--font-display), Georgia, serif;
     font-size: clamp(2rem, 5vw, 3.25rem);
     line-height: 1.08;
-    letter-spacing: -0.025em;
+    letter-spacing: normal;
   }
 
   .headline-secondary {
     font-family: var(--font-display), Georgia, serif;
     font-size: clamp(1.35rem, 3vw, 1.75rem);
     line-height: 1.15;
-    letter-spacing: -0.015em;
+    letter-spacing: normal;
   }
 
   .headline-brief {
     font-family: var(--font-display), Georgia, serif;
     font-size: clamp(1.05rem, 2vw, 1.25rem);
     line-height: 1.2;
-    letter-spacing: -0.01em;
+    letter-spacing: normal;
   }
 
   .byline {
     font-family: var(--font-mono);
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
+    font-size: 0.8125rem;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
   }
 
   .section-label {
     font-family: var(--font-mono);
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
+    font-size: 0.8125rem;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     font-weight: 500;
   }
 
   .dateline {
     font-family: var(--font-mono);
-    font-size: 0.75rem;
-    letter-spacing: 0.15em;
+    font-size: 0.8125rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
   }
 
@@ -245,7 +245,7 @@
     font-family: var(--font-body), Georgia, serif;
     font-size: 0.95rem;
     line-height: 1.58;
-    color: color-mix(in oklab, var(--foreground), var(--background) 34%);
+    color: var(--muted-foreground);
   }
 
   .newspaper-rule {
@@ -1185,7 +1185,7 @@
 
 .pagelink {
   font-family: var(--font-mono);
-  font-size: 0.77rem;
+  font-size: 0.8125rem;
   color: var(--amber);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -1221,7 +1221,7 @@
 .tag {
   @apply border border-border rounded-full px-2 py-0.5;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   color: var(--muted-foreground);
 }
 
@@ -1246,7 +1246,7 @@ body {
 
 .form-label {
   @apply block mb-1.5;
-  color: color-mix(in srgb, var(--muted-foreground) 70%, transparent);
+  color: var(--muted-foreground);
 }
 
 .form-label-row {
@@ -1275,7 +1275,7 @@ textarea.form-field {
 
 .form-hint {
   @apply text-xs mt-1;
-  color: color-mix(in srgb, var(--muted-foreground) 70%, transparent);
+  color: var(--muted-foreground);
 }
 
 .form-helper {
