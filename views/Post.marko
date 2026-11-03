@@ -87,7 +87,7 @@ export interface Input {
 
     <if=input.commentsAllowed>
       <section class="comments mt-10 border-t border-border/40 pt-6" id="comments">
-        <h2 class="font-display text-xl mb-4">Comments (${input.commentCount})</h2>
+        <h2 class="headline-brief mb-4">Comments (${input.commentCount})</h2>
         <if=!input.commentsAvailable><p class="text-muted-foreground">Comments are temporarily unavailable.</p></if>
         <else if=(input.comments.length === 0)><p class="text-muted-foreground">No comments yet.</p></else>
         <else>
