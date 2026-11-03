@@ -192,6 +192,9 @@ image tag="":
     docker buildx inspect --bootstrap >/dev/null
 
     docker buildx build --platform "$platforms" "${build_args[@]}" "${labels[@]}" "${tags[@]}" --push .
+    # The shared builder's cache lives in its own volume, which docker system prune never sees: keep
+    # the recent layers and drop the rest (streampack#308).
+    docker buildx prune --builder "$builder" --max-used-space 10gb -f >/dev/null
     echo "Pushed ${image}:${version}$([[ "${DOCKER_PUSH_LATEST:-true}" == "true" ]] && printf ' and :latest')"
 
 # Build the image locally (not pushed) and check that it serves a link-preview card (#67). The
