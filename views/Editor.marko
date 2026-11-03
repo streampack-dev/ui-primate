@@ -80,7 +80,7 @@ export interface Input {
             <label class="byline form-label" for="edit-summary">Summary</label>
             <button class="section-label form-helper" type="submit" name="helper" value="derive-summary" formnovalidate>Derive Summary</button>
           </div>
-          <textarea class="form-field" id="edit-summary" name="summary" rows="3">${form.summary}</textarea>
+          <textarea/summaryField class="form-field" id="edit-summary" name="summary" rows="3">${form.summary}</textarea>
           <div id="helper-summary">
             <if=said("summary")><p class=(said("summary").ok ? "form-status" : "form-error") role=(said("summary").ok ? "status" : "alert")>${said("summary").text}</p></if>
           </div>
@@ -94,7 +94,7 @@ export interface Input {
               <if=input.ai><button class="section-label form-helper" type="submit" name="helper" value="ai-tags" formnovalidate>AI Tags</button></if>
             </span>
           </div>
-          <input class="form-field text-sm p-2" id="edit-tags" name="tags" value=form.tags aria-describedby="edit-tags-hint">
+          <input/tagsField class="form-field text-sm p-2" id="edit-tags" name="tags" value=form.tags aria-describedby="edit-tags-hint">
           <p class="form-hint" id="edit-tags-hint">Separate tags with commas.</p>
           <div id="helper-tags">
             <if=said("tags")><p class=(said("tags").ok ? "form-status" : "form-error") role=(said("tags").ok ? "status" : "alert")>${said("tags").text}</p></if>
@@ -203,3 +203,10 @@ export interface Input {
     </div>
   </div>
 </section>
+<!-- Primate's client draws an answer in place, and Marko then keeps what a field already on the page
+     holds, its value= becoming only the default (#106). So the fields the helpers fill take the
+     server's value each time it draws the form. -->
+<script>
+  tagsField().value = form.tags;
+  summaryField().value = form.summary;
+</script>

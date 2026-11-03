@@ -67,7 +67,7 @@ export interface Input {
             <if=input.ai><button class="section-label form-helper" type="submit" name="helper" value="ai-tags" formnovalidate>AI Tags</button></if>
           </span>
         </div>
-        <input class="form-field" id="submit-tags" name="tags" placeholder="java, spring, architecture" value=form.tags aria-describedby="submit-tags-hint">
+        <input/tagsField class="form-field" id="submit-tags" name="tags" placeholder="java, spring, architecture" value=form.tags aria-describedby="submit-tags-hint">
         <p class="form-hint" id="submit-tags-hint">Separate tags with commas.</p>
         <div id="helper-tags">
           <if=(input.helper === "tags" && input.said)>
@@ -82,7 +82,7 @@ export interface Input {
             <label class="byline form-label" for="submit-summary">Summary (optional)</label>
             <button class="section-label form-helper" type="submit" name="helper" value="derive-summary" formnovalidate>Derive Summary</button>
           </div>
-          <textarea class="form-field" id="submit-summary" name="summary" rows="3" aria-describedby="submit-summary-hint"
+          <textarea/summaryField class="form-field" id="submit-summary" name="summary" rows="3" aria-describedby="submit-summary-hint"
             placeholder="Brief summary for the front page and feed excerpts.">${form.summary}</textarea>
           <p class="form-hint" id="submit-summary-hint">Left empty, one is made from the post.</p>
           <div id="helper-summary">
@@ -111,3 +111,10 @@ export interface Input {
     </form>
   </div>
 </section>
+<!-- Primate's client draws an answer in place, and Marko then keeps what a field already on the page
+     holds, its value= becoming only the default (#106). So the fields the helpers fill take the
+     server's value each time it draws the form. -->
+<script>
+  tagsField().value = form.tags;
+  summaryField().value = form.summary;
+</script>

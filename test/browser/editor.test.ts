@@ -38,4 +38,26 @@ describe("the editor, in a browser", () => {
       }
     }
   });
+
+  // Primate's client draws the answer in place, and Marko keeps a field's live value then (#106).
+  it("fills the fields from each helper, not just the words beside it", async () => {
+    await stubSite({ ai: true });
+    await stub("/posts/derive-tags", { tags: ["heap"] }, { method: "POST" });
+    await stub(`/admin/posts/${ID}/derive-tags`, { tags: ["memory"] }, { method: "POST" });
+    await stub("/posts/derive-summary", { summary: "A heap-dump reader." }, { method: "POST" });
+    const v = await signedIn(ADMIN);
+    const { page } = await open(`/edit/${ID}`, "light", v.cookies);
+    // What the admin types is kept while the preview is drawn again.
+    await page.fill("#edit-tags", "jvm, own");
+    await page.fill("#edit-body", "Midden reads _heap dumps_.");
+    await page.waitForSelector(".editor-preview em");
+    expect(await page.inputValue("#edit-tags")).toBe("jvm, own");
+
+    await page.click("button[value=suggest-tags]");
+    await expect.poll(() => page.inputValue("#edit-tags")).toBe("jvm, own, heap");
+    await page.click("button[value=ai-tags]");
+    await expect.poll(() => page.inputValue("#edit-tags")).toBe("jvm, own, heap, memory");
+    await page.click("button[value=derive-summary]");
+    await expect.poll(() => page.inputValue("#edit-summary")).toBe("A heap-dump reader.");
+  });
 });
