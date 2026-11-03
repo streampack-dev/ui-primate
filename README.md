@@ -8,9 +8,17 @@ sealed tokens, fingerprinted assets, and a Docker image pushed to Nexus.
 ## Running it
 
 Packages are managed with [flog](https://flog.run) (#102): install it with
-`curl -fsSL https://flog.run/install | sh`. `flog.lock` pins the packages for macOS on Apple silicon
-and for the image's Alpine Linux on amd64 and arm64; after changing a dependency, lock all three
-again with `flog lock --target darwin/arm64 --target linux/x64/musl --target linux/arm64/musl`.
+`curl -fsSL https://flog.run/install | sh`. `flog.lock` pins the packages for macOS on Apple silicon,
+Linux x64 and for the image's Alpine Linux on amd64 and arm64; after changing a dependency, lock all
+again with:
+
+```sh
+flog lock \
+  --target darwin/arm64 \
+  --target linux/x64/glibc \
+  --target linux/x64/musl \
+  --target linux/arm64/musl
+```
 
 ```sh
 cp .env.default .env   # then fill in what's empty

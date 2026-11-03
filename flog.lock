@@ -43,6 +43,26 @@
         "vite@8.3.5(9012776e006ef86dbd80bd8b746b9f8a5b0e825ae84bbe3e6043be4fca7d26b6)": "vite@8.3.5(9012776e006ef86dbd80bd8b746b9f8a5b0e825ae84bbe3e6043be4fca7d26b6)#a55c517057a41a243f83b053103e8b877dfcf4a639392b1f7bca4f37c6df22e0"
       }
     },
+    "linux/x64/glibc": {
+      "settings": {
+        "os": "linux",
+        "cpu": "x64",
+        "libc": "glibc"
+      },
+      "importers": {
+        ".": "."
+      },
+      "packages": {
+        "@resvg/resvg-js@2.6.2": "@resvg/resvg-js@2.6.2#ddd05cc440906e0f80475affb148a29da5a2d33428c276414a91442d9594b65d",
+        "@tailwindcss/oxide@4.3.3": "@tailwindcss/oxide@4.3.3#bdf01ba49a0b0cf4b767c8465110e2a096226642f422b0f230531545aa645cfd",
+        "esbuild@0.28.2": "esbuild@0.28.2#71a1f83d3cd83e06b12ef062e1143ffb7c425d4fc8116a0df9d31a68c0e687b8",
+        "lightningcss@1.32.0": "lightningcss@1.32.0#55ff44970f34ad835c6ba9e81a63a44858812807fba4d69544909b667c670feb",
+        "lightningcss@1.33.0": "lightningcss@1.33.0#055fcfdc748da4399e6614763b0a9c595c3ea922b2cf013ef24e5d021bc20e0d",
+        "rolldown@1.2.15": "rolldown@1.2.15#683f080a77b5e190027f3726c7b2a4765a78cd376ea70afbb58a61c112ac307d",
+        "typescript@7.0.2": "typescript@7.0.2#f311ebbcaa9c2f1cb7a6b0cf593a765013a424eea5cc3004382caa950543c681",
+        "vite@8.3.5(9012776e006ef86dbd80bd8b746b9f8a5b0e825ae84bbe3e6043be4fca7d26b6)": "vite@8.3.5(9012776e006ef86dbd80bd8b746b9f8a5b0e825ae84bbe3e6043be4fca7d26b6)#a55c517057a41a243f83b053103e8b877dfcf4a639392b1f7bca4f37c6df22e0"
+      }
+    },
     "linux/x64/musl": {
       "settings": {
         "os": "linux",
@@ -139,6 +159,10 @@
           "specifier": "^0.62.0",
           "resolution": "satori@0.62.0"
         },
+        "shadcn": {
+          "specifier": "^4.21.4",
+          "resolution": "shadcn@4.23.0"
+        },
         "tailwindcss": {
           "specifier": "^4.3.3",
           "resolution": "tailwindcss@4.3.3"
@@ -184,10 +208,6 @@
         "playwright": {
           "specifier": "^1.64.0",
           "resolution": "playwright@1.64.1"
-        },
-        "shadcn": {
-          "specifier": "^4.21.4",
-          "resolution": "shadcn@4.23.0"
         },
         "testcontainers": {
           "specifier": "^12.2.0",
