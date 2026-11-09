@@ -3,7 +3,7 @@
    so the bundle tries to take in resvg's .node file and the build fails. Only that bundle leaves
    resvg out: it runs on the build host, beside node_modules. The real build still bundles resvg
    and its add-on, since the image carries no node_modules. Delete this module when Primate's route
-   check handles native add-ons (primate-bugs/19). */
+   check handles native add-ons (primate-bugs/19, primate#371). */
 
 /** The entry Primate's route check bundles from; no other build has it. */
 const VALIDATOR = "primate-validate-routes.ts";

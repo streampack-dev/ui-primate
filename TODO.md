@@ -142,7 +142,7 @@ Since (2026-10-03):
       (#100, 2026-10-27)
 - [x] Primate 0.44, Pele 1.13 and the rest current (#112, 2026-11-09): 0.44's route check bundles
       without the native-addons plugin, so #lib/validate-externals.ts makes resvg external there alone
-      (primate-bugs/19). Pele 1.13 moves together with streampack's, ui-pudl's and clientjs's copies;
+      (primate-bugs/19, primate#371). Pele 1.13 moves together with streampack's, ui-pudl's and clientjs's copies;
       a parse error at the end now names the last line with content
 - [x] The Atlas's props carry the API's layout, not its drawing: the view draws the map from it
       (#lib/atlas-map.ts, safe in the browser), so the props are about half what they were (245 KB
