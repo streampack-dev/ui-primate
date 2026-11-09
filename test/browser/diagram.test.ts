@@ -82,7 +82,7 @@ describe("a post's diagrams, in a browser", () => {
       expect(seen.font.startsWith('"IBM Plex Sans"')).toBe(true);
       expect(seen.plex).toBe(true);
       expect(seen.summary).toBe("Diagram source");
-      expect(seen.refused).toMatch(/^This diagram wasn't drawn: Parse error on line 3/);
+      expect(seen.refused).toMatch(/^This diagram wasn't drawn: Parse error on line 2/);
       await expectAccessible(page);
       expect(errors).toEqual([]);
     });
