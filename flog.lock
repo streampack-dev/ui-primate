@@ -105,8 +105,8 @@
           "resolution": "@resvg/resvg-js@2.6.2"
         },
         "@streampack-dev/clientjs": {
-          "specifier": "^0.2.6",
-          "resolution": "@streampack-dev/clientjs@0.2.6"
+          "specifier": "^0.2.7",
+          "resolution": "@streampack-dev/clientjs@0.2.7"
         },
         "@streampack-dev/masthead": {
           "specifier": "^0.5.6",
@@ -2160,11 +2160,11 @@
       "resolved": "https://registry.npmjs.org/@sindresorhus/merge-streams/-/merge-streams-4.0.0.tgz",
       "integrity": "sha512-tlqY9xq5ukxTUZBmoOp+m61cqwQD5pHJtFY3Mn8CA8ps6yghLH/Hw8UPdqg4OLmFW3IFlcXnQNmo/dh8HzXYIQ=="
     },
-    "@streampack-dev/clientjs@0.2.6": {
+    "@streampack-dev/clientjs@0.2.7": {
       "name": "@streampack-dev/clientjs",
-      "version": "0.2.6",
-      "resolved": "https://nexus.streampack.dev/repository/npm-group/@streampack-dev/clientjs/-/clientjs-0.2.6.tgz",
-      "integrity": "sha512-1QOZ3BrzGIR9+xiLYEhgUY2Nvqpzxv7qFCuPXqobkxofXtkUTmy6A4hYjkzhuclH0z5f2wMVSN1jFrEaKc1D6w=="
+      "version": "0.2.7",
+      "resolved": "https://nexus.streampack.dev/repository/npm-group/@streampack-dev/clientjs/-/clientjs-0.2.7.tgz",
+      "integrity": "sha512-JaFhiIPDa6k/mpYdaNblGWVEIA5pDA7mSijZDHO9vRpQavitEeJ345Ydgg7RvuhbLTh2JCI3TmZmPJ9mTjpEXA=="
     },
     "@streampack-dev/masthead@0.5.6": {
       "name": "@streampack-dev/masthead",
