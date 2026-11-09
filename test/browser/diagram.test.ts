@@ -82,7 +82,7 @@ describe("a post's diagrams, in a browser", () => {
       expect(seen.font.startsWith('"IBM Plex Sans"')).toBe(true);
       expect(seen.plex).toBe(true);
       expect(seen.summary).toBe("Diagram source");
-      expect(seen.refused).toMatch(/^This diagram wasn't drawn: Parse error on line 3/);
+      expect(seen.refused).toMatch(/^This diagram wasn't drawn: Parse error on line 2/);
       await expectAccessible(page);
       expect(errors).toEqual([]);
     });
@@ -135,7 +135,7 @@ describe("the editor's preview of a diagram, in a browser", () => {
     const { page } = await preview("```mermaid\nflowchart LR\n  A -->\n```\n");
     await page.waitForSelector(".editor-preview figure.mermaid-refused figcaption");
     expect(await page.locator(".editor-preview figure.mermaid-refused figcaption").textContent())
-      .toBe("This diagram wasn't drawn: Parse error on line 3: Expecting 'NODE_STRING', got 'EOF'");
+      .toBe("This diagram wasn't drawn: Parse error on line 2: Expecting 'NODE_STRING', got 'EOF'");
     expect(await page.locator(".editor-preview figure.mermaid-refused pre > code").textContent()).toBe("flowchart LR\n  A -->\n");
   });
 

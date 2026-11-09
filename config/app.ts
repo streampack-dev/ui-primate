@@ -2,6 +2,7 @@ import marko from "@primate/marko";
 import tailwind from "@primate/tailwind";
 import config from "primate/config";
 import assetCache from "../src/lib/asset-cache.ts";
+import validateExternals from "../src/lib/validate-externals.ts";
 
 /** How long a request may take to arrive whole (#47): a recording, up to 100 MB, is passed on to
     the API as it arrives, so half an hour lets it come at about half a megabit. */
@@ -11,6 +12,8 @@ export default config({
   modules: [
     // First, so it's around everything: how long browsers keep Primate's own files.
     assetCache as never,
+    // resvg left out of Primate 0.44's route check alone (primate-bugs/19).
+    validateExternals as never,
     // Pages are rendered on the server, and the client runtime takes over from there: following a
     // link, or going back, fetches the next page's data and redraws the body in place, without
     // loading a new document. The page's interactive parts are small scripts in client/, which set

@@ -42,6 +42,9 @@ The tests run the app with the repository's `node_modules`, so they can't see wh
 `just smoke-image` builds the image locally (not pushed), starts it, and checks that it serves a
 link-preview card. Primate bundles satori and resvg into the build; resvg is a native add-on the
 permission model has to allow (#67). Run it before releasing a change to the `Dockerfile`.
+Primate 0.44's build also runs each route once to check it, in a bundle that can't take in an
+add-on, so `src/lib/validate-externals.ts` leaves resvg to `node_modules` there alone (#112,
+primate-bugs/19).
 
 ## Releasing
 
