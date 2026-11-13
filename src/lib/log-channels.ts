@@ -71,7 +71,7 @@ export function searchHref(channel: Channel, params: Record<string, string>, all
 
 /** [path] from the API, as the signed-in reader when there is one; null for a 404. Throws when it can't be had. */
 export async function readLogs<T>(path: string, query: Record<string, string>): Promise<T | null> {
-  if (current()) {
+  if (await current()) {
     try {
       const answer = await asReader((a) => send("GET", `${path}?${new URLSearchParams(query)}`, undefined, bearer(a)));
       if (answer.status === 404) return null;
@@ -110,7 +110,7 @@ export async function channels(all: boolean): Promise<Channel[]> {
  */
 export async function askLogs(path: string, query: Record<string, string>): Promise<Response> {
   const url = `${path}?${new URLSearchParams(query)}`;
-  if (current()) {
+  if (await current()) {
     try {
       return await asReader((a) => send("GET", url, undefined, bearer(a)));
     } catch (e) {

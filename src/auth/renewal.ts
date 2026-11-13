@@ -13,9 +13,9 @@ export type Tokens = { access: string; refresh: string | null };
 /** One reader's tokens: as this request saw them, and where new ones are kept. */
 export interface SessionTokens {
   id: string;
-  read(): Tokens | null;
+  read(): Promise<Tokens | null>;
   /** Keeps [tokens], or signs the reader out when null. */
-  write(tokens: Tokens | null): void;
+  write(tokens: Tokens | null): Promise<void>;
 }
 
 /** Trades a refresh token for new tokens; null when the API refuses it. Throws when it can't ask. */
@@ -46,20 +46,20 @@ export function signedInCalls(refresh: Refresh) {
   }
 
   return async function call(session: SessionTokens, block: (access: string) => Promise<Response>): Promise<Response> {
-    const tokens = session.read();
+    const tokens = await session.read();
     if (!tokens) throw new SignInRequired();
     const first = await block(tokens.access);
     if (first.status !== 401) return first;
 
     const renewed = await renew(session, tokens);
     if (!renewed) {
-      session.write(null);
+      await session.write(null);
       throw new SignInRequired();
     }
-    session.write(renewed);
+    await session.write(renewed);
     const second = await block(renewed.access);
     if (second.status === 401) {
-      session.write(null);
+      await session.write(null);
       throw new SignInRequired();
     }
     return second;

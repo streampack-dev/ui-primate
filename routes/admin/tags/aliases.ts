@@ -10,15 +10,15 @@ import { signedIn, tagsPage } from "#lib/tags-pages.ts";
 /* Every alias, and a new one: asked first (aliases/new), with what it would re-point, and made by
    that question's Confirm, posted here. */
 export default route({
-  get(request) {
-    if (!admin()) return notFound();
+  async get(request) {
+    if (!(await admin())) return notFound();
     return tagsPage(at("aliases", null, null), { said: doneSaying(request.url.searchParams) });
   },
 
   async post(request) {
-    if (!admin()) return notFound();
+    if (!(await admin())) return notFound();
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
     const alias = (form.alias || "").trim();
     const tag = (form.tag || "").trim();
     const again = (error: string, status: number) => signedIn("/admin/tags/aliases", () => aliasQuestion(alias, tag, { error }, status));

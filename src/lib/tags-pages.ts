@@ -99,7 +99,7 @@ export async function askPage(props: {
     hidden: {},
     ...props,
     vocabulary: suggest ? await vocabulary() : [],
-    csrf: csrf(),
+    csrf: await csrf(),
     meta: { title: props.title, robots: "noindex, nofollow" },
   }, { status, headers: { "Cache-Control": "private, no-store" } });
 }

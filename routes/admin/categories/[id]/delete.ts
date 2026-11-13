@@ -12,7 +12,7 @@ const ID = /^[0-9a-f-]{36}$/i;
 export default route({
   async get(request) {
     const id = request.path.get("id");
-    if (!admin() || !ID.test(id)) return notFound();
+    if (!(await admin()) || !ID.test(id)) return notFound();
     const category = ((await cachedGet<Category[]>("/categories").catch(() => null)) || []).find((c) => c.id === id);
     if (!category) return notFound();
     return confirmPage({
@@ -24,9 +24,9 @@ export default route({
 
   async post(request) {
     const id = request.path.get("id");
-    if (!admin() || !ID.test(id)) return notFound();
+    if (!(await admin()) || !ID.test(id)) return notFound();
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
     return act((a) => send("DELETE", `/admin/categories/${id}`, undefined, bearer(a)), "/admin/categories?done=deleted",
       (error, status) => categoriesPage({ error }, status), "The category wasn't deleted.");
   },

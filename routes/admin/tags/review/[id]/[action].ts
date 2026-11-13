@@ -18,7 +18,7 @@ export default route({
   async get(request) {
     const id = request.path.get("id");
     const action = request.path.get("action") as ReviewAction;
-    if (!admin() || !ID.test(id) || !(ASKED as readonly string[]).includes(action)) return notFound();
+    if (!(await admin()) || !ID.test(id) || !(ASKED as readonly string[]).includes(action)) return notFound();
     const back = backTo("review", request.query.try("back"));
     return signedIn(request.target, async () => {
       const entry = await openEntry(id).catch(() => null);
@@ -30,9 +30,9 @@ export default route({
   async post(request) {
     const id = request.path.get("id");
     const action = request.path.get("action") as (typeof ACTIONS)[number];
-    if (!admin() || !ID.test(id) || !(ACTIONS as readonly string[]).includes(action)) return notFound();
+    if (!(await admin()) || !ID.test(id) || !(ACTIONS as readonly string[]).includes(action)) return notFound();
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
     const back = backTo("review", form.back);
 
     let body: unknown;

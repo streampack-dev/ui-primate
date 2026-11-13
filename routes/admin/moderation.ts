@@ -9,7 +9,7 @@ const SIZE = 20;
 
 export default route({
   async get(request) {
-    if (!admin()) return notFound();
+    if (!(await admin())) return notFound();
     const asked = (request.query.try("status") || "").toLowerCase();
     const status = (STATUSES as readonly string[]).includes(asked) ? asked as Status : null;
     const number = Number.parseInt(request.query.try("page") || "0", 10);

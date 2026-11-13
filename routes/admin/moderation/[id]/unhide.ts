@@ -8,9 +8,9 @@ import { reportPage } from "../[id].ts";
 export default route({
   async post(request) {
     const id = request.path.get("id");
-    if (!admin() || !ID.test(id)) return notFound();
+    if (!(await admin()) || !ID.test(id)) return notFound();
     const { lineIds, note, one } = readForm(await request.body.formEntries());
-    if (!csrfOk(one("csrf"))) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(one("csrf")))) return new Response("Forbidden", { status: 403 });
     if (lineIds.length === 0) return reportPage(id, { error: "Select the lines to unhide first.", checked: lineIds, note }, 400);
     return moderate(`/admin/moderation/reports/${id}/unhide`, { lineIds, ...(note ? { note } : {}) }, `/admin/moderation/${id}`, "unhidden",
       (error, status) => reportPage(id, { error, checked: lineIds, note }, status), "The lines weren't unhidden.");

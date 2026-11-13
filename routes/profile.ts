@@ -10,8 +10,8 @@ import { profilePage, SIGN_IN } from "#lib/profile.ts";
    data to export (routes/profile/export.ts), and their account to delete (routes/profile/delete.ts).
    Plain forms; no script needed. */
 export default route({
-  get(request) {
-    if (!current()) return response.redirect(SIGN_IN, 303);
+  async get(request) {
+    if (!(await current())) return response.redirect(SIGN_IN, 303);
     const saved = request.query.try("saved");
     return profilePage({
       status: saved === "1" ? "Saved." : saved === "0" ? "Nothing changed." : undefined,
@@ -22,8 +22,8 @@ export default route({
   /* The display name, sent only when it changed: the API keeps any field it isn't sent. */
   async post(request) {
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
-    const reader = current();
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
+    const reader = await current();
     if (!reader) return response.redirect(SIGN_IN, 303);
     const name = (form.displayName || "").trim();
     if (!name) return profilePage({ nameError: "Your display name can't be blank.", nameDraft: "" }, 400);
@@ -41,7 +41,7 @@ export default route({
       return profilePage({ nameError: await refusal(answer, "That name wasn't accepted."), nameDraft: name }, status);
     }
     const principal = await answer.json().catch(() => null) as { displayName?: string } | null;
-    rename(principal?.displayName?.trim() || name);
+    await rename(principal?.displayName?.trim() || name);
     return response.redirect("/profile?saved=1", 303);
   },
 });

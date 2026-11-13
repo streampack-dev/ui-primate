@@ -52,7 +52,7 @@ async function categories(): Promise<{ id: string; name: string }[]> {
 
 /** What this reader may use: whether they may submit at all, and the helpers beyond Suggest tags. */
 async function allowed() {
-  const reader = current();
+  const reader = await current();
   const f = await features();
   return { submit: !!reader || f?.anonymousSubmission !== false, summary: !!reader, ai: isAdmin(reader) && !!f?.ai };
 }
@@ -65,7 +65,7 @@ async function page(shown: Shown) {
     categories: await categories(),
     signedIn: may.summary,
     ai: may.ai,
-    csrf: csrf(),
+    csrf: await csrf(),
     meta: { title: "Submit a post", path: "/submit" },
   }, {
     status: shown.status ?? 200,
@@ -84,7 +84,7 @@ export default route({
 
   async post(request) {
     const posted = await request.body.form() as Record<string, string>;
-    if (!csrfOk(posted.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(posted.csrf))) return new Response("Forbidden", { status: 403 });
     const may = await allowed();
     if (!may.submit) return response.redirect(SIGN_IN, 303);
     const form: Form = { ...blank(), ...Object.fromEntries(Object.entries(posted).filter(([k]) => k in blank())) };
@@ -118,7 +118,7 @@ export default route({
     let answer: Response;
     try {
       // A signed-in reader submits as themselves; anyone else, anonymously.
-      answer = current()
+      answer = (await current())
         ? await asReader((a) => send("POST", "/posts", payload, bearer(a)))
         : await send("POST", "/posts", payload);
     } catch (e) {

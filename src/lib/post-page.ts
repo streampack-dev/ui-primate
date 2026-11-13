@@ -52,7 +52,7 @@ export function datedSlug(slug: unknown): string | null {
 
 /** The thread, read as the signed-in reader (so the API says which comments are theirs), else as anyone. */
 async function comments(slug: string): Promise<CommentThread | null> {
-  if (current()) {
+  if (await current()) {
     try {
       const answer = await asReader((a) => send("GET", `/posts/${slug}/comments`, undefined, bearer(a)));
       if (answer.ok) return await answer.json() as CommentThread;
@@ -85,7 +85,7 @@ export async function postPage(path: string, form?: CommentForm, status = 200) {
 
   const commentsAllowed = !(post.categories || []).includes("_sidebar");
   const thread_ = commentsAllowed ? await comments(path) : null;
-  const reader = current();
+  const reader = await current();
 
   return view("Post.marko", {
     id: post.id,
@@ -118,7 +118,7 @@ export async function postPage(path: string, form?: CommentForm, status = 200) {
       slug: path,
       signedIn: !!reader,
       admin: isAdmin(reader),
-      csrf: reader ? csrf() : "",
+      csrf: reader ? await csrf() : "",
       form: form ?? null,
       login: `/login?return=${encodeURIComponent(`/posts/${path}`)}`,
     },

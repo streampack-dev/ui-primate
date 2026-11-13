@@ -20,9 +20,9 @@ const json = (body: unknown, status = 200) =>
 export default route({
   async post(request) {
     const id = request.path.get("id");
-    if (!admin() || !ID.test(id)) return notFound();
+    if (!(await admin()) || !ID.test(id)) return notFound();
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
     const wantsJson = (request.headers.try("accept") || "").includes("application/json");
     const back = backTo(form.back);
     const at = `${back}#${itemAnchor(id)}`;

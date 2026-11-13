@@ -22,7 +22,7 @@ export default route({
     const slug = path.endsWith("/comments") ? datedSlug(path.slice(0, -"/comments".length)) : null;
     if (!slug) return notFound();
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
     const parent = UUID.test(form.parentCommentId || "") ? form.parentCommentId : null;
     const draft = form.markdownSource || "";
     const quote = !parent && (form.anchorExact || "").trim()

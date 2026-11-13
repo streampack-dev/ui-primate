@@ -49,11 +49,11 @@ export async function ownPosts(reader: Reader): Promise<OwnPost[] | null> {
 }
 
 export async function profilePage(state: ProfileState = {}, status = 200) {
-  const reader = current()!;
+  const reader = (await current())!;
   const posts = await ownPosts(reader);
   return view("Profile.marko", {
     reader,
-    csrf: csrf(),
+    csrf: await csrf(),
     ...state,
     nameDraft: state.nameDraft ?? reader.displayName,
     posts,

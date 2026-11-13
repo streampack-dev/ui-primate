@@ -9,7 +9,7 @@ import { datedSlug, notFound } from "#lib/post-page.ts";
 export default route({
   async post(request) {
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
     const id = request.path.get("id");
     const slug = datedSlug(form.post);
     if (!slug || !UUID.test(id)) return notFound();

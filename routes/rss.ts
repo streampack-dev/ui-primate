@@ -104,7 +104,7 @@ export default route({
     const feed = (request.query.try("feed") || "").trim();
     const title = (request.query.try("title") || "").trim();
     const listing = request.query.try("view") === "feeds";
-    const rates = isAdmin(current());
+    const rates = isAdmin(await current());
     const rating = rates ? ratingFilter(request.query.try("rating")) : "";
     if (request.query.try("refresh") !== undefined) {
       stale("/rss/");
@@ -132,7 +132,7 @@ export default route({
       title,
       ...(rates ? {
         rates: !!rated,
-        csrf: rated ? csrf() : "",
+        csrf: rated ? await csrf() : "",
         back: here,
         rating: filter,
         ratingNote: rated ? "" : `The ratings couldn't be read just now, so these items are shown unrated${rating ? " and not filtered by rating" : ""}.`,

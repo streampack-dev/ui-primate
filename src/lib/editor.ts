@@ -45,8 +45,8 @@ export const AUDIO_DONE: Record<string, string> = {
 };
 
 /** The post's id, for an admin; null for anyone else, or an address that isn't a post. */
-export function admitted(id: string): string | null {
-  return isAdmin(current()) && UUID.test(id) ? id : null;
+export async function admitted(id: string): Promise<string | null> {
+  return isAdmin(await current()) && UUID.test(id) ? id : null;
 }
 
 /** The post as the admin sees it (drafts too); null when the API hasn't got it. Throws when it can't be had. */
@@ -112,7 +112,7 @@ export async function editorPage(id: string, post: ContentDetail, shown: EditVie
     maxLabel: MAX_LABEL,
     postHref: post.status === "APPROVED" && post.slug ? `/posts/${post.slug}` : null,
     ai: !!features?.ai,
-    csrf: csrf(),
+    csrf: await csrf(),
     meta: { title: `Edit: ${post.title || "post"}` },
   }, {
     status,

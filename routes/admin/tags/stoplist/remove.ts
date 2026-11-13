@@ -11,9 +11,9 @@ const LIST = at("stoplist", null, null);
 
 export default route({
   async post(request) {
-    if (!admin()) return notFound();
+    if (!(await admin())) return notFound();
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
     const term = form.term || "";
     if (!term) return tagsPage(LIST, { error: "Which term? None was named." }, 400);
     return act((a) => send("DELETE", `/admin/tags/stoplist?${new URLSearchParams({ term })}`, undefined, bearer(a)), async (answer) => {

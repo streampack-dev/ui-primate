@@ -8,7 +8,7 @@ import { profilePage, SIGN_IN } from "#lib/profile.ts";
 /* The API's export of the reader's data, passed through untouched as a download. */
 export default route({
   async get() {
-    const reader = current();
+    const reader = await current();
     if (!reader) return response.redirect(SIGN_IN, 303);
     let answer: Response;
     try {

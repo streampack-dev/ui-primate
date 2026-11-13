@@ -15,13 +15,13 @@ export default route({
     const from = (request.query.try("from") || "").trim();
     const asked = Number.parseInt(request.query.try("page") || "1", 10);
     const page = Number.isFinite(asked) && asked >= 1 ? asked : 1;
-    const all = everyProtocol(request.query.try("all"));
+    const all = await everyProtocol(request.query.try("all"));
     // Searching from a filtered day searches what was said only (ui-pudl#202).
     const conversation = conversationOnly(request.query.try("events"));
 
     const offered = await browsable();
     if (!offered) {
-      return view("LogsUnavailable.marko", { meta: { title: "Logs Unavailable" } }, { status: 503, headers: current() ? { "Cache-Control": "private, no-store" } : {} });
+      return view("LogsUnavailable.marko", { meta: { title: "Logs Unavailable" } }, { status: 503, headers: (await current()) ? { "Cache-Control": "private, no-store" } : {} });
     }
     const channel = offered.find((c) => c.uri === provenance);
     if (!channel) return notFound();

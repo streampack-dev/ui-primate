@@ -15,24 +15,24 @@ export async function loginPage(step: "email" | "code", fields: { email?: string
   // The address the codes come from, as the API says, so a reader knows what to look for.
   const features = await cachedGet<Features>("/features").catch(() => null);
   const from = features?.authentication?.otpFrom?.trim() || "";
-  return view("Login.marko", { step, ...fields, from, csrf: csrf(), meta: { title: "Log in" } }, {
+  return view("Login.marko", { step, ...fields, from, csrf: await csrf(), meta: { title: "Log in" } }, {
     status,
     headers: { "Cache-Control": "private, no-store" },
   });
 }
 
 export default route({
-  get(request) {
+  async get(request) {
     const back = safeReturn(request.query.try("return"));
-    const email = pendingEmail();
+    const email = await pendingEmail();
     return request.query.try("step") === "code" && email ? loginPage("code", { email, back }) : loginPage("email", { back });
   },
 
   async post(request) {
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
     const back = safeReturn(form.return);
-    const email = pendingEmail();
+    const email = await pendingEmail();
     if (!email) return response.redirect(`/login?return=${encodeURIComponent(back)}`, 303);
 
     let answer: Response;
@@ -46,7 +46,7 @@ export default route({
     const p = body.principal;
     if (!body.token || !p?.id) return loginPage("code", { email, back, error: "Signing in didn't work. Try again." }, 400);
 
-    signIn({ userId: p.id, username: p.username || "", displayName: p.displayName?.trim() || p.username || "", role: p.role || "USER" }, body.token, refreshCookie(answer));
+    await signIn({ userId: p.id, username: p.username || "", displayName: p.displayName?.trim() || p.username || "", role: p.role || "USER" }, body.token, refreshCookie(answer));
     return response.redirect(back, 303);
   },
 });

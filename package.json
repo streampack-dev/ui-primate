@@ -11,9 +11,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@primate/marko": "^0.15.0",
-    "@primate/postgresql": "^0.13.0",
-    "@primate/tailwind": "^0.12.0",
+    "@primate/marko": "^0.16.0",
+    "@primate/postgresql": "^0.14.0",
+    "@primate/tailwind": "^0.13.0",
     "@resvg/resvg-js": "^2.6.2",
     "@streampack-dev/clientjs": "^0.2.7",
     "@streampack-dev/masthead": "^0.5.6",
@@ -22,14 +22,14 @@
     "markdown-it": "^15.0.2",
     "markdown-it-footnote": "^4.0.0",
     "markdown-it-task-lists": "^2.1.1",
-    "marko": "^6.4.4",
+    "marko": "^6.4.15",
     "openapi-fetch": "^0.17.0",
     "pele": "1.13.0",
-    "pema": "^0.13.0",
-    "primate": "^0.44.0",
-    "sanitize-html": "^2.18.0",
+    "pema": "^0.14.0",
+    "primate": "^0.45.0",
+    "sanitize-html": "^2.18.2",
     "satori": "^0.63.2",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.5"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
@@ -39,11 +39,11 @@
     "@types/node": "^26.6.4",
     "@types/sanitize-html": "^2.16.2",
     "monocart-coverage-reports": "^3.2.1",
-    "node-html-parser": "^9.0.4",
-    "playwright": "^1.64.0",
+    "node-html-parser": "^9.0.7",
+    "playwright": "^1.65.0",
     "testcontainers": "^12.2.0",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.3"
+    "vitest": "^5.1.0"
   },
   "imports": {
     "#lib/*": "./src/lib/*",

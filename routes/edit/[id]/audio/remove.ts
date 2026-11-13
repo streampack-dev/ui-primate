@@ -14,22 +14,22 @@ const SIGN_IN = (id: string) => `/login?return=${encodeURIComponent(`/edit/${id}
    the podcast feed. Nothing is kept, so it's back only by uploading it again. */
 export default route({
   async get(request) {
-    const id = admitted(request.path.get("id"));
+    const id = await admitted(request.path.get("id"));
     const post = id ? await load(id).catch(() => null) : null;
     if (!id || !post || !audioOf(post.versions)) return notFound();
     return view("Confirm.marko", {
       title: "Remove this post's recording? This cannot be undone.",
       body: `The recording of “${post.title}” and its file go for good, and the post leaves the podcast feed. To have it back, upload it again.`,
-      action: `/edit/${id}/audio/remove`, fields: {}, button: "Remove recording", back: `/edit/${id}#recording`, csrf: csrf(),
+      action: `/edit/${id}/audio/remove`, fields: {}, button: "Remove recording", back: `/edit/${id}#recording`, csrf: await csrf(),
       meta: { title: "Remove recording" },
     }, { headers: { "Cache-Control": "private, no-store" } });
   },
 
   async post(request) {
-    const id = admitted(request.path.get("id"));
+    const id = await admitted(request.path.get("id"));
     if (!id) return notFound();
     const data = await formData(request);
-    if (!csrfOk(data.one("csrf"))) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(data.one("csrf")))) return new Response("Forbidden", { status: 403 });
     try {
       const answer = await asReader((a) => send("DELETE", `/admin/posts/${id}/versions/${KIND}`, undefined, bearer(a)));
       if (answer.ok) return response.redirect(`/edit/${id}?audio=removed#recording`, 303);

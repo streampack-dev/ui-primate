@@ -10,15 +10,15 @@ import { tagsPage } from "#lib/tags-pages.ts";
 const LIST = at("stoplist", null, null);
 
 export default route({
-  get(request) {
-    if (!admin()) return notFound();
+  async get(request) {
+    if (!(await admin())) return notFound();
     return tagsPage(LIST, { said: doneSaying(request.url.searchParams) });
   },
 
   async post(request) {
-    if (!admin()) return notFound();
+    if (!(await admin())) return notFound();
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
     const term = (form.term || "").trim();
     if (!term) return tagsPage(LIST, { error: "Name the term to stoplist." }, 400);
     return act((a) => send("POST", "/admin/tags/stoplist", { term }, bearer(a)), async (answer) => {

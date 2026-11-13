@@ -29,12 +29,12 @@ const SIZE = 50;
 const MIN_QUERY = 3;
 const MAX_QUERY = 200;
 
-const privately = () => (current() ? { "Cache-Control": "private, no-store" } : {});
-const unavailable = () => view("LogsUnavailable.marko", { meta: { title: "Logs Unavailable" } }, { status: 503, headers: privately() });
+const privately = async () => ((await current()) ? { "Cache-Control": "private, no-store" } : {});
+const unavailable = async () => view("LogsUnavailable.marko", { meta: { title: "Logs Unavailable" } }, { status: 503, headers: await privately() });
 
 /** Whether an admin asked for every protocol's channels. */
-export function everyProtocol(asked: string | undefined): boolean {
-  return isAdmin(current()) && asked !== undefined;
+export async function everyProtocol(asked: string | undefined): Promise<boolean> {
+  return isAdmin(await current()) && asked !== undefined;
 }
 
 /** Every channel the reader may browse, for finding one by address; null when the API can't be had. */
@@ -54,7 +54,7 @@ export async function browsable(): Promise<Channel[] | null> {
 export async function logPage(chosenUri: string | null, day: string | null, all: boolean, conversation = false) {
   const zone = await logZone();
   const shown = day ?? today(zone);
-  const admin = isAdmin(current());
+  const admin = isAdmin(await current());
   let channels: Channel[];
   try {
     channels = await listChannels(all);
@@ -104,7 +104,7 @@ export async function logPage(chosenUri: string | null, day: string | null, all:
       path: chosen?.path ? `/logs/${chosen.path}${day ? `/${day}` : ""}` : "/logs",
     },
   }, {
-    headers: privately(),
+    headers: await privately(),
   });
 }
 
@@ -125,8 +125,8 @@ export async function searchPage(channel: Channel, q: string, from: string, page
     heading: [q && `“${q}”`, from && `from ${from}`, `in ${channel.name}`, conversation && "(conversation only)"].filter(Boolean).join(" "),
     meta: { title: `Search ${channel.name}`, path: channel.path ? `/logs/${channel.path}/search` : "/logs", robots: "noindex" },
   };
-  const refused = (notice: string, status: number) =>
-    view("LogSearch.marko", { ...shown, notice, hits: [], summary: "", prev: null, next: null }, { status, headers: privately() });
+  const refused = async (notice: string, status: number) =>
+    view("LogSearch.marko", { ...shown, notice, hits: [], summary: "", prev: null, next: null }, { status, headers: await privately() });
 
   if (q && (q.length < MIN_QUERY || q.length > MAX_QUERY)) return refused(`Search for ${MIN_QUERY} to ${MAX_QUERY} characters.`, 400);
 
@@ -168,5 +168,5 @@ export async function searchPage(channel: Channel, q: string, from: string, page
     summary: `${total} line${total === 1 ? "" : "s"}`,
     prev: page > 1 ? href(page - 1) : null,
     next: page < Number(found.totalPages ?? 0) ? href(page + 1) : null,
-  }, { headers: privately() });
+  }, { headers: await privately() });
 }
