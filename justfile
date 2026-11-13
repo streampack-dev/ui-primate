@@ -11,13 +11,14 @@ clean:
 # Install the packages flog.lock pins (#84, #102): `flog install`, when node_modules is missing or
 # older than package.json or the lockfile. Without it, a fresh checkout or worktree fails, or, worse,
 # Node finds a parent directory's node_modules and runs on its versions. It isn't run when nothing
-# changed; `just clean` forces it.
+# changed; `just clean` forces it. Dependency install scripts are skipped: flog runs only approved
+# ones, and nothing here needs them (esbuild, protobufjs, ssh2 and cpu-features work without).
 _deps:
     #!/usr/bin/env sh
     set -eu
     installed=node_modules/.flog-managed.json
     if [ ! -f "$installed" ] || [ flog.lock -nt "$installed" ] || [ package.json -nt "$installed" ]; then
-      flog install
+      flog install --ignore-scripts
     fi
 
 # Pages are drawn in the browser here; a production build renders them on the server (config/app.ts).
