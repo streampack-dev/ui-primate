@@ -51,7 +51,7 @@ export async function dashboard(opml: { payload?: string; error?: string; said?:
 }
 
 export default route({
-  get() {
-    return admin() ? dashboard() : notFound();
+  async get() {
+    return (await admin()) ? dashboard() : notFound();
   },
 });

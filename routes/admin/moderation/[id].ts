@@ -42,9 +42,9 @@ export async function reportPage(id: string, extra: { said?: string; error?: str
 }
 
 export default route({
-  get(request) {
+  async get(request) {
     const id = request.path.get("id");
-    if (!admin() || !ID.test(id)) return notFound();
+    if (!(await admin()) || !ID.test(id)) return notFound();
     return reportPage(id, { said: doneSaying(request.query.try("done"), request.query.try("n")) });
   },
 });

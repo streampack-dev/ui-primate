@@ -11,7 +11,7 @@ const SIGN_IN = (id: string) => `/login?return=${encodeURIComponent(`/edit/${id}
 
 export default route({
   async get(request) {
-    const id = admitted(request.path.get("id"));
+    const id = await admitted(request.path.get("id"));
     if (!id) return notFound();
     let post;
     try {
@@ -29,10 +29,10 @@ export default route({
   },
 
   async post(request) {
-    const id = admitted(request.path.get("id"));
+    const id = await admitted(request.path.get("id"));
     if (!id) return notFound();
     const data = await formData(request);
-    if (!csrfOk(data.one("csrf"))) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(data.one("csrf")))) return new Response("Forbidden", { status: 403 });
     let post;
     try {
       post = await load(id);

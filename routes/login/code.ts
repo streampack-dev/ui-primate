@@ -9,7 +9,7 @@ import { loginPage } from "../login.ts";
 export default route({
   async post(request) {
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
     const back = safeReturn(form.return);
     const email = (form.email || "").trim();
     if (!email.includes("@")) return loginPage("email", { email, back, error: "Enter the email address you sign in with." }, 400);
@@ -21,7 +21,7 @@ export default route({
       return loginPage("email", { email, back, error: "Codes can't be sent just now. Try again shortly." }, 503);
     }
     if (!answer.ok) return loginPage("email", { email, back, error: await refusal(answer, "That didn't work. Check the address and try again.") }, 400);
-    setPendingEmail(email);
+    await setPendingEmail(email);
     return response.redirect(`/login?step=code&return=${encodeURIComponent(back)}`, 303);
   },
 });

@@ -13,7 +13,7 @@ export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{1
 
 /** Sends [call] as the reader for the thread of post [slug], then goes to where [done] says. */
 export async function write(slug: string, form: CommentForm | null, call: (access: string) => Promise<Response>, done: (answer: Response) => Promise<string>) {
-  if (!current()) return response.redirect(login(slug), 303);
+  if (!(await current())) return response.redirect(login(slug), 303);
   const again = (error: string, status: number) => form ? postPage(slug, { ...form, error }, status) : postPage(slug, undefined, status);
   if (form && !form.draft.trim()) return again("There was nothing in the comment.", 400);
 

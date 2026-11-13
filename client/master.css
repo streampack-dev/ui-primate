@@ -1,6 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
 @import "@streampack-dev/masthead/masthead.css";
 /* The fonts, self-hosted (tools/fonts.mjs, `just fonts`). */
 @import "./fonts.css";

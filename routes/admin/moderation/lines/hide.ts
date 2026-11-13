@@ -7,9 +7,9 @@ import { asked, dayPage } from "../logs.ts";
 /* Hiding the checked lines of an admin day view from the public log, as the admin. */
 export default route({
   async post(request) {
-    if (!admin()) return notFound();
+    if (!(await admin())) return notFound();
     const { lineIds, note, one } = readForm(await request.body.formEntries());
-    if (!csrfOk(one("csrf"))) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(one("csrf")))) return new Response("Forbidden", { status: 403 });
     const at = await asked(one("provenance"), one("day"), one("events"));
     if (!at) return notFound();
     if (lineIds.length === 0) return dayPage(at.provenance, at.day, { error: "Select the lines to hide first.", note }, 400, at.conversation);

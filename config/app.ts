@@ -1,6 +1,6 @@
 import marko from "@primate/marko";
 import tailwind from "@primate/tailwind";
-import config from "primate/config";
+import app from "primate/app";
 import assetCache from "../src/lib/asset-cache.ts";
 import validateExternals from "../src/lib/validate-externals.ts";
 
@@ -8,7 +8,7 @@ import validateExternals from "../src/lib/validate-externals.ts";
     the API as it arrives, so half an hour lets it come at about half a megabit. */
 export const REQUEST_TIMEOUT_MS = 30 * 60 * 1000;
 
-export default config({
+export default app({
   modules: [
     // First, so it's around everything: how long browsers keep Primate's own files.
     assetCache as never,

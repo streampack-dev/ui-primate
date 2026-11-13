@@ -9,7 +9,7 @@ import { usersPage } from "../../users.ts";
 export default route({
   async get(request) {
     const who = request.path.get("username");
-    if (!admin() || !USERNAME.test(who)) return notFound();
+    if (!(await admin()) || !USERNAME.test(who)) return notFound();
     let answer: Response;
     try {
       answer = await asReader((a) => send("GET", `/admin/users/${who}/export`, undefined, bearer(a)));

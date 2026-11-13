@@ -10,7 +10,7 @@ import { admin, adminPage, notFound } from "#lib/admin.ts";
    one is found to change, reschedule or pull. */
 export default route({
   async get(request) {
-    if (!admin()) return notFound();
+    if (!(await admin())) return notFound();
     const asked = Number.parseInt(request.query.try("page") || "0", 10);
     const page = Number.isFinite(asked) && asked >= 0 ? asked : 0;
     const href = (p: number) => `/admin/scheduled${p > 0 ? `?page=${p}` : ""}`;

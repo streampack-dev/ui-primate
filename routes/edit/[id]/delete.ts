@@ -10,27 +10,27 @@ import { view } from "#lib/view.ts";
 /* Deleting a post, asked first: softly, to the Deleted list, or for good (hard), asked again. */
 export default route({
   async get(request) {
-    const id = admitted(request.path.get("id"));
+    const id = await admitted(request.path.get("id"));
     const post = id ? await load(id).catch(() => null) : null;
     if (!id || !post) return notFound();
     const hard = request.query.try("hard") === "true";
     return view("Confirm.marko", { ...(hard ? {
       title: "Permanently delete this post? This cannot be undone.",
       body: `“${post.title}” goes for good.`,
-      action: `/edit/${id}/delete`, fields: { hard: "true" }, button: "Delete for good", back: `/edit/${id}`, csrf: csrf(),
+      action: `/edit/${id}/delete`, fields: { hard: "true" }, button: "Delete for good", back: `/edit/${id}`, csrf: await csrf(),
     } : {
       title: "Delete this post? It can be restored later.",
       body: `“${post.title}” moves to the Deleted list.`,
-      action: `/edit/${id}/delete`, fields: {}, button: "Delete", back: `/edit/${id}`, csrf: csrf(),
+      action: `/edit/${id}/delete`, fields: {}, button: "Delete", back: `/edit/${id}`, csrf: await csrf(),
       onward: { text: "Delete it for good instead…", href: `/edit/${id}/delete?hard=true` },
     }), meta: { title: "Delete post" } }, { headers: { "Cache-Control": "private, no-store" } });
   },
 
   async post(request) {
-    const id = admitted(request.path.get("id"));
+    const id = await admitted(request.path.get("id"));
     if (!id) return notFound();
     const data = await formData(request);
-    if (!csrfOk(data.one("csrf"))) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(data.one("csrf")))) return new Response("Forbidden", { status: 403 });
     const hard = data.one("hard") === "true";
     try {
       const answer = await asReader((a) => send("DELETE", `/admin/posts/${id}${hard ? "?hard=true" : ""}`, undefined, bearer(a)));

@@ -12,13 +12,13 @@ import { view } from "#lib/view.ts";
    changed; the API is given UTC). It's published as last saved. */
 export default route({
   async get(request) {
-    const id = admitted(request.path.get("id"));
+    const id = await admitted(request.path.get("id"));
     const post = id ? await load(id).catch(() => null) : null;
     if (!id || !post) return notFound();
     return view("Confirm.marko", {
       title: `Approve “${post.title}”?`,
       body: "It's published as last saved, on the date below. Save any changes first.",
-      action: `/edit/${id}/approve`, button: "Approve and publish", csrf: csrf(),
+      action: `/edit/${id}/approve`, button: "Approve and publish", csrf: await csrf(),
       // Asked from the pending list, it goes back there.
       ...(request.query.try("return") === "/admin/pending"
         ? { fields: { return: "/admin/pending" }, back: "/admin/pending" }
@@ -30,10 +30,10 @@ export default route({
   },
 
   async post(request) {
-    const id = admitted(request.path.get("id"));
+    const id = await admitted(request.path.get("id"));
     if (!id) return notFound();
     const data = await formData(request);
-    if (!csrfOk(data.one("csrf"))) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(data.one("csrf")))) return new Response("Forbidden", { status: 403 });
     const at = fromLocal(data.one("publishedAt").trim(), postedZone(data.one("publishedZone"))) ?? new Date();
     try {
       const answer = await asReader((a) => send("PUT", `/admin/posts/${id}/approve`, { publishedAt: at.toISOString() }, bearer(a)));

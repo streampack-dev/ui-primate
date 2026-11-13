@@ -14,9 +14,9 @@ import { reportPage } from "../[id].ts";
 export default route({
   async post(request) {
     const id = request.path.get("id");
-    if (!admin() || !ID.test(id)) return notFound();
+    if (!(await admin()) || !ID.test(id)) return notFound();
     const { lineIds, note, one } = readForm(await request.body.formEntries());
-    if (!csrfOk(one("csrf"))) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(one("csrf")))) return new Response("Forbidden", { status: 403 });
     if (lineIds.length === 0) return reportPage(id, { error: "Select the lines to purge first.", checked: lineIds, note }, 400);
 
     if (one("confirm") !== "yes") {
@@ -38,7 +38,7 @@ export default route({
         lineIds: lineIds.join(","),
         lines,
         note,
-        csrf: csrf(),
+        csrf: await csrf(),
         meta: { title: "Purge lines?", robots: "noindex, nofollow" },
       }, { headers: { "Cache-Control": "private, no-store" } });
     }

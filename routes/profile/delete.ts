@@ -12,8 +12,8 @@ import { profilePage, SIGN_IN } from "#lib/profile.ts";
 export default route({
   async post(request) {
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
-    const reader = current();
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
+    const reader = await current();
     if (!reader) return response.redirect(SIGN_IN, 303);
     const typed = form.confirm || "";
     const refuse = (deleteError: string, status = 400) => profilePage({ deleteOpen: true, deleteError, confirmDraft: typed }, status);
@@ -27,7 +27,7 @@ export default route({
       return refuse("The account couldn't be deleted just now. Try again shortly.", 503);
     }
     if (!answer.ok) return refuse(await refusal(answer, "The account wasn't deleted. Try again in a moment."), answer.status >= 500 ? 503 : 400);
-    signOut();
+    await signOut();
     return response.redirect("/profile/deleted", 303);
   },
 });

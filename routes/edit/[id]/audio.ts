@@ -1,7 +1,7 @@
 import response from "primate/response";
 import route from "primate/route";
 import { refusal } from "#auth/forms.ts";
-import { tokens } from "#auth/readers.ts";
+import { csrfCheck, tokens } from "#auth/readers.ts";
 import { SignInRequired } from "#auth/signed-in.ts";
 import { MAX_BYTES } from "#lib/audio.ts";
 import { admitted, categories, editorPage, formOf, load, notFound } from "#lib/editor.ts";
@@ -27,7 +27,7 @@ function refused(status: number): string {
 export default route({
   async post(request) {
     const body = request.original.body;
-    const id = admitted(request.path.get("id"));
+    const id = await admitted(request.path.get("id"));
     if (!id) {
       await drain(body);
       return notFound();
@@ -45,7 +45,7 @@ export default route({
       if (e instanceof SignInRequired) return response.redirect(SIGN_IN(id), 303);
       throw e;
     }
-    const access = tokens()?.access;
+    const access = (await tokens())?.access;
     if (!post || !access) {
       await drain(body);
       return post ? response.redirect(SIGN_IN(id), 303) : notFound();
@@ -63,7 +63,7 @@ export default route({
       return again(TOO_BIG, 413);
     }
 
-    const relayed = await relay(id, body, contentType, access);
+    const relayed = await relay(id, body, contentType, access, await csrfCheck());
     if (relayed.kind === "forbidden") return new Response("Forbidden", { status: 403 });
     if (relayed.kind === "refused") return again(relayed.notice, relayed.status);
     const answer = relayed.response;

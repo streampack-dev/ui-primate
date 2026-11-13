@@ -8,7 +8,7 @@ import { dashboard } from "../../admin.ts";
 /* The active RSS feeds as OPML, the API's, passed through as a download. */
 export default route({
   async get() {
-    if (!admin()) return notFound();
+    if (!(await admin())) return notFound();
     let answer: Response;
     try {
       answer = await asReader((a) => send("GET", "/admin/rss/opml", undefined, { ...bearer(a), Accept: "application/xml, text/x-opml, */*" }));

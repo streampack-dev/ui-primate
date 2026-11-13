@@ -4,8 +4,8 @@ import { at, doneSaying } from "#lib/tags-admin.ts";
 import { tagsPage } from "#lib/tags-pages.ts";
 
 export default route({
-  get(request) {
-    if (!admin()) return notFound();
+  async get(request) {
+    if (!(await admin())) return notFound();
     return tagsPage(at("history", request.query.try("status"), request.query.try("page")), { said: doneSaying(request.url.searchParams) });
   },
 });

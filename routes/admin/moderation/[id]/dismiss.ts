@@ -8,9 +8,9 @@ import { reportPage } from "../[id].ts";
 export default route({
   async post(request) {
     const id = request.path.get("id");
-    if (!admin() || !ID.test(id)) return notFound();
+    if (!(await admin()) || !ID.test(id)) return notFound();
     const { note, one } = readForm(await request.body.formEntries());
-    if (!csrfOk(one("csrf"))) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(one("csrf")))) return new Response("Forbidden", { status: 403 });
     return moderate(`/admin/moderation/reports/${id}/dismiss`, note ? { note } : {}, `/admin/moderation/${id}`, "dismissed",
       (error, status) => reportPage(id, { error }, status), "The report wasn't dismissed.");
   },

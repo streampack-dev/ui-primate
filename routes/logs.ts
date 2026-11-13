@@ -13,7 +13,7 @@ export default route({
     const asked = request.query.try("day");
     const day = asked === undefined ? null : validDay(asked);
     if (asked !== undefined && (!day || day > today(await logZone()))) return notFound();
-    const all = everyProtocol(request.query.try("all"));
+    const all = await everyProtocol(request.query.try("all"));
     const provenance = request.query.try("provenance") || null;
     // Only what was said (`?events=none`, ui-pudl#202), kept on the way to the readable address.
     const conversation = conversationOnly(request.query.try("events"));

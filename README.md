@@ -27,7 +27,7 @@ just dev               # live reload; pages render in the browser here
 just run               # the production build: server-rendered, as it ships
 ```
 
-`just dev`, `build`, `run`, `test` and `coverage` install the packages first (`flog install`) when
+`just dev`, `build`, `run`, `test` and `coverage` install the packages first (`flog install --ignore-scripts`) when
 `node_modules` is missing or older than `package.json` or `flog.lock`, so a fresh checkout,
 a new worktree or a pull that changed the lockfile needs no separate install. `just clean` removes
 `node_modules`, so the next one installs afresh.

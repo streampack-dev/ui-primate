@@ -36,8 +36,8 @@ export async function usersPage(status: Status, extra: { said?: string; error?: 
 }
 
 export default route({
-  get(request) {
-    if (!admin()) return notFound();
+  async get(request) {
+    if (!(await admin())) return notFound();
     const asked = request.query.try("status");
     const status = (STATUSES as readonly string[]).includes(asked || "") ? asked as Status : "ACTIVE";
     return usersPage(status, { said: doneSaying(request.query.try("done"), request.query.try("who"), SAID) });

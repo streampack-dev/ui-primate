@@ -37,9 +37,9 @@ async function draw() {
     year: new Date().getFullYear(),
     // Who's signed in, and the token their sign-out form carries. A reader who isn't gets no
     // session for it: the header only links to the login page.
-    reader: current(),
-    admin: isAdmin(current()),
-    csrf: (session.try() as { csrf?: string } | undefined)?.csrf ?? "",
+    reader: (await current()),
+    admin: isAdmin(await current()),
+    csrf: ((await session.try()) as { csrf?: string } | undefined)?.csrf ?? "",
   });
 }
 

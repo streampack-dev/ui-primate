@@ -14,7 +14,7 @@ const SAID = {
 
 export default route({
   async get(request) {
-    if (!admin()) return notFound();
+    if (!(await admin())) return notFound();
     const deleted = request.query.try("deleted") !== undefined;
     const asked = Number.parseInt(request.query.try("page") || "0", 10);
     const page = Number.isFinite(asked) && asked >= 0 ? asked : 0;

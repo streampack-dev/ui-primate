@@ -15,12 +15,12 @@ type Factoids = components["schemas"]["FactoidListResponse"];
 export type Refused = { error: string; values: Record<string, string> };
 
 /** What a page with the knowledge base's forms needs to know of the reader. */
-function reader() {
-  const who = current();
+async function reader() {
+  const who = await current();
   return {
     signedIn: !!who,
     admin: isAdmin(who),
-    csrf: who ? csrf() : "",
+    csrf: who ? await csrf() : "",
     headers: who ? { "Cache-Control": "private, no-store" } : {},
   };
 }
@@ -28,7 +28,7 @@ function reader() {
 /** The knowledge base, searched by [q], at [page]; [teach] a refused attempt to teach a factoid. */
 export async function knowledgeBasePage(q: string, page: number, teach?: Refused & { selector: string }, status = 200) {
   const meta = { title: "Knowledge Base", description: "Browse public factoids and shared reference entries on bytecode.news", path: "/factoids" };
-  const who = reader();
+  const who = await reader();
   let list: Factoids | null;
   try {
     list = await cachedGet<Factoids>("/factoids", { q: q || undefined, page, size: 20 });
@@ -63,7 +63,7 @@ export async function knowledgeBasePage(q: string, page: number, teach?: Refused
 /** The factoid named [selector], or the page that offers to teach it; [refused] a refused change to it. */
 export async function factoidPage(selector: string, back: string, refused?: Refused, status = 200) {
   const meta = { title: selector, description: `Factoid lookup for ${selector} on bytecode.news`, path: factoidHref(selector) };
-  const who = reader();
+  const who = await reader();
   let factoid: Factoid | null;
   try {
     factoid = await cachedGet<Factoid>(`/factoids/${encodeURIComponent(selector)}`);

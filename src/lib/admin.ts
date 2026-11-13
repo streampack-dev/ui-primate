@@ -44,7 +44,7 @@ async function tagsWaiting(): Promise<number | null> {
 }
 
 /** Whether the reader is an admin. */
-export const admin = () => isAdmin(current());
+export const admin = async () => isAdmin(await current());
 
 /**
  * [name] with [props], in the admin shell, [here] marked in its nav, with the open moderation
@@ -58,7 +58,7 @@ export async function adminPage(name: string, props: Record<string, unknown>, ti
     const count = counts[s.href] || null;
     return { ...s, current: s.href === here, count, countLabel: count ? COUNTED[s.href](count) : null };
   });
-  return view(name, { ...props, csrf: csrf(), sections, meta: { title, robots: "noindex, nofollow" } }, {
+  return view(name, { ...props, csrf: await csrf(), sections, meta: { title, robots: "noindex, nofollow" } }, {
     status,
     headers: { "Cache-Control": "private, no-store" },
   });
@@ -95,8 +95,8 @@ export async function act(call: (access: string) => Promise<Response>, then: str
 }
 
 /** The confirmation page for an admin action. */
-export function confirmPage(props: { title: string; body: string; action: string; button: string; back: string; fields?: Record<string, string>; onward?: { text: string; href: string }; tone?: "go" }) {
-  return view("Confirm.marko", { fields: {}, ...props, csrf: csrf(), meta: { title: props.title, robots: "noindex, nofollow" } }, {
+export async function confirmPage(props: { title: string; body: string; action: string; button: string; back: string; fields?: Record<string, string>; onward?: { text: string; href: string }; tone?: "go" }) {
+  return view("Confirm.marko", { fields: {}, ...props, csrf: await csrf(), meta: { title: props.title, robots: "noindex, nofollow" } }, {
     headers: { "Cache-Control": "private, no-store" },
   });
 }

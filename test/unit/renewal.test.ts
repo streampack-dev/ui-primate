@@ -6,8 +6,8 @@ function sessionWith(tokens: Tokens | null, id = "s1") {
   const s = {
     id,
     tokens,
-    read: () => s.tokens,
-    write: (t: Tokens | null) => { s.tokens = t; },
+    read: async () => s.tokens,
+    write: async (t: Tokens | null) => { s.tokens = t; },
   };
   return s;
 }

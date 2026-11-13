@@ -32,15 +32,15 @@ export async function categoriesPage(extra: { said?: string; error?: string; nam
 }
 
 export default route({
-  get(request) {
-    if (!admin()) return notFound();
+  async get(request) {
+    if (!(await admin())) return notFound();
     return categoriesPage({ said: doneSaying(request.query.try("done"), undefined, SAID) });
   },
 
   async post(request) {
-    if (!admin()) return notFound();
+    if (!(await admin())) return notFound();
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
     const name = (form.name || "").trim();
     const parentId = /^[0-9a-f-]{36}$/i.test(form.parentId || "") ? form.parentId : null;
     if (!name) return categoriesPage({ error: "Give the category a name.", name: "", parentId: parentId ?? "" }, 400);

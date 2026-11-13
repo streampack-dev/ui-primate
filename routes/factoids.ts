@@ -17,8 +17,8 @@ export default route({
 
   async post(request) {
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
-    if (!current()) return response.redirect(`/login?return=${encodeURIComponent("/factoids")}`, 303);
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
+    if (!(await current())) return response.redirect(`/login?return=${encodeURIComponent("/factoids")}`, 303);
     const selector = (form.selector || "").trim();
     const text = (form.text || "").trim();
     const again = (error: string, status = 400) => knowledgeBasePage("", 0, { error, selector, values: { text: form.text || "" } }, status);

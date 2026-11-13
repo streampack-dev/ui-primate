@@ -33,13 +33,13 @@ export default route({
     const search = last === "search";
     const day = last && !search ? validDay(last) : null;
     if (last && !search && (!day || day > today(await logZone()))) return notFound();
-    const all = everyProtocol(request.query.try("all"));
+    const all = await everyProtocol(request.query.try("all"));
     // Only what was said (`?events=none`, ui-pudl#202); anything else is the whole day, as without it.
     const conversation = conversationOnly(request.query.try("events"));
 
     const channels = await browsable();
     if (!channels) {
-      return view("LogsUnavailable.marko", { meta: { title: "Logs Unavailable" } }, { status: 503, headers: current() ? { "Cache-Control": "private, no-store" } : {} });
+      return view("LogsUnavailable.marko", { meta: { title: "Logs Unavailable" } }, { status: 503, headers: (await current()) ? { "Cache-Control": "private, no-store" } : {} });
     }
     const asked = [protocol, service, name].join("/");
     const channel = channels.find((c) => c.path && c.path.split("/").map(decode).join("/") === asked);

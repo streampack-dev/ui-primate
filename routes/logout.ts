@@ -7,8 +7,8 @@ import { csrfOk, signOut, tokens } from "#auth/readers.ts";
 export default route({
   async post(request) {
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
-    const t = tokens();
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
+    const t = await tokens();
     if (t) {
       try {
         await send("POST", "/auth/logout", undefined, { Authorization: `Bearer ${t.access}`, ...(t.refresh ? { Cookie: `refresh_token=${t.refresh}` } : {}) });
@@ -16,7 +16,7 @@ export default route({
         // Signed out here regardless.
       }
     }
-    signOut();
+    await signOut();
     return response.redirect("/", 303);
   },
 });

@@ -26,15 +26,15 @@ function selectorOf(raw: string): string {
 const FORGET_BODY = "Its text and every other attribute go; the bot no longer knows it. Anyone signed in can teach it again.";
 
 export default route({
-  get(request) {
+  async get(request) {
     const selector = selectorOf(request.path.get("selector"));
     // Forgetting is asked first, on a page of its own (client/confirm.ts shows it in a dialog).
     if (request.query.try("forget") !== undefined) {
-      if (!current()) return notFound();
+      if (!(await current())) return notFound();
       return view("Confirm.marko", {
         title: `Forget “${selector}”?`,
         body: FORGET_BODY,
-        action: factoidHref(selector), fields: { do: "forget" }, button: "Forget", back: factoidHref(selector), csrf: csrf(),
+        action: factoidHref(selector), fields: { do: "forget" }, button: "Forget", back: factoidHref(selector), csrf: await csrf(),
         meta: { title: "Forget factoid" },
       }, { headers: { "Cache-Control": "private, no-store" } });
     }
@@ -44,13 +44,13 @@ export default route({
 
   async post(request) {
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
     const selector = selectorOf(request.path.get("selector"));
     const here = factoidHref(selector);
     const signIn = response.redirect(`/login?return=${encodeURIComponent(here)}`, 303);
-    if (!current()) return signIn;
+    if (!(await current())) return signIn;
     const step = form.do || "save";
-    if ((step === "lock" || step === "unlock") && !isAdmin(current())) return notFound();
+    if ((step === "lock" || step === "unlock") && !isAdmin(await current())) return notFound();
     if (!["save", "forget", "lock", "unlock"].includes(step)) return notFound();
 
     const typed = Object.fromEntries(Object.entries(form).filter(([k]) => !k.startsWith("was.") && k !== "csrf" && k !== "do"));

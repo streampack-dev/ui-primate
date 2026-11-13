@@ -8,9 +8,9 @@ import { ROLES, usersPage } from "../../users.ts";
 export default route({
   async post(request) {
     const who = request.path.get("username");
-    if (!admin() || !USERNAME.test(who)) return notFound();
+    if (!(await admin()) || !USERNAME.test(who)) return notFound();
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
     if (!(ROLES as readonly string[]).includes(form.newRole)) return usersPage("ACTIVE", { error: "Choose one of the roles offered." }, 400);
     return act((a) => send("PUT", `/admin/users/${who}/role`, { newRole: form.newRole }, bearer(a)),
       `/admin/users?done=role&who=${who}`,

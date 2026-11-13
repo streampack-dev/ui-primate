@@ -10,9 +10,9 @@ import { dashboard } from "../../../admin.ts";
 /* RSS feeds imported from what's pasted: OPML, or a list of feed addresses, one to a line. */
 export default route({
   async post(request) {
-    if (!admin()) return notFound();
+    if (!(await admin())) return notFound();
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
     const payload = (form.payload || "").trim();
     if (!payload) return dashboard({ error: "Paste OPML or feed addresses before importing." }, 400);
     const contentType = payload.startsWith("<") ? "application/xml" : "text/plain";

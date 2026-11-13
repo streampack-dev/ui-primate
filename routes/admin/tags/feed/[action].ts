@@ -13,9 +13,9 @@ const DONE = { map: "mapped", create: "created", ignore: "ignored" } as const;
 export default route({
   async post(request) {
     const action = request.path.get("action") as keyof typeof DONE;
-    if (!admin() || !(action in DONE)) return notFound();
+    if (!(await admin()) || !(action in DONE)) return notFound();
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
     const back = backTo("feed", form.back);
     const name = (form.name || "").trim();
     if (!name) return tagsPage(back, { error: "Which feed tag? None was named." }, 400);

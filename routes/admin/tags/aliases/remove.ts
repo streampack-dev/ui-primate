@@ -11,9 +11,9 @@ import { signedIn, tagsPage } from "#lib/tags-pages.ts";
 const LIST = at("aliases", null, null);
 
 export default route({
-  get(request) {
+  async get(request) {
     const alias = request.query.try("alias") || "";
-    if (!admin() || !alias) return notFound();
+    if (!(await admin()) || !alias) return notFound();
     return signedIn(request.target, async () => {
       const found = ((await getAsReader<AliasEntry[]>("/admin/tags/aliases").catch(() => null)) || []).find((a) => a.alias === alias);
       if (!found) return notFound();
@@ -26,9 +26,9 @@ export default route({
   },
 
   async post(request) {
-    if (!admin()) return notFound();
+    if (!(await admin())) return notFound();
     const form = await request.body.form() as Record<string, string>;
-    if (!csrfOk(form.csrf)) return new Response("Forbidden", { status: 403 });
+    if (!(await csrfOk(form.csrf))) return new Response("Forbidden", { status: 403 });
     const alias = form.alias || "";
     if (!alias) return tagsPage(LIST, { error: "Which alias? None was named." }, 400);
     return act((a) => send("DELETE", `/admin/tags/aliases?${new URLSearchParams({ alias })}`, undefined, bearer(a)), async (answer) => {

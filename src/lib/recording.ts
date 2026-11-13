@@ -17,7 +17,6 @@ import { randomBytes } from "node:crypto";
 import { Readable } from "node:stream";
 import type { Readable as NodeReadable } from "node:stream";
 import { sendStream } from "#api/client.ts";
-import { csrfOk } from "#auth/readers.ts";
 import { KIND, MAX_BYTES, MAX_LABEL, parseLength } from "#lib/audio.ts";
 
 /** Room for the form's other fields and the multipart framing around the file. */
@@ -59,8 +58,9 @@ export async function drain(body: ReadableStream<Uint8Array> | null): Promise<vo
 }
 
 /** Passes the upload in [body] (of [contentType]) on to the API as post [id]'s recording, with
-   [access] as the admin's token. */
-export function relay(id: string, body: ReadableStream<Uint8Array>, contentType: string, access: string): Promise<Relayed> {
+   [access] as the admin's token. [tokenOk] checks the form's token (csrfCheck); a form without a
+   good one is answered "forbidden" and nothing is sent on. */
+export function relay(id: string, body: ReadableStream<Uint8Array>, contentType: string, access: string, tokenOk: (given: unknown) => boolean): Promise<Relayed> {
   return new Promise((resolve) => {
     let parser: busboy.Busboy;
     try {
@@ -86,7 +86,7 @@ export function relay(id: string, body: ReadableStream<Uint8Array>, contentType:
         decide({ kind: "refused", notice: NO_FILE, status: 400 });
         return void file.resume();
       }
-      if (!csrfOk(fields.csrf)) {
+      if (!tokenOk(fields.csrf)) {
         decide({ kind: "forbidden" });
         return void file.resume();
       }

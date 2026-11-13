@@ -61,7 +61,7 @@ export async function asked(provenance: string | undefined, day: string | undefi
 
 export default route({
   async get(request) {
-    if (!admin()) return notFound();
+    if (!(await admin())) return notFound();
     const at = await asked(request.query.try("provenance"), request.query.try("day"), request.query.try("events"));
     if (!at) return notFound();
     return dayPage(at.provenance, at.day, { said: doneSaying(request.query.try("done"), request.query.try("n")) }, 200, at.conversation);

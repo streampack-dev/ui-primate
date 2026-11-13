@@ -116,8 +116,10 @@ describe("comments on a passage, in a browser", () => {
     expect(said).toContain("Ann");
     expect(said).toContain("Bea");
     expect(said).toContain("2 comments");
-    expect(Math.abs(await top(page, one) - await passageTop(page, "first quoted words"))).toBeLessThanOrEqual(1);
-    expect(Math.abs(await top(page, `#anchor-callout-${ON_SECOND}`) - await passageTop(page, "second"))).toBeLessThanOrEqual(1);
+    // Polled: the callouts are drawn again a frame after the layout moves (fonts, resizes), and a
+    // loaded machine can measure in between.
+    await expect.poll(async () => Math.abs(await top(page, one) - await passageTop(page, "first quoted words"))).toBeLessThanOrEqual(1);
+    await expect.poll(async () => Math.abs(await top(page, `#anchor-callout-${ON_SECOND}`) - await passageTop(page, "second"))).toBeLessThanOrEqual(1);
     // "third" is on the same line as "second": its callout moves down below that one's.
     expect(await top(page, `#anchor-callout-${ON_THIRD}`)).toBeGreaterThanOrEqual(await bottom(page, `#anchor-callout-${ON_SECOND}`));
     // The light mark: one highlight range for each passage.
